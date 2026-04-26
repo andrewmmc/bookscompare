@@ -1,0 +1,19 @@
+{
+  "name": "@bookscompare/api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "check": "wrangler deploy --dry-run",
+    "typecheck": "pnpm exec tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@bookscompare/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260404.0",
+    "wrangler": "^4.13.2"
+  }
+}

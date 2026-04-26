@@ -1,0 +1,14 @@
+{
+  "name": "bookscompare",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev:api": "pnpm --filter @bookscompare/api dev",
+    "deploy:api": "pnpm --filter @bookscompare/api deploy",
+    "check:api": "pnpm --filter @bookscompare/api check",
+    "typecheck": "pnpm -r --if-present typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

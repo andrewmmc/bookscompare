@@ -49,6 +49,9 @@ typings/
 # Optional npm cache directory
 .npm
 
+# pnpm
+.pnpm-store
+
 # Optional eslint cache
 .eslintcache
 
@@ -63,3 +66,13 @@ typings/
 
 # dotenv environment variables file
 .env
+.dev.vars
+
+# TypeScript
+*.tsbuildinfo
+
+# Cloudflare Workers
+.wrangler
+
+# Build output
+dist

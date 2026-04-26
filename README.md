@@ -1,66 +1,75 @@
-# BooksCompare API
-Built with Firebase, Express.
+# BooksCompare
 
-Simple RESTful API for fetching books pricing from major online book stores in Taiwan. Just a MVP.
+BooksCompare is being rewritten from an old Firebase function project into a monorepo with:
 
-## Demo
-- [BooksCompare 好書價](https://github.com/andrewmmc/bookscompare-app)
+- `apps/api` for the backend service
+- `apps/mobile` for the future mobile app
+- `packages/contracts` for shared API contracts
 
-## Endpoints
-##### Book Resources
-URL | Description
-------|------------
-`GET` /book/isbn/:id| Returns detailed pricing information of a single book.
+## Current Status
 
-## Clone, Install and Run
-The instructions below will get you a copy of the project up and run on your machine.
+The new backend target is Cloudflare Workers so the service can stay on a free account.
 
-Clone the repo, and run:
-``` bash
-# install firebase-tools
-npm install -g firebase-tools
+The new API currently provides:
 
-# firebase login
-firebase login
+- `GET /`
+- `GET /health`
+- `GET /isbn/:id`
+- `GET /book/isbn/:id` for legacy compatibility
 
-# install dependencies
-cd functions
-npm install
+Right now the worker validates ISBN input and returns an empty placeholder response while the scraper layer is rebuilt. This is intentional: the legacy parsers have not been maintained for a long time, so they are not being carried over blindly.
 
-# run in local
-npm run serve
+## Monorepo Layout
+
+```txt
+apps/
+  api/
+  mobile/
+legacy/
+  firebase/
+packages/
+  contracts/
 ```
 
-## Changelog
-##### v.1.1.0
-- Update engine from Node v.6.11.5 to Node v.8.9.4
+The old Firebase app now lives under `legacy/firebase/` so the workspace root stays focused on the new monorepo.
 
-##### v.1.0.2
-- Add more book stores sources
+## Getting Started
 
-##### v.1.0.1
-- Use HTTPS connections for all URLs returned
+Install dependencies:
 
-##### v.1.0.0
-- Init project
-- Add book image links
-- Send multiple requests at once
+```bash
+pnpm install
+```
 
-## Coding Standard
-- [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript)
+Start the Cloudflare Worker locally:
 
-## Built With
-- [Axios](https://github.com/axios/axios)
-- [Cheerio](https://github.com/cheeriojs/cheerio)
-- [Express](http://expressjs.com)
-- [Lodash](https://lodash.com)
+```bash
+pnpm dev:api
+```
 
-## Author
-- [Andrew Mok](https://andrewmmc.com) (@andrewmmc)
+Typecheck the workspace:
+
+```bash
+pnpm typecheck
+```
+
+Dry-run the Cloudflare Worker deployment:
+
+```bash
+pnpm check:api
+```
+
+## Migration Notes
+
+- The new API is intentionally simple first.
+- Shared response contracts live in `packages/contracts`.
+- The mobile app folder exists as a placeholder until the API shape settles.
+- Legacy Firebase scraper code remains in `legacy/firebase/functions/` so the old parsing logic can be ported carefully later.
+
+## Legacy Project Notes
+
+The original project was a Firebase + Express API that scraped book pricing from several Taiwan bookstores. That code is still in this repo under `legacy/firebase/` for reference, but it is no longer the direction for the new runtime.
 
 ## License
-- [Apache License 2.0](LICENSE.md)
 
-## Support
-- Give this repo a **star** if you like :)
-- For any questions, please feel free to [open an issue here](../../issues) or [contact me via email](mailto:hello@andrewmmc.com).
+Apache License 2.0. See [LICENSE.md](./LICENSE.md).
