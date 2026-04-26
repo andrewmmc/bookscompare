@@ -9,6 +9,8 @@ const BOOKS_COM_TW_CURRENCY = 'TWD'
 
 const RESULT_BLOCK_PATTERN = /<tbody id="itemlist_(\d+)">([\s\S]*?)<\/tbody>/g
 const RESULT_COUNT_PATTERN = /搜尋結果共\s*<span>(\d+)<\/span>\s*筆/
+const RESULT_TABLE_PATTERN = /<table id="itemlist_table"[\s\S]*?>([\s\S]*?)<\/table>/
+const NO_RESULTS_PATTERN = /抱歉，找不到您所查詢的\s*&quot;?.+?&quot;?\s*資料|抱歉，找不到您所查詢的\s*".+?"\s*資料/
 
 function matchFirst(pattern: RegExp, input: string): string | undefined {
   return pattern.exec(input)?.[1]
@@ -163,8 +165,22 @@ function parseOffer(productId: string, block: string): BookOffer {
 }
 
 export function parseBooksComTwSearchResults(html: string): BookOffer[] {
+  if (NO_RESULTS_PATTERN.test(html)) {
+    return []
+  }
+
   const resultCount = Number(matchFirst(RESULT_COUNT_PATTERN, html) ?? '0')
-  const results = Array.from(html.matchAll(RESULT_BLOCK_PATTERN), (match) => {
+  const resultTable = matchFirst(RESULT_TABLE_PATTERN, html)
+
+  if (!resultTable) {
+    if (resultCount === 0) {
+      return []
+    }
+
+    throw new Error('Books.com.tw parser could not find the main search result table.')
+  }
+
+  const results = Array.from(resultTable.matchAll(RESULT_BLOCK_PATTERN), (match) => {
     const productId = match[1]
     const block = match[2]
 
@@ -192,6 +208,10 @@ export async function fetchBooksComTwOffersByIsbn(isbn: string): Promise<BookOff
       'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
     },
   })
+
+  if (response.status === 404) {
+    return []
+  }
 
   if (!response.ok) {
     throw new Error(`Books.com.tw returned ${response.status}.`)
