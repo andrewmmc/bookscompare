@@ -1,6 +1,6 @@
-import { fetchEsliteOffersByIsbn } from '../sources/eslite'
+import { fetchEsliteOffersByIsbn } from '../sources/eslite';
 
-import type { BookProvider } from './types'
+import type { BookProvider } from './types';
 
 export const esliteProvider: BookProvider = {
   id: 'eslite',
@@ -9,4 +9,4 @@ export const esliteProvider: BookProvider = {
   usesJsonApi: true,
   timeoutMs: 5000,
   searchByIsbn: fetchEsliteOffersByIsbn,
-}
+};

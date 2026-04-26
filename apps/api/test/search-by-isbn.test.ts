@@ -1,16 +1,16 @@
-import assert from 'node:assert/strict'
-import test from 'node:test'
-import { setTimeout as delay } from 'node:timers/promises'
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { setTimeout as delay } from 'node:timers/promises';
 
-import type { BookOffer } from '@bookscompare/contracts'
+import type { BookOffer } from '@bookscompare/contracts';
 
-import { providers } from '../src/providers/registry'
-import { searchBooksByIsbn } from '../src/services/search-by-isbn'
+import { providers } from '../src/providers/registry';
+import { searchBooksByIsbn } from '../src/services/search-by-isbn';
 
-import type { BookProvider } from '../src/providers/types'
+import type { BookProvider } from '../src/providers/types';
 
 function getBookProviders(): BookProvider[] {
-  return providers.filter((provider): provider is BookProvider => 'searchByIsbn' in provider)
+  return providers.filter((provider): provider is BookProvider => 'searchByIsbn' in provider);
 }
 
 function createOffer(provider: BookProvider): BookOffer {
@@ -30,46 +30,46 @@ function createOffer(provider: BookProvider): BookOffer {
     url: `https://example.com/${provider.id}`,
     imageUrl: `https://example.com/${provider.id}.jpg`,
     badges: [],
-  }
+  };
 }
 
 test('searchBooksByIsbn runs provider lookups in parallel and preserves provider order', async (t) => {
-  const bookProviders = getBookProviders()
+  const bookProviders = getBookProviders();
   const originalSearchByIsbn = bookProviders.map((provider) => ({
     provider,
     searchByIsbn: provider.searchByIsbn,
-  }))
+  }));
 
   t.after(() => {
     for (const entry of originalSearchByIsbn) {
-      entry.provider.searchByIsbn = entry.searchByIsbn
+      entry.provider.searchByIsbn = entry.searchByIsbn;
     }
-  })
+  });
 
   for (const provider of bookProviders) {
     provider.searchByIsbn = async () => {
       switch (provider.id) {
         case 'books-com-tw':
-          await delay(100)
-          return [createOffer(provider)]
+          await delay(100);
+          return [createOffer(provider)];
         case 'kingstone':
-          await delay(80)
-          throw new Error('Kingstone failed.')
+          await delay(80);
+          throw new Error('Kingstone failed.');
         case 'cite':
-          await delay(60)
-          return []
+          await delay(60);
+          return [];
         case 'eslite':
-          await delay(40)
-          return [createOffer(provider)]
+          await delay(40);
+          return [createOffer(provider)];
       }
-    }
+    };
   }
 
-  const startedAt = Date.now()
-  const response = await searchBooksByIsbn('9786267569337')
-  const elapsedMs = Date.now() - startedAt
+  const startedAt = Date.now();
+  const response = await searchBooksByIsbn('9786267569337');
+  const elapsedMs = Date.now() - startedAt;
 
-  assert.ok(elapsedMs < 170, `Expected parallel lookup under 170ms, got ${elapsedMs}ms.`)
+  assert.ok(elapsedMs < 170, `Expected parallel lookup under 170ms, got ${elapsedMs}ms.`);
   assert.deepEqual(response.sources, [
     {
       id: 'books-com-tw',
@@ -93,8 +93,11 @@ test('searchBooksByIsbn runs provider lookups in parallel and preserves provider
       name: '誠品線上',
       status: 'ready',
     },
-  ])
-  assert.deepEqual(response.data.map((offer) => offer.sourceId), ['books-com-tw', 'eslite'])
-  assert.equal(response.meta.liveScraping, true)
-  assert.equal(response.meta.message, 'One or more providers failed during ISBN search.')
-})
+  ]);
+  assert.deepEqual(
+    response.data.map((offer) => offer.sourceId),
+    ['books-com-tw', 'eslite']
+  );
+  assert.equal(response.meta.liveScraping, true);
+  assert.equal(response.meta.message, 'One or more providers failed during ISBN search.');
+});
