@@ -1,12 +1,14 @@
 import { BOOK_SOURCES } from '@bookscompare/contracts'
 
 import { booksComTwProvider } from './books-com-tw'
+import { citeProvider } from './cite'
 import { kingstoneProvider } from './kingstone'
 
 import type { BookProvider } from './types'
 
 const providerById = new Map<BookProvider['id'], BookProvider>([
   [booksComTwProvider.id, booksComTwProvider],
+  [citeProvider.id, citeProvider],
   [kingstoneProvider.id, kingstoneProvider],
 ])
 
