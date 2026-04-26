@@ -219,5 +219,5 @@ export async function fetchBooksComTwOffersByIsbn(isbn: string): Promise<BookOff
 
   const html = await response.text()
 
-  return parseBooksComTwSearchResults(html)
+  return parseBooksComTwSearchResults(html).slice(0, 1)
 }
