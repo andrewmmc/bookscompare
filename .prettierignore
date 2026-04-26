@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+.wrangler
+coverage
+*.log
+.env
+.DS_Store
+pnpm-lock.yaml
+legacy/
+**/test/fixtures/**

@@ -1,16 +1,28 @@
-import { BOOK_SOURCES, type ApiErrorResponse, type LookupResponse, type SourceState } from '@bookscompare/contracts'
+import {
+  BOOK_SOURCES,
+  type ApiErrorResponse,
+  type LookupResponse,
+  type SourceState,
+} from '@bookscompare/contracts';
 
-const disabledSourceMessage = 'This source is still disabled while the API is being rebuilt for Cloudflare Workers.'
+const disabledSourceMessage =
+  'This source is still disabled while the API is being rebuilt for Cloudflare Workers.';
 
 interface CreateLookupResponseInput {
-  isbn: string
-  data: LookupResponse['data']
-  sources: SourceState[]
-  liveScraping: boolean
-  message?: string
+  isbn: string;
+  data: LookupResponse['data'];
+  sources: SourceState[];
+  liveScraping: boolean;
+  message?: string;
 }
 
-export function createLookupResponse({ isbn, data, sources, liveScraping, message }: CreateLookupResponseInput): LookupResponse {
+export function createLookupResponse({
+  isbn,
+  data,
+  sources,
+  liveScraping,
+  message,
+}: CreateLookupResponseInput): LookupResponse {
   return {
     query: { isbn },
     data,
@@ -20,14 +32,14 @@ export function createLookupResponse({ isbn, data, sources, liveScraping, messag
       requestedAt: new Date().toISOString(),
       ...(message ? { message } : {}),
     },
-  }
+  };
 }
 
 export function createDisabledSourceState(sourceId: SourceState['id']): SourceState {
-  const source = BOOK_SOURCES.find((item) => item.id === sourceId)
+  const source = BOOK_SOURCES.find((item) => item.id === sourceId);
 
   if (!source) {
-    throw new Error(`Unknown source id: ${sourceId}`)
+    throw new Error(`Unknown source id: ${sourceId}`);
   }
 
   return {
@@ -35,14 +47,17 @@ export function createDisabledSourceState(sourceId: SourceState['id']): SourceSt
     name: source.name,
     status: 'disabled',
     message: disabledSourceMessage,
-  }
+  };
 }
 
-export function createErrorResponse(code: ApiErrorResponse['error']['code'], message: string): ApiErrorResponse {
+export function createErrorResponse(
+  code: ApiErrorResponse['error']['code'],
+  message: string
+): ApiErrorResponse {
   return {
     error: {
       code,
       message,
     },
-  }
+  };
 }
