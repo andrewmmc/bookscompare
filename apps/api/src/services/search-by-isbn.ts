@@ -12,7 +12,7 @@ export async function searchBooksByIsbn(isbn: string): Promise<LookupResponse> {
   const data: LookupResponse['data'] = []
   const sources: SourceState[] = []
   let liveScraping = false
-  let message = '博客來 ISBN search is live. Other sources are still disabled during the migration.'
+  let message: string | undefined
 
   for (const provider of providers) {
     if (!provider.enabled || !isBookProvider(provider)) {
@@ -38,7 +38,7 @@ export async function searchBooksByIsbn(isbn: string): Promise<LookupResponse> {
         status: 'error',
         message: error instanceof Error ? error.message : `Unexpected ${provider.name} parser error.`,
       })
-      message = '博客來 ISBN search failed. Other sources remain disabled during the migration.'
+      message = 'One or more providers failed during ISBN search.'
     }
   }
 
@@ -47,6 +47,6 @@ export async function searchBooksByIsbn(isbn: string): Promise<LookupResponse> {
     data,
     sources,
     liveScraping,
-    message,
+    ...(message ? { message } : {}),
   })
 }
