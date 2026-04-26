@@ -10,7 +10,7 @@ const BOOKS_COM_TW_SOURCE_NAME = '博客來'
 const BOOKS_COM_TW_SEARCH_URL = 'https://search.books.com.tw/search/query/cat/all/sort/1/v/0/page/1/spell/3/key/'
 const BOOKS_COM_TW_CURRENCY = 'TWD'
 
-const RESULT_BLOCK_PATTERN = /<tbody id="itemlist_(\d+)">([\s\S]*?)<\/tbody>/g
+const RESULT_BLOCK_PATTERN = /<tbody id="itemlist_([A-Z0-9]+)">([\s\S]*?)<\/tbody>/g
 const RESULT_COUNT_PATTERN = /搜尋結果共\s*<span>(\d+)<\/span>\s*筆/
 const RESULT_TABLE_PATTERN = /<table id="itemlist_table"[\s\S]*?>([\s\S]*?)<\/table>/
 const NO_RESULTS_PATTERN = /抱歉，找不到您所查詢的\s*&quot;?.+?&quot;?\s*資料|抱歉，找不到您所查詢的\s*".+?"\s*資料/
@@ -40,6 +40,12 @@ function parsePrice(productId: string, block: string, priceBlock: string): numbe
 
   if (displayedPrice) {
     return Number(displayedPrice.replaceAll(',', ''))
+  }
+
+  const directPrice = matchFirst(/優惠價:\s*([\d,]+)\s*元/, priceBlock)
+
+  if (directPrice) {
+    return Number(directPrice.replaceAll(',', ''))
   }
 
   throw new Error(`Books.com.tw parser could not find a price for product ${productId}.`)
