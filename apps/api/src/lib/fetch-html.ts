@@ -2,10 +2,23 @@ interface FetchHtmlOptions {
   headers?: HeadersInit
   notFoundStatus?: number
   errorLabel?: string
+  timeoutMs?: number
 }
 
+import { fetchWithTimeout } from './fetch-with-timeout'
+
 export async function fetchHtml(url: string, options: FetchHtmlOptions = {}): Promise<string | null> {
-  const response = await fetch(url, options.headers ? { headers: options.headers } : undefined)
+  let response: Response
+
+  try {
+    response = await fetchWithTimeout(url, options.headers ? { headers: options.headers } : undefined, options.timeoutMs)
+  } catch (error) {
+    if (options.timeoutMs && error instanceof Error && error.name === 'AbortError') {
+      throw new Error(options.errorLabel ? `${options.errorLabel} timed out after ${options.timeoutMs}ms.` : `Request timed out after ${options.timeoutMs}ms.`)
+    }
+
+    throw error
+  }
 
   if (options.notFoundStatus && response.status === options.notFoundStatus) {
     return null

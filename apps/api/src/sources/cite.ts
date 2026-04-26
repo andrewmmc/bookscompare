@@ -3,6 +3,8 @@ import type { BookOffer } from '@bookscompare/contracts'
 import { fetchHtml } from '../lib/fetch-html'
 import { decodeHtmlEntities, normalizeWhitespace, stripTags } from '../lib/html'
 
+import type { ProviderSearchOptions } from '../providers/types'
+
 const CITE_BASE_URL = 'https://www.cite.com.tw'
 const CITE_SOURCE_ID = 'cite'
 const CITE_SOURCE_NAME = '城邦讀書花園'
@@ -194,7 +196,7 @@ export function parseCiteSearchResults(html: string): BookOffer[] {
   return results
 }
 
-export async function fetchCiteOffersByIsbn(isbn: string): Promise<BookOffer[]> {
+export async function fetchCiteOffersByIsbn(isbn: string, options: ProviderSearchOptions = {}): Promise<BookOffer[]> {
   const html = await fetchHtml(`${CITE_SEARCH_URL}${encodeURIComponent(isbn)}`, {
     headers: {
       'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
@@ -202,6 +204,7 @@ export async function fetchCiteOffersByIsbn(isbn: string): Promise<BookOffer[]> 
     },
     notFoundStatus: 404,
     errorLabel: 'Cite',
+    ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
   })
 
   if (!html) {

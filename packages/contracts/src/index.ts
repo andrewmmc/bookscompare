@@ -11,6 +11,10 @@ export const BOOK_SOURCES = [
     id: 'cite',
     name: '城邦讀書花園',
   },
+  {
+    id: 'eslite',
+    name: '誠品線上',
+  },
 ] as const
 
 export type BookSourceId = (typeof BOOK_SOURCES)[number]['id']

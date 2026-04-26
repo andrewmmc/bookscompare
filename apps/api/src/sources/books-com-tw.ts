@@ -3,6 +3,8 @@ import type { BookOffer } from '@bookscompare/contracts'
 import { fetchHtml } from '../lib/fetch-html'
 import { decodeHtmlEntities, normalizeWhitespace, stripTags, toAbsoluteUrl } from '../lib/html'
 
+import type { ProviderSearchOptions } from '../providers/types'
+
 const BOOKS_COM_TW_SOURCE_ID = 'books-com-tw'
 const BOOKS_COM_TW_SOURCE_NAME = '博客來'
 const BOOKS_COM_TW_SEARCH_URL = 'https://search.books.com.tw/search/query/cat/all/sort/1/v/0/page/1/spell/3/key/'
@@ -203,13 +205,14 @@ export function parseBooksComTwSearchResults(html: string): BookOffer[] {
   return results
 }
 
-export async function fetchBooksComTwOffersByIsbn(isbn: string): Promise<BookOffer[]> {
+export async function fetchBooksComTwOffersByIsbn(isbn: string, options: ProviderSearchOptions = {}): Promise<BookOffer[]> {
   const html = await fetchHtml(`${BOOKS_COM_TW_SEARCH_URL}${encodeURIComponent(isbn)}`, {
     headers: {
       'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
     },
     notFoundStatus: 404,
     errorLabel: 'Books.com.tw',
+    ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
   })
 
   if (!html) {

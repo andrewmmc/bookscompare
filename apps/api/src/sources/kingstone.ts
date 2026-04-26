@@ -3,6 +3,8 @@ import type { BookOffer } from '@bookscompare/contracts'
 import { fetchHtml } from '../lib/fetch-html'
 import { decodeHtmlEntities, normalizeWhitespace, stripTags } from '../lib/html'
 
+import type { ProviderSearchOptions } from '../providers/types'
+
 const KINGSTONE_BASE_URL = 'https://www.kingstone.com.tw'
 const KINGSTONE_SOURCE_ID = 'kingstone'
 const KINGSTONE_SOURCE_NAME = '金石堂'
@@ -210,13 +212,14 @@ export function parseKingstoneSearchResults(html: string): KingstoneSearchOffer[
   return results
 }
 
-export async function fetchKingstoneOffersByIsbn(isbn: string): Promise<BookOffer[]> {
+export async function fetchKingstoneOffersByIsbn(isbn: string, options: ProviderSearchOptions = {}): Promise<BookOffer[]> {
   const html = await fetchHtml(`${KINGSTONE_SEARCH_URL}${encodeURIComponent(isbn)}/dis/list?`, {
     headers: {
       'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
     },
     notFoundStatus: 404,
     errorLabel: 'Kingstone',
+    ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
   })
 
   if (!html) {
@@ -236,6 +239,7 @@ export async function fetchKingstoneOffersByIsbn(isbn: string): Promise<BookOffe
       },
       notFoundStatus: 404,
       errorLabel: 'Kingstone',
+      ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
     })
 
     if (!detailHtml) {

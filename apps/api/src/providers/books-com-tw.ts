@@ -6,5 +6,7 @@ export const booksComTwProvider: BookProvider = {
   id: 'books-com-tw',
   name: '博客來',
   enabled: true,
+  usesJsonApi: false,
+  timeoutMs: 8000,
   searchByIsbn: fetchBooksComTwOffersByIsbn,
 }

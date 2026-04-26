@@ -21,7 +21,9 @@ export async function searchBooksByIsbn(isbn: string): Promise<LookupResponse> {
     }
 
     try {
-      const offers = await provider.searchByIsbn(isbn)
+      const offers = await provider.searchByIsbn(isbn, {
+        timeoutMs: provider.timeoutMs,
+      })
 
       data.push(...offers)
       sources.push({
