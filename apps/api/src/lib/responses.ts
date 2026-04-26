@@ -1,22 +1,40 @@
-import { BOOK_SOURCES, type ApiErrorResponse, type LookupResponse } from '@bookscompare/contracts'
+import { BOOK_SOURCES, type ApiErrorResponse, type LookupResponse, type SourceState } from '@bookscompare/contracts'
 
-const placeholderMessage = 'Live scraping is temporarily disabled while the API is being rebuilt for Cloudflare Workers.'
+const disabledSourceMessage = 'This source is still disabled while the API is being rebuilt for Cloudflare Workers.'
 
-export function createLookupResponse(isbn: string): LookupResponse {
+interface CreateLookupResponseInput {
+  isbn: string
+  data: LookupResponse['data']
+  sources: SourceState[]
+  liveScraping: boolean
+  message?: string
+}
+
+export function createLookupResponse({ isbn, data, sources, liveScraping, message }: CreateLookupResponseInput): LookupResponse {
   return {
     query: { isbn },
-    data: [],
-    sources: BOOK_SOURCES.map((source) => ({
-      id: source.id,
-      name: source.name,
-      status: 'disabled',
-      message: placeholderMessage,
-    })),
+    data,
+    sources,
     meta: {
-      liveScraping: false,
+      liveScraping,
       requestedAt: new Date().toISOString(),
-      message: placeholderMessage,
+      ...(message ? { message } : {}),
     },
+  }
+}
+
+export function createDisabledSourceState(sourceId: SourceState['id']): SourceState {
+  const source = BOOK_SOURCES.find((item) => item.id === sourceId)
+
+  if (!source) {
+    throw new Error(`Unknown source id: ${sourceId}`)
+  }
+
+  return {
+    id: source.id,
+    name: source.name,
+    status: 'disabled',
+    message: disabledSourceMessage,
   }
 }
 

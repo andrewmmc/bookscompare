@@ -18,13 +18,21 @@ export type BookSourceId = (typeof BOOK_SOURCES)[number]['id']
 export interface BookOffer {
   sourceId: BookSourceId
   sourceName: string
+  sourceProductId: string
   title: string
+  productType: string
   authors: string[]
   publisher: string
+  publicationDate: string
+  summary: string
   price: number
   currency: 'TWD'
+  priceText: string
+  discountRate?: number
   url: string
   imageUrl: string
+  previewUrl?: string
+  badges: string[]
 }
 
 export interface SourceState {

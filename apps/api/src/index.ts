@@ -1,7 +1,8 @@
-import type { ApiErrorResponse, LookupResponse } from '@bookscompare/contracts'
+import type { ApiErrorResponse, LookupResponse, SourceState } from '@bookscompare/contracts'
 
 import { isValidIsbn, normalizeIsbn } from './lib/isbn'
-import { createErrorResponse, createLookupResponse } from './lib/responses'
+import { createDisabledSourceState, createErrorResponse, createLookupResponse } from './lib/responses'
+import { fetchBooksComTwOffersByIsbn } from './sources/books-com-tw'
 
 function jsonResponse(payload: LookupResponse | ApiErrorResponse | Record<string, string | boolean>, status = 200): Response {
   return new Response(JSON.stringify(payload, null, 2), {
@@ -53,7 +54,45 @@ export default {
         return jsonResponse(createErrorResponse('INVALID_ISBN', 'Provide a valid ISBN-10 or ISBN-13 value.'), 400)
       }
 
-      return jsonResponse(createLookupResponse(isbn))
+      const sources: SourceState[] = [
+        createDisabledSourceState('kingstone'),
+        createDisabledSourceState('cite'),
+      ]
+
+      try {
+        const booksOffers = await fetchBooksComTwOffersByIsbn(isbn)
+        const booksState: SourceState = {
+          id: 'books-com-tw',
+          name: '博客來',
+          status: 'ready',
+          ...(booksOffers.length === 0 ? { message: 'No 博客來 search results matched this ISBN.' } : {}),
+        }
+
+        sources.unshift(booksState)
+
+        return jsonResponse(createLookupResponse({
+          isbn,
+          data: booksOffers,
+          sources,
+          liveScraping: true,
+          message: '博客來 ISBN search is live. Other sources are still disabled during the migration.',
+        }))
+      } catch (error) {
+        sources.unshift({
+          id: 'books-com-tw',
+          name: '博客來',
+          status: 'error',
+          message: error instanceof Error ? error.message : 'Unexpected 博客來 parser error.',
+        })
+
+        return jsonResponse(createLookupResponse({
+          isbn,
+          data: [],
+          sources,
+          liveScraping: false,
+          message: '博客來 ISBN search failed. Other sources remain disabled during the migration.',
+        }))
+      }
     }
 
     return jsonResponse(createErrorResponse('NOT_FOUND', `No route matches ${url.pathname}.`), 404)
