@@ -8,6 +8,7 @@ const CITE_SOURCE_ID = 'cite'
 const CITE_SOURCE_NAME = '城邦讀書花園'
 const CITE_SEARCH_URL = `${CITE_BASE_URL}/search_result?keywords=`
 const CITE_CURRENCY = 'TWD'
+const CITE_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36'
 
 const NO_RESULTS_PATTERN = /您輸入的搜尋條件，無符合的資料[!！]/
 const RESULT_CONTAINER_PATTERN = /<div class="book-container">([\s\S]*?)<ul class="page-numbers-2">/
@@ -197,6 +198,7 @@ export async function fetchCiteOffersByIsbn(isbn: string): Promise<BookOffer[]> 
   const html = await fetchHtml(`${CITE_SEARCH_URL}${encodeURIComponent(isbn)}`, {
     headers: {
       'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
+      'user-agent': CITE_USER_AGENT,
     },
     notFoundStatus: 404,
     errorLabel: 'Cite',
