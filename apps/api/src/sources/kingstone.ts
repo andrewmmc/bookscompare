@@ -16,8 +16,6 @@ const RESULT_COUNT_PATTERN = /全館搜尋共計\s*<span>(\d+)<\/span>\s*筆/
 const RESULT_LIST_PATTERN = /<ul class="displaycol">([\s\S]*?)<\/ul>/
 const RESULT_BLOCK_PATTERN = /<li class="displayunit">([\s\S]*?)<\/li>\s*(?=<li class="displayunit">|$)/g
 
-interface KingstoneSearchOffer extends Omit<BookOffer, 'publicationDate'> {}
-
 function matchFirst(pattern: RegExp, input: string): string | undefined {
   return pattern.exec(input)?.[1]
 }
@@ -49,7 +47,7 @@ function parseKingstoneDiscountRate(block: string): number | undefined {
   return discountRate < 10 ? discountRate * 10 : discountRate
 }
 
-function parseKingstoneTitleAndUrl(block: string): Pick<KingstoneSearchOffer, 'sourceProductId' | 'title' | 'url'> {
+function parseKingstoneTitleAndUrl(block: string): Pick<BookOffer, 'sourceProductId' | 'title' | 'url'> {
   const match = block.match(/<h3 class="pdnamebox">\s*<a href="([^"]+)">([\s\S]*?)<\/a>\s*<\/h3>/)
 
   if (!match) {
@@ -124,7 +122,7 @@ function parseKingstonePrice(block: string): Pick<BookOffer, 'price' | 'priceTex
   }
 }
 
-function parseKingstoneSearchOffer(block: string): KingstoneSearchOffer {
+function parseKingstoneSearchOffer(block: string): BookOffer {
   const { sourceProductId, title, url } = parseKingstoneTitleAndUrl(block)
   const authorBlock = matchFirst(/<span class="author">([\s\S]*?)<\/span>/, block) ?? ''
   const summaryHtml = matchFirst(/<p class="excerptbox">([\s\S]*?)<\/p>/, block)
@@ -146,34 +144,7 @@ function parseKingstoneSearchOffer(block: string): KingstoneSearchOffer {
   }
 }
 
-function parseKingstonePublicationDate(html: string): string {
-  const rawDate = matchFirst(/<span class="title_basic">出版日：<\/span>\s*(\d{4}\/\d{2}\/\d{2})/, html)
-    ?? matchFirst(/"datePublished":"(\d{4}-\d{2}-\d{2})"/, html)
-
-  if (!rawDate) {
-    throw new Error('Kingstone parser could not find the publication date.')
-  }
-
-  return rawDate.replaceAll('/', '-')
-}
-
-function parseKingstoneDetailSummary(html: string): string {
-  const summaryHtml = matchFirst(/<div class="pdintro_txt1field panelCon">\s*<span>([\s\S]*?)<\/span>\s*<\/div>/, html)
-
-  return summaryHtml ? normalizeKingstoneSummary(summaryHtml) : ''
-}
-
-function buildKingstoneOffer(searchOffer: KingstoneSearchOffer, detailHtml: string): BookOffer {
-  const summary = parseKingstoneDetailSummary(detailHtml)
-
-  return {
-    ...searchOffer,
-    publicationDate: parseKingstonePublicationDate(detailHtml),
-    summary: summary || searchOffer.summary,
-  }
-}
-
-export function parseKingstoneSearchResults(html: string): KingstoneSearchOffer[] {
+export function parseKingstoneSearchResults(html: string): BookOffer[] {
   const normalizedText = normalizeWhitespace(stripTags(html))
 
   if (NO_RESULTS_PATTERN.test(normalizedText)) {
@@ -232,28 +203,5 @@ export async function fetchKingstoneOffersByIsbn(isbn: string, options: Provider
     return []
   }
 
-  const settledOffers = await Promise.allSettled(searchOffers.map(async (searchOffer) => {
-    const detailHtml = await fetchHtml(searchOffer.url, {
-      headers: {
-        'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
-      },
-      notFoundStatus: 404,
-      errorLabel: 'Kingstone',
-      ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
-    })
-
-    if (!detailHtml) {
-      throw new Error(`Kingstone detail page returned 404 for product ${searchOffer.sourceProductId}.`)
-    }
-
-    return buildKingstoneOffer(searchOffer, detailHtml)
-  }))
-
-  const offers = settledOffers.flatMap((result) => result.status === 'fulfilled' ? [result.value] : [])
-
-  if (offers.length > 0) {
-    return offers
-  }
-
-  throw new Error('Kingstone parser could not build any offers from the returned search results.')
+  return searchOffers
 }

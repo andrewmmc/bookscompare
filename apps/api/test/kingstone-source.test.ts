@@ -63,8 +63,6 @@ test('parseKingstoneSearchResults returns empty array for current live not-found
 
 test('fetchKingstoneOffersByIsbn returns every normalized offer', async (t) => {
   const searchHtml = await readFixture('found.html')
-  const detailBookHtml = await readFixture('detail-book.html')
-  const detailEbookHtml = await readFixture('detail-ebook.html')
   const originalFetch = globalThis.fetch
 
   t.after(() => {
@@ -82,14 +80,6 @@ test('fetchKingstoneOffersByIsbn returns every normalized offer', async (t) => {
       return new Response(searchHtml, { status: 200 })
     }
 
-    if (url.startsWith('https://www.kingstone.com.tw/basic/2013120720947/')) {
-      return new Response(detailBookHtml, { status: 200 })
-    }
-
-    if (url.startsWith('https://www.kingstone.com.tw/basic/2800000134381/')) {
-      return new Response(detailEbookHtml, { status: 200 })
-    }
-
     throw new Error(`Unexpected URL: ${url}`)
   }) as typeof fetch
 
@@ -102,15 +92,14 @@ test('fetchKingstoneOffersByIsbn returns every normalized offer', async (t) => {
   assert.deepEqual(offers.map((offer) => ({
     sourceId: offer.sourceId,
     sourceName: offer.sourceName,
-    sourceProductId: offer.sourceProductId,
-    title: offer.title,
-    productType: offer.productType,
-    authors: offer.authors,
-    publisher: offer.publisher,
-    publicationDate: offer.publicationDate,
-    price: offer.price,
-    currency: offer.currency,
-    priceText: offer.priceText,
+      sourceProductId: offer.sourceProductId,
+      title: offer.title,
+      productType: offer.productType,
+      authors: offer.authors,
+      publisher: offer.publisher,
+      price: offer.price,
+      currency: offer.currency,
+      priceText: offer.priceText,
     discountRate: offer.discountRate,
     url: offer.url,
     imageUrl: offer.imageUrl,
@@ -124,7 +113,6 @@ test('fetchKingstoneOffersByIsbn returns every normalized offer', async (t) => {
       productType: '中文書',
       authors: ['洪錦魁'],
       publisher: '深智數位',
-      publicationDate: '2024-12-23',
       price: 972,
       currency: 'TWD',
       priceText: '9折 特價 972 元',
@@ -141,7 +129,6 @@ test('fetchKingstoneOffersByIsbn returns every normalized offer', async (t) => {
       productType: '電子書',
       authors: ['洪錦魁'],
       publisher: '深智數位',
-      publicationDate: '2024-12-23',
       price: 864,
       currency: 'TWD',
       priceText: '8折 特價 864 元',
@@ -151,6 +138,8 @@ test('fetchKingstoneOffersByIsbn returns every normalized offer', async (t) => {
       badges: [],
     },
   ])
-  assert.match(firstOffer.summary, /AI時代的學習革命：用最簡單的方式掌握機器學習。/)
-  assert.match(secondOffer.summary, /AI時代的學習革命：用最簡單的方式掌握機器學習。/)
+  assert.equal(firstOffer.publicationDate, undefined)
+  assert.equal(secondOffer.publicationDate, undefined)
+  assert.match(firstOffer.summary, /演算法 \+ 真實案例 \+ 專題實作/)
+  assert.match(secondOffer.summary, /演算法 \+ 真實案例 \+ 專題實作/)
 })

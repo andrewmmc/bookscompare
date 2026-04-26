@@ -13,11 +13,12 @@ export async function searchBooksByIsbn(isbn: string): Promise<LookupResponse> {
   const sources: SourceState[] = []
   let liveScraping = false
   let message: string | undefined
-
-  for (const provider of providers) {
+  const providerResults = await Promise.all(providers.map(async (provider) => {
     if (!provider.enabled || !isBookProvider(provider)) {
-      sources.push(createDisabledSourceState(provider.id))
-      continue
+      return {
+        provider,
+        status: 'disabled' as const,
+      }
     }
 
     try {
@@ -25,23 +26,45 @@ export async function searchBooksByIsbn(isbn: string): Promise<LookupResponse> {
         timeoutMs: provider.timeoutMs,
       })
 
-      data.push(...offers)
+      return {
+        provider,
+        status: 'ready' as const,
+        offers,
+      }
+    } catch (error) {
+      return {
+        provider,
+        status: 'error' as const,
+        error,
+      }
+    }
+  }))
+
+  for (const result of providerResults) {
+    if (result.status === 'disabled') {
+      sources.push(createDisabledSourceState(result.provider.id))
+      continue
+    }
+
+    if (result.status === 'ready') {
+      data.push(...result.offers)
       sources.push({
-        id: provider.id,
-        name: provider.name,
+        id: result.provider.id,
+        name: result.provider.name,
         status: 'ready',
-        ...(offers.length === 0 ? { message: `No ${provider.name} search results matched this ISBN.` } : {}),
+        ...(result.offers.length === 0 ? { message: `No ${result.provider.name} search results matched this ISBN.` } : {}),
       })
       liveScraping = true
-    } catch (error) {
-      sources.push({
-        id: provider.id,
-        name: provider.name,
-        status: 'error',
-        message: error instanceof Error ? error.message : `Unexpected ${provider.name} parser error.`,
-      })
-      message = 'One or more providers failed during ISBN search.'
+      continue
     }
+
+    sources.push({
+      id: result.provider.id,
+      name: result.provider.name,
+      status: 'error',
+      message: result.error instanceof Error ? result.error.message : `Unexpected ${result.provider.name} parser error.`,
+    })
+    message = 'One or more providers failed during ISBN search.'
   }
 
   return createLookupResponse({

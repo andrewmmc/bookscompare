@@ -27,7 +27,7 @@ export interface BookOffer {
   productType: string
   authors: string[]
   publisher: string
-  publicationDate: string
+  publicationDate?: string
   summary: string
   price: number
   currency: 'TWD'
