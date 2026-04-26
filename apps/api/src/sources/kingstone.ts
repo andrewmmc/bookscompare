@@ -9,7 +9,7 @@ const KINGSTONE_SOURCE_NAME = '金石堂'
 const KINGSTONE_SEARCH_URL = `${KINGSTONE_BASE_URL}/search/key/`
 const KINGSTONE_CURRENCY = 'TWD'
 
-const NO_RESULTS_PATTERN = /找不到與\s*<b>[\s\S]*?<\/b>\s*有關的結果/
+const NO_RESULTS_PATTERN = /找不到與\s*[^\s]+\s*有關的結果/
 const RESULT_COUNT_PATTERN = /全館搜尋共計\s*<span>(\d+)<\/span>\s*筆/
 const RESULT_LIST_PATTERN = /<ul class="displaycol">([\s\S]*?)<\/ul>/
 const RESULT_BLOCK_PATTERN = /<li class="displayunit">([\s\S]*?)<\/li>\s*(?=<li class="displayunit">|$)/g
@@ -172,7 +172,9 @@ function buildKingstoneOffer(searchOffer: KingstoneSearchOffer, detailHtml: stri
 }
 
 export function parseKingstoneSearchResults(html: string): KingstoneSearchOffer[] {
-  if (NO_RESULTS_PATTERN.test(html)) {
+  const normalizedText = normalizeWhitespace(stripTags(html))
+
+  if (NO_RESULTS_PATTERN.test(normalizedText)) {
     return []
   }
 

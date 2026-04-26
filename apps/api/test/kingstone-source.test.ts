@@ -55,6 +55,26 @@ test('parseKingstoneSearchResults returns empty array for not-found fixture', as
   assert.deepEqual(parseKingstoneSearchResults(html), [])
 })
 
+test('parseKingstoneSearchResults returns empty array for current live not-found markup', () => {
+  const html = `
+    <div class="contentContainer">
+      <div class="search_resultno_page">
+        <section class="searchresultnofield resultno">
+          <div class="txtregion_resultno">找不到與<b>9786267569330</b>有關的結果</div>
+          <div class="txtregion_resultno">試試調整關鍵字，重新搜尋，可能會產生不一樣的結果哦！</div>
+        </section>
+        <section class="searchresultnofield similar">
+          <div class="prodGrid">
+            <div class="mod_prod_card shadow-med" data-prodno="2005450033026"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  `
+
+  assert.deepEqual(parseKingstoneSearchResults(html), [])
+})
+
 test('fetchKingstoneOffersByIsbn returns every normalized offer', async (t) => {
   const searchHtml = await readFixture('found.html')
   const detailBookHtml = await readFixture('detail-book.html')
