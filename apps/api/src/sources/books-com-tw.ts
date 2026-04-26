@@ -1,5 +1,6 @@
 import type { BookOffer } from '@bookscompare/contracts'
 
+import { fetchHtml } from '../lib/fetch-html'
 import { decodeHtmlEntities, normalizeWhitespace, stripTags, toAbsoluteUrl } from '../lib/html'
 
 const BOOKS_COM_TW_SOURCE_ID = 'books-com-tw'
@@ -203,21 +204,17 @@ export function parseBooksComTwSearchResults(html: string): BookOffer[] {
 }
 
 export async function fetchBooksComTwOffersByIsbn(isbn: string): Promise<BookOffer[]> {
-  const response = await fetch(`${BOOKS_COM_TW_SEARCH_URL}${encodeURIComponent(isbn)}`, {
+  const html = await fetchHtml(`${BOOKS_COM_TW_SEARCH_URL}${encodeURIComponent(isbn)}`, {
     headers: {
       'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
     },
+    notFoundStatus: 404,
+    errorLabel: 'Books.com.tw',
   })
 
-  if (response.status === 404) {
+  if (!html) {
     return []
   }
-
-  if (!response.ok) {
-    throw new Error(`Books.com.tw returned ${response.status}.`)
-  }
-
-  const html = await response.text()
 
   return parseBooksComTwSearchResults(html).slice(0, 1)
 }
