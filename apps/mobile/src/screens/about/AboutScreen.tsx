@@ -111,7 +111,6 @@ const styles = StyleSheet.create({
   },
   listCard: {
     borderRadius: 28,
-    overflow: 'hidden',
     backgroundColor: colors.surface,
   },
 });

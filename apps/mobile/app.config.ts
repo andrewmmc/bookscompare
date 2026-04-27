@@ -76,6 +76,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     [
+      'expo-build-properties',
+      {
+        ios: {
+          deploymentTarget: '17.0',
+        },
+      },
+    ],
+    [
       'expo-camera',
       {
         cameraPermission: '本應用程式需要使用相機掃描國際標準書號 (ISBN 碼)。',

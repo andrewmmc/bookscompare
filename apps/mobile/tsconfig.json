@@ -3,7 +3,7 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "resolveJsonModule": true,
-    "types": ["react", "react-native"]
+    "types": ["react", "react-native", "jest", "node"]
   },
   "include": ["./**/*.ts", "./**/*.tsx"]
 }
