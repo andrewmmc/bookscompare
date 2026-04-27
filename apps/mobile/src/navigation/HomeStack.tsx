@@ -5,16 +5,10 @@ import { BarcodeScannerScreen } from '../screens/home/BarcodeScannerScreen';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { SearchResultScreen } from '../screens/home/SearchResultScreen';
 import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
 
 import type { HomeStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
-const headerTitleStyle = {
-  fontFamily: typography.stackTitle.fontFamily,
-  fontSize: typography.stackTitle.fontSize,
-  fontWeight: '600' as const,
-};
 
 export function HomeStack() {
   return (
@@ -25,7 +19,11 @@ export function HomeStack() {
         headerStyle: {
           backgroundColor: colors.surface,
         },
-        headerTitleStyle,
+        headerTitleStyle: {
+          color: colors.ink,
+          fontSize: 17,
+          fontWeight: '600',
+        },
         contentStyle: {
           backgroundColor: colors.canvas,
         },

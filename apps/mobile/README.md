@@ -43,16 +43,22 @@ pnpm typecheck
 
 ## Local development flow
 
+Copy the env template (one-time setup):
+
+```bash
+cp apps/mobile/.env.example apps/mobile/.env
+```
+
 Start the API in one terminal:
 
 ```bash
 pnpm dev:api
 ```
 
-Start Expo in another terminal:
+Start Expo in another terminal — it auto-loads `apps/mobile/.env`:
 
 ```bash
-EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:8787 pnpm dev:mobile
+pnpm dev:mobile
 ```
 
 Then launch the iOS app:
@@ -70,10 +76,12 @@ pnpm ios
 
 ## Environment
 
-`app.config.ts` reads these public Expo variables:
+Expo loads `apps/mobile/.env` automatically. See `.env.example` for the full list. `app.config.ts` reads:
 
-- `EXPO_PUBLIC_API_BASE_URL` — overrides the default deployed Worker URL
+- `EXPO_PUBLIC_API_BASE_URL` — BooksCompare API base URL (default: `http://localhost:8787` in dev)
 - `EXPO_PUBLIC_POSTHOG_KEY` — reserved for a future analytics provider; currently unused
+
+> Testing on a physical iPhone? Set `EXPO_PUBLIC_API_BASE_URL=http://<your-mac-lan-ip>:8787` in `.env` so the device can reach the local Worker.
 
 ## iOS notes
 

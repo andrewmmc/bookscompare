@@ -1,5 +1,5 @@
 import { Image, StyleSheet, View } from 'react-native';
-import { Surface, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 
 import logo from '../../../assets/logo.png';
 import packageJson from '../../../package.json';
@@ -21,7 +21,7 @@ type Props = NativeStackScreenProps<AboutStackParamList, 'About'>;
 const aboutItems = [
   {
     title: '使用條款及私隱政策',
-    icon: 'document-text',
+    icon: 'information-circle',
     url: 'https://bookscompare.mmc.dev/privacy',
     inApp: true,
   },
@@ -33,7 +33,7 @@ const aboutItems = [
   },
   {
     title: '提交意見',
-    icon: 'chatbox-ellipses',
+    icon: 'star',
     url: 'https://bookscompare.mmc.dev/feedback',
     inApp: true,
   },
@@ -48,13 +48,13 @@ const aboutItems = [
 export function AboutScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
-      <Surface elevation={1} style={styles.heroCard}>
+      <View style={styles.hero}>
         <Image source={logo} style={styles.logo} />
         <Text style={styles.title}>{strings.about.title}</Text>
         <Text style={styles.version}>版本 v{appVersion}</Text>
-      </Surface>
+      </View>
 
-      <Surface elevation={1} style={styles.listCard}>
+      <View style={styles.list}>
         {aboutItems.map((item) => (
           <ListRow
             key={item.title}
@@ -75,7 +75,7 @@ export function AboutScreen({ navigation }: Props) {
             title={item.title}
           />
         ))}
-      </Surface>
+      </View>
     </View>
   );
 }
@@ -83,34 +83,32 @@ export function AboutScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: spacing.lg,
-    gap: spacing.md,
     backgroundColor: colors.canvas,
   },
-  heroCard: {
+  hero: {
     paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
-    borderRadius: 30,
     alignItems: 'center',
-    backgroundColor: colors.surface,
   },
   logo: {
-    width: 88,
-    height: 88,
-    borderRadius: 24,
+    width: 96,
+    height: 96,
   },
   title: {
     ...typography.sectionTitle,
     color: colors.ink,
     marginTop: spacing.md,
+    textAlign: 'center',
   },
   version: {
     ...typography.caption,
-    color: colors.inkMuted,
+    color: colors.ink,
     marginTop: spacing.xs,
   },
-  listCard: {
-    borderRadius: 28,
+  list: {
     backgroundColor: colors.surface,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.divider,
   },
 });

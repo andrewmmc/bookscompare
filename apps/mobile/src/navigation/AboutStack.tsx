@@ -3,16 +3,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AboutScreen } from '../screens/about/AboutScreen';
 import { WebViewScreen } from '../screens/common/WebViewScreen';
 import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
 
 import type { AboutStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<AboutStackParamList>();
-const headerTitleStyle = {
-  fontFamily: typography.stackTitle.fontFamily,
-  fontSize: typography.stackTitle.fontSize,
-  fontWeight: '600' as const,
-};
 
 export function AboutStack() {
   return (
@@ -23,7 +17,11 @@ export function AboutStack() {
         headerStyle: {
           backgroundColor: colors.surface,
         },
-        headerTitleStyle,
+        headerTitleStyle: {
+          color: colors.ink,
+          fontSize: 17,
+          fontWeight: '600',
+        },
         contentStyle: {
           backgroundColor: colors.canvas,
         },

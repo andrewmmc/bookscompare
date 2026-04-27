@@ -5,7 +5,6 @@ import { AboutStack } from './AboutStack';
 import { HomeStack } from './HomeStack';
 
 import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
 import { typography } from '../theme/typography';
 
 import type { RootTabParamList } from './types';
@@ -21,10 +20,7 @@ export function RootNavigator() {
         tabBarInactiveTintColor: colors.inkMuted,
         tabBarStyle: {
           backgroundColor: colors.surface,
-          borderTopColor: colors.border,
-          height: 68,
-          paddingBottom: spacing.xs,
-          paddingTop: spacing.xs,
+          borderTopColor: colors.divider,
         },
         tabBarLabelStyle: typography.tabLabel,
         tabBarIcon: ({ color, size }) => (

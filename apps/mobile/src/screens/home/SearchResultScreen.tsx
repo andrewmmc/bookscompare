@@ -1,7 +1,6 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMemo } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
-import { Chip, Surface, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 
 import { track } from '../../analytics';
 import { useIsbnLookup } from '../../api/queries';
@@ -13,7 +12,7 @@ import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { PriceTag } from '../../components/PriceTag';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { BookOffer, SourceState } from '@bookscompare/contracts';
+import type { BookOffer } from '@bookscompare/contracts';
 import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
@@ -25,44 +24,63 @@ export function SearchResultScreen({ navigation, route }: Props) {
     [data?.data]
   );
 
+  const openOffer = (item: BookOffer) => {
+    track('search_result_open_offer', {
+      isbn: route.params.isbn,
+      sourceId: item.sourceId,
+    });
+    navigation.navigate('SearchWebView', {
+      title: `${item.sourceName} - ${item.title}`,
+      url: item.url,
+      showOptions: true,
+    });
+  };
+
   const renderOffer = ({ item }: { item: BookOffer }) => (
-    <Surface elevation={1} style={styles.offerCard}>
-      <View style={styles.offerRow}>
-        <Image source={{ uri: item.imageUrl }} style={styles.thumbnail} resizeMode="cover" />
-        <View style={styles.offerBody}>
-          <Text style={styles.offerSource}>{item.sourceName}</Text>
-          <Text style={styles.offerTitle} numberOfLines={2}>
-            {item.title}
-          </Text>
-          <Text style={styles.offerMeta} numberOfLines={1}>
-            {item.authors.join('、') || '作者待補'}
-          </Text>
-          <Text style={styles.offerMeta} numberOfLines={1}>
-            {item.publisher || '出版社待補'}
-          </Text>
-          <View style={styles.badgeRow}>
-            {item.badges.slice(0, 3).map((badge) => (
-              <Chip compact key={badge} style={styles.badge} textStyle={styles.badgeText}>
-                {badge}
-              </Chip>
-            ))}
+    <Pressable
+      android_ripple={{ color: colors.highlightSoft }}
+      onPress={() => openOffer(item)}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+    >
+      <Image
+        source={item.imageUrl ? { uri: item.imageUrl } : undefined}
+        style={styles.thumbnail}
+        resizeMode="cover"
+      />
+      <View style={styles.body}>
+        {item.productType === '電子書' ? (
+          <View style={styles.ebookBadge}>
+            <Text style={styles.ebookBadgeText}>電子書</Text>
           </View>
-        </View>
-        <PriceTag currency={item.currency} price={item.priceText} />
+        ) : null}
+        <Text style={styles.title} numberOfLines={2}>
+          {item.sourceName}: {item.title}
+        </Text>
+        {item.authors.length > 0 ? (
+          <Text style={styles.note} numberOfLines={1}>
+            {item.authors.join('、')}
+          </Text>
+        ) : null}
+        {item.publisher ? (
+          <Text style={styles.note} numberOfLines={1}>
+            {item.publisher}
+          </Text>
+        ) : null}
       </View>
-      <View style={styles.ctaRow}>
-        <Text style={styles.ctaLabel}>查看店鋪頁面</Text>
-        <Ionicons color={colors.accent} name="arrow-forward" size={18} />
-      </View>
-    </Surface>
+      <PriceTag
+        currency={item.currency}
+        price={item.price}
+        {...(item.discountRate ? { discountRate: item.discountRate } : {})}
+      />
+    </Pressable>
   );
 
   if (error) {
     return (
       <EmptyState
-        icon="cloud-offline"
+        icon="sad"
         title="未能載入內容"
-        description="請檢查您的網絡連接。如問題持續，稍後再試一次。"
+        description={'請檢查您的網絡連接。\n如持續遇到此問題，請聯絡我們以取得協助。'}
         actionLabel="重新載入"
         onAction={() => void refetch()}
         containerStyle={styles.container}
@@ -72,107 +90,35 @@ export function SearchResultScreen({ navigation, route }: Props) {
 
   if (!isLoading && offers.length === 0) {
     return (
-      <View style={styles.container}>
-        <ResultHeader
-          isbn={route.params.isbn}
-          message={data?.meta.message}
-          liveScraping={data?.meta.liveScraping ?? false}
-          sourceStates={data?.sources ?? []}
-          total={offers.length}
-        />
-        <EmptyState
-          icon="library"
-          title="未能找到結果"
-          description="抱歉，找不到所搜尋書本的價格資料。若你慣用的網絡書店尚未出現，歡迎之後再回來看看。"
-          containerStyle={styles.emptyContainer}
-        />
-      </View>
+      <EmptyState
+        icon="sad"
+        title="未能找到結果"
+        description={
+          '抱歉，找不到所搜尋書本的價格資料。\n您慣用的網絡書店不在名單上？\n歡迎提交意見給我們！'
+        }
+        containerStyle={styles.container}
+      />
     );
   }
 
   return (
     <View style={styles.container}>
       <FlatList
-        contentContainerStyle={styles.listContent}
         data={offers}
         keyExtractor={(item) => `${item.sourceId}:${item.sourceProductId}`}
         ListHeaderComponent={
-          <ResultHeader
-            isbn={route.params.isbn}
-            message={data?.meta.message}
-            liveScraping={data?.meta.liveScraping ?? false}
-            sourceStates={data?.sources ?? []}
-            total={offers.length}
-          />
+          offers.length > 0 ? (
+            <View style={styles.divider}>
+              <Text style={styles.dividerText}>共找到 {offers.length} 個結果。</Text>
+            </View>
+          ) : null
         }
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
         onRefresh={() => void refetch()}
         refreshing={isRefetching}
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => {
-              track('search_result_open_offer', {
-                isbn: route.params.isbn,
-                sourceId: item.sourceId,
-              });
-              navigation.navigate('SearchWebView', {
-                title: `${item.sourceName} - ${item.title}`,
-                url: item.url,
-                showOptions: true,
-              });
-            }}
-          >
-            {renderOffer({ item })}
-          </Pressable>
-        )}
+        renderItem={renderOffer}
       />
       {isLoading ? <LoadingOverlay label="正在比對最新書價…" /> : null}
-    </View>
-  );
-}
-
-interface ResultHeaderProps {
-  isbn: string;
-  total: number;
-  liveScraping: boolean;
-  message: string | undefined;
-  sourceStates: SourceState[];
-}
-
-function ResultHeader({ isbn, total, liveScraping, message, sourceStates }: ResultHeaderProps) {
-  return (
-    <View style={styles.headerWrap}>
-      <Surface elevation={1} style={styles.summaryCard}>
-        <Text style={styles.summaryKicker}>搜尋 ISBN</Text>
-        <Text style={styles.summaryTitle}>{isbn}</Text>
-        <Text style={styles.summaryCopy}>共找到 {total} 個結果，已按價格由低至高排序。</Text>
-      </Surface>
-
-      {!liveScraping || message ? (
-        <Surface elevation={0} style={styles.noticeCard}>
-          <Ionicons color={colors.accentDeep} name="alert-circle" size={18} />
-          <Text style={styles.noticeCopy}>{message ?? '暫時未能取得書本資料。'}</Text>
-        </Surface>
-      ) : null}
-
-      <View style={styles.sourceWrap}>
-        {sourceStates.map((source) => (
-          <Chip
-            key={source.id}
-            compact
-            style={[
-              styles.sourceChip,
-              source.status === 'ready'
-                ? styles.sourceReady
-                : source.status === 'error'
-                  ? styles.sourceError
-                  : styles.sourceDisabled,
-            ]}
-            textStyle={styles.sourceChipText}
-          >
-            {source.name}
-          </Chip>
-        ))}
-      </View>
     </View>
   );
 }
@@ -182,127 +128,67 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.canvas,
   },
-  emptyContainer: {
-    flex: 1,
-  },
-  listContent: {
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  headerWrap: {
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  summaryCard: {
-    borderRadius: 28,
-    padding: spacing.lg,
-    backgroundColor: colors.surface,
-    gap: spacing.xs,
-  },
-  summaryKicker: {
-    ...typography.kicker,
-    color: colors.accent,
-  },
-  summaryTitle: {
-    ...typography.sectionTitle,
-    color: colors.ink,
-  },
-  summaryCopy: {
-    ...typography.body,
-    color: colors.inkMuted,
-  },
-  noticeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    borderRadius: 20,
+  divider: {
+    backgroundColor: colors.highlightSoft,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: '#f6dece',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.divider,
   },
-  noticeCopy: {
-    ...typography.caption,
-    color: colors.accentDeep,
-    flex: 1,
-  },
-  sourceWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-  },
-  sourceChip: {
-    borderRadius: 999,
-  },
-  sourceReady: {
-    backgroundColor: '#dde9d9',
-  },
-  sourceError: {
-    backgroundColor: '#f5d4cf',
-  },
-  sourceDisabled: {
-    backgroundColor: colors.highlightSoft,
-  },
-  sourceChipText: {
+  dividerText: {
     ...typography.caption,
     color: colors.ink,
   },
-  offerCard: {
-    borderRadius: 28,
-    padding: spacing.md,
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.divider,
+    marginLeft: spacing.md,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     backgroundColor: colors.surface,
     gap: spacing.sm,
   },
-  offerRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  thumbnail: {
-    width: 76,
-    height: 106,
-    borderRadius: 18,
+  rowPressed: {
     backgroundColor: colors.highlightSoft,
   },
-  offerBody: {
+  thumbnail: {
+    width: 64,
+    height: 80,
+    backgroundColor: colors.border,
+  },
+  body: {
     flex: 1,
     gap: spacing.xxs,
   },
-  offerSource: {
-    ...typography.kicker,
-    color: colors.accent,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.xs,
   },
-  offerTitle: {
+  ebookBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 1,
+    borderRadius: 3,
+    backgroundColor: colors.inkMuted,
+  },
+  ebookBadgeText: {
+    ...typography.caption,
+    color: '#ffffff',
+    fontSize: 11,
+    lineHeight: 14,
+  },
+  title: {
     ...typography.body,
-    fontFamily: typography.stackTitle.fontFamily,
-    fontSize: 17,
     color: colors.ink,
+    flex: 1,
   },
-  offerMeta: {
+  note: {
     ...typography.caption,
     color: colors.inkMuted,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-    marginTop: spacing.xs,
-  },
-  badge: {
-    backgroundColor: colors.highlightSoft,
-  },
-  badgeText: {
-    ...typography.caption,
-    color: colors.ink,
-  },
-  ctaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: spacing.sm,
-  },
-  ctaLabel: {
-    ...typography.caption,
-    color: colors.accent,
   },
 });

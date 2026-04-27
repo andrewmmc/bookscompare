@@ -1,7 +1,6 @@
 {
   "expo": {
     "name": "BooksCompare",
-    "slug": "bookscompare-mobile",
-    "version": "0.1.0"
+    "slug": "bookscompare-mobile"
   }
 }

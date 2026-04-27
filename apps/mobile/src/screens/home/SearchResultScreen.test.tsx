@@ -54,7 +54,7 @@ describe('SearchResultScreen', () => {
       />
     );
 
-    fireEvent.press(screen.getByText('查看店鋪頁面'));
+    fireEvent.press(screen.getByText('博客來: 設計中的書'));
 
     expect(navigation.navigate).toHaveBeenCalledWith('SearchWebView', {
       title: '博客來 - 設計中的書',

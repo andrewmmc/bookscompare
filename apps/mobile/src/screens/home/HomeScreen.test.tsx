@@ -13,7 +13,7 @@ describe('HomeScreen', () => {
       <HomeScreen navigation={navigation as never} route={{ key: 'Home', name: 'Home' } as never} />
     );
 
-    fireEvent.changeText(screen.getByPlaceholderText('輸入 10 或 13 位 ISBN'), '978-1-4028-9462-6');
+    fireEvent.changeText(screen.getByPlaceholderText('ISBN 碼'), '978-1-4028-9462-6');
     fireEvent.press(screen.getByText('搜尋好書價'));
 
     expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', { isbn: '9781402894626' });

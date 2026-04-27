@@ -1,8 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, View } from 'react-native';
-import { List } from 'react-native-paper';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from 'react-native-paper';
 
 import { colors } from '../theme/colors';
+import { spacing } from '../theme/spacing';
 import { typography } from '../theme/typography';
 
 interface ListRowProps {
@@ -13,30 +14,44 @@ interface ListRowProps {
 
 export function ListRow({ icon, title, onPress }: ListRowProps) {
   return (
-    <List.Item
+    <Pressable
+      accessibilityRole="button"
+      android_ripple={{ color: colors.highlightSoft }}
       onPress={onPress}
-      title={title}
-      titleStyle={styles.title}
-      left={() => (
-        <View style={styles.leftIconWrap}>
-          <Ionicons color={colors.accent} name={icon} size={20} />
-        </View>
-      )}
-      right={(props) => (
-        <Ionicons color={colors.inkMuted} name="chevron-forward" size={20} style={props.style} />
-      )}
-    />
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+    >
+      <View style={styles.leftIconWrap}>
+        <Ionicons color={colors.accent} name={icon} size={24} />
+      </View>
+      <Text style={styles.title} numberOfLines={1}>
+        {title}
+      </Text>
+      <Ionicons color={colors.divider} name="chevron-forward" size={20} />
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  leftIconWrap: {
-    width: 24,
-    justifyContent: 'center',
+  row: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.divider,
+    backgroundColor: colors.surface,
+  },
+  rowPressed: {
+    backgroundColor: colors.highlightSoft,
+  },
+  leftIconWrap: {
+    width: 32,
+    alignItems: 'center',
+    marginRight: spacing.sm,
   },
   title: {
     ...typography.body,
     color: colors.ink,
+    flex: 1,
   },
 });

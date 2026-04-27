@@ -1,7 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
 
-import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 import { typography } from '../theme/typography';
 
@@ -11,10 +10,10 @@ interface LoadingOverlayProps {
 
 export function LoadingOverlay({ label = '載入中…' }: LoadingOverlayProps) {
   return (
-    <View style={styles.overlay}>
+    <View style={styles.overlay} pointerEvents="none">
       <View style={styles.card}>
-        <ActivityIndicator color={colors.accent} size="large" />
-        <Text style={styles.label}>{label}</Text>
+        <ActivityIndicator color="#ffffff" size="large" />
+        {label ? <Text style={styles.label}>{label}</Text> : null}
       </View>
     </View>
   );
@@ -27,20 +26,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   card: {
-    minWidth: 144,
-    borderRadius: 24,
-    paddingHorizontal: spacing.lg,
+    minWidth: 100,
+    minHeight: 100,
+    borderRadius: 10,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.surface,
-    shadowColor: colors.shadow,
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 10 },
+    justifyContent: 'center',
+    gap: spacing.xs,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   label: {
     ...typography.caption,
-    color: colors.inkMuted,
+    color: '#ffffff',
   },
 });

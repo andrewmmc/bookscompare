@@ -58,10 +58,10 @@ Start the Cloudflare Worker locally in one terminal:
 pnpm dev:api
 ```
 
-Then start the mobile Expo dev server in another terminal. Point the app at your local API first if you do not want to use the deployed Worker:
+Then start the mobile Expo dev server in another terminal. The mobile app reads `apps/mobile/.env` (copy `.env.example` first); by default it points at `http://localhost:8787`:
 
 ```bash
-EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:8787 pnpm dev:mobile
+pnpm dev:mobile
 ```
 
 Run the mobile app on iOS:

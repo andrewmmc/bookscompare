@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
-import { Button, Surface, Text, TextInput } from 'react-native-paper';
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Button, Text, TextInput } from 'react-native-paper';
 
 import { track } from '../../analytics';
 import { normalizeIsbn, isValidIsbn } from '../../lib/isbn';
@@ -34,58 +34,49 @@ export function HomeScreen({ navigation }: Props) {
       behavior={Platform.select({ ios: 'padding', default: undefined })}
       style={styles.container}
     >
-      <View style={styles.glowLarge} />
-      <View style={styles.glowSmall} />
       <View style={styles.content}>
-        <Text style={styles.kicker}>{strings.home.kicker}</Text>
-        <Text style={styles.title}>{strings.home.title}</Text>
-        <Text style={styles.description}>{strings.home.description}</Text>
+        <View style={styles.intro}>
+          <Ionicons color={colors.ink} name="search" size={72} style={styles.icon} />
+          <Text style={styles.leadText}>{strings.home.leadText}</Text>
+        </View>
 
-        <Surface elevation={2} style={styles.card}>
-          <View style={styles.inputRow}>
-            <TextInput
-              autoCapitalize="characters"
-              keyboardType="ascii-capable"
-              label={strings.home.inputLabel}
-              maxLength={13}
-              mode="outlined"
-              onChangeText={(value) => {
-                track('home_type_isbn');
-                setIsbn(value);
-              }}
-              outlineColor={colors.border}
-              placeholder={strings.home.inputPlaceholder}
-              style={styles.input}
-              value={isbn}
-            />
-            <Button
-              icon={() => <Ionicons color={colors.surface} name="camera" size={20} />}
-              mode="contained-tonal"
-              onPress={() => {
-                track('home_click_scan');
-                navigation.navigate('BarcodeScanner');
-              }}
-              style={styles.scannerButton}
-              contentStyle={styles.scannerButtonContent}
-            >
-              {strings.home.scanAction}
-            </Button>
-          </View>
-
-          <Button
-            disabled={!canSearch}
-            mode="contained"
-            onPress={handleSearch}
-            style={styles.searchButton}
-            contentStyle={styles.searchButtonContent}
+        <View style={styles.inputRow}>
+          <TextInput
+            keyboardType="numeric"
+            maxLength={13}
+            mode="outlined"
+            onChangeText={(value) => {
+              track('home_type_isbn');
+              setIsbn(value);
+            }}
+            outlineColor={colors.border}
+            placeholder={strings.home.inputPlaceholder}
+            style={styles.input}
+            value={isbn}
+          />
+          <Pressable
+            accessibilityLabel={strings.home.scanAction}
+            accessibilityRole="button"
+            android_ripple={{ color: 'rgba(255,255,255,0.2)' }}
+            onPress={() => {
+              track('home_click_scan');
+              navigation.navigate('BarcodeScanner');
+            }}
+            style={({ pressed }) => [styles.scannerButton, pressed && styles.scannerPressed]}
           >
-            {strings.home.searchAction}
-          </Button>
+            <Ionicons color="#ffffff" name="camera" size={24} />
+          </Pressable>
+        </View>
 
-          <Text style={styles.helperText}>
-            {canSearch ? strings.home.helperReady : strings.home.helperPending}
-          </Text>
-        </Surface>
+        <Button
+          disabled={!canSearch}
+          mode="contained"
+          onPress={handleSearch}
+          style={styles.searchButton}
+          contentStyle={styles.searchButtonContent}
+        >
+          {strings.home.searchAction}
+        </Button>
       </View>
     </KeyboardAvoidingView>
   );
@@ -99,70 +90,49 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xxl,
-    gap: spacing.md,
+    paddingTop: spacing.xl,
   },
-  glowLarge: {
-    position: 'absolute',
-    top: -80,
-    right: -40,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: colors.highlight,
-    opacity: 0.65,
+  intro: {
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xl,
+    alignItems: 'center',
   },
-  glowSmall: {
-    position: 'absolute',
-    left: -40,
-    top: 220,
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: colors.highlightSoft,
-    opacity: 0.8,
+  icon: {
+    textAlign: 'center',
   },
-  kicker: {
-    ...typography.kicker,
-    color: colors.accent,
-  },
-  title: {
-    ...typography.hero,
-    color: colors.ink,
-  },
-  description: {
+  leadText: {
     ...typography.body,
-    color: colors.inkMuted,
-    maxWidth: 360,
-  },
-  card: {
-    marginTop: spacing.md,
-    borderRadius: 30,
-    padding: spacing.lg,
-    backgroundColor: colors.surface,
-    gap: spacing.md,
+    color: colors.ink,
+    paddingTop: spacing.md,
+    textAlign: 'center',
   },
   inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
   },
   input: {
+    flex: 1,
     backgroundColor: colors.surface,
   },
   scannerButton: {
-    borderRadius: 18,
+    height: 56,
+    width: 56,
+    borderRadius: 4,
     backgroundColor: colors.ink,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  scannerButtonContent: {
-    paddingVertical: spacing.xs,
+  scannerPressed: {
+    opacity: 0.85,
   },
   searchButton: {
-    borderRadius: 18,
+    marginTop: spacing.lg,
+    alignSelf: 'center',
+    borderRadius: 4,
   },
   searchButtonContent: {
-    minHeight: 52,
-  },
-  helperText: {
-    ...typography.caption,
-    color: colors.inkMuted,
+    paddingHorizontal: spacing.xl,
+    height: 44,
   },
 });

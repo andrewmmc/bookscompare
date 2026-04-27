@@ -17,7 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: './assets/splash.png',
     resizeMode: 'contain',
-    backgroundColor: '#f5efe5',
+    backgroundColor: '#ffffff',
   },
   runtimeVersion: {
     policy: 'appVersion',
@@ -65,7 +65,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     package: 'com.andrewmmc.BookPriceApp',
     adaptiveIcon: {
       foregroundImage: './assets/icon.png',
-      backgroundColor: '#f5efe5',
+      backgroundColor: '#ffffff',
     },
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,

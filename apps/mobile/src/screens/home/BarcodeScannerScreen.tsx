@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
 import { track } from '../../analytics';
-import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
 import { EmptyState } from '../../components/EmptyState';
@@ -89,11 +88,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   scanFrame: {
-    width: 280,
-    height: 112,
-    borderRadius: 24,
+    width: 300,
+    height: 100,
     borderWidth: 3,
-    borderColor: colors.accentSoft,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: '#ffffff',
   },
 });

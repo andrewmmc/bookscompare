@@ -25,9 +25,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <View style={[styles.container, containerStyle]}>
-      <View style={styles.iconWrap}>
-        <Ionicons color={colors.accent} name={icon} size={34} />
-      </View>
+      <Ionicons color={colors.ink} name={icon} size={72} style={styles.icon} />
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
       {actionLabel && onAction ? (
@@ -41,32 +39,30 @@ export function EmptyState({
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xxl,
     gap: spacing.sm,
+    backgroundColor: colors.canvas,
   },
-  iconWrap: {
-    width: 74,
-    height: 74,
-    borderRadius: 37,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.highlight,
+  icon: {
+    textAlign: 'center',
     marginBottom: spacing.sm,
   },
   title: {
-    ...typography.sectionTitle,
+    ...typography.hero,
     color: colors.ink,
     textAlign: 'center',
   },
   description: {
     ...typography.body,
-    color: colors.inkMuted,
+    color: colors.ink,
     textAlign: 'center',
     maxWidth: 340,
   },
   actionButton: {
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
   },
 });

@@ -7,14 +7,16 @@ import { typography } from '../theme/typography';
 
 interface PriceTagProps {
   currency: string;
-  price: string;
+  price: number;
+  discountRate?: number;
 }
 
-export function PriceTag({ currency, price }: PriceTagProps) {
+export function PriceTag({ currency, price, discountRate }: PriceTagProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.currency}>{currency}</Text>
-      <Text style={styles.price}>{price}</Text>
+      <Text style={styles.price}>{price.toLocaleString('en-US')}</Text>
+      {discountRate ? <Text style={styles.discount}>{discountRate}折</Text> : null}
     </View>
   );
 }
@@ -30,6 +32,10 @@ const styles = StyleSheet.create({
   },
   price: {
     ...typography.price,
+    color: colors.accent,
+  },
+  discount: {
+    ...typography.caption,
     color: colors.accent,
   },
 });

@@ -4,11 +4,11 @@ import { colors } from './colors';
 
 export const paperTheme = {
   ...MD3LightTheme,
-  roundness: 5,
+  roundness: 4,
   colors: {
     ...MD3LightTheme.colors,
     primary: colors.accent,
-    onPrimary: colors.surface,
+    onPrimary: '#ffffff',
     primaryContainer: colors.highlight,
     onPrimaryContainer: colors.accentDeep,
     secondary: colors.ink,
@@ -22,11 +22,11 @@ export const paperTheme = {
     error: colors.danger,
     elevation: {
       ...MD3LightTheme.colors.elevation,
-      level1: '#fff9f1',
-      level2: '#fff7ed',
-      level3: '#fff3e7',
-      level4: '#fff0e2',
-      level5: '#ffe9da',
+      level1: '#ffffff',
+      level2: '#ffffff',
+      level3: '#ffffff',
+      level4: '#ffffff',
+      level5: '#ffffff',
     },
   },
 };

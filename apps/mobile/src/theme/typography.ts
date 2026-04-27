@@ -1,13 +1,4 @@
-import { Platform } from 'react-native';
-
 import type { TextStyle } from 'react-native';
-
-const displayFont = Platform.select({ ios: 'Georgia-Bold', default: 'serif' });
-const bodyFont = Platform.select({ ios: 'Avenir Next', default: 'sans-serif' });
-const bodyMediumFont = Platform.select({
-  ios: 'Avenir Next Demi Bold',
-  default: 'sans-serif-medium',
-});
 
 function textStyle(style: TextStyle): TextStyle {
   return style;
@@ -15,45 +6,37 @@ function textStyle(style: TextStyle): TextStyle {
 
 export const typography = {
   hero: textStyle({
-    fontFamily: displayFont,
-    fontSize: 38,
-    lineHeight: 44,
-    letterSpacing: -0.8,
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: '700',
   }),
   sectionTitle: textStyle({
-    fontFamily: displayFont,
-    fontSize: 24,
-    lineHeight: 30,
-    letterSpacing: -0.4,
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: '700',
   }),
   stackTitle: textStyle({
-    fontFamily: bodyMediumFont,
     fontSize: 17,
+    fontWeight: '600',
   }),
   body: textStyle({
-    fontFamily: bodyFont,
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 22,
   }),
   kicker: textStyle({
-    fontFamily: bodyMediumFont,
-    fontSize: 12,
-    lineHeight: 16,
-    textTransform: 'uppercase',
-    letterSpacing: 1.4,
+    fontSize: 13,
+    lineHeight: 18,
   }),
   caption: textStyle({
-    fontFamily: bodyFont,
     fontSize: 13,
     lineHeight: 18,
   }),
   tabLabel: textStyle({
-    fontFamily: bodyMediumFont,
     fontSize: 12,
   }),
   price: textStyle({
-    fontFamily: displayFont,
-    fontSize: 24,
-    lineHeight: 28,
+    fontSize: 20,
+    lineHeight: 24,
+    fontWeight: '700',
   }),
 } as const;
