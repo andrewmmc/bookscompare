@@ -1,16 +1,112 @@
-import { StyleSheet } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useActionSheet } from '@expo/react-native-action-sheet';
+import { useLayoutEffect, useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { WebView } from 'react-native-webview';
 
+import { track } from '../../analytics';
 import { EmptyState } from '../../components/EmptyState';
+import { LoadingOverlay } from '../../components/LoadingOverlay';
+import { openExternalUrl } from '../../lib/linking';
 import { colors } from '../../theme/colors';
+import { spacing } from '../../theme/spacing';
 
-export function WebViewScreen() {
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { HomeStackParamList, AboutStackParamList } from '../../navigation/types';
+
+type Props =
+  | NativeStackScreenProps<HomeStackParamList, 'SearchWebView'>
+  | NativeStackScreenProps<AboutStackParamList, 'AboutWebView'>;
+
+type LoadState = 'loading' | 'ready' | 'not-found' | 'error';
+
+export function WebViewScreen({ navigation, route }: Props) {
+  const { showActionSheetWithOptions } = useActionSheet();
+  const [loadState, setLoadState] = useState<LoadState>('loading');
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: route.params.title,
+      ...(route.params.showOptions
+        ? {
+            headerRight: () => (
+              <Pressable
+                accessibilityLabel="在瀏覽器開啟"
+                onPress={() => {
+                  track('webview_show_actions', { title: route.params.title });
+                  showActionSheetWithOptions(
+                    {
+                      title: '在其他瀏覽器開啟',
+                      options: ['以瀏覽器開啟', '取消'],
+                      cancelButtonIndex: 1,
+                    },
+                    (selectedIndex) => {
+                      if (selectedIndex !== 0) {
+                        return;
+                      }
+
+                      track('webview_open_external_browser', { title: route.params.title });
+                      void openExternalUrl(route.params.url);
+                    }
+                  );
+                }}
+                style={styles.headerButton}
+              >
+                <Ionicons color={colors.accent} name="share-outline" size={24} />
+              </Pressable>
+            ),
+          }
+        : {}),
+    });
+  }, [
+    navigation,
+    route.params.showOptions,
+    route.params.title,
+    route.params.url,
+    showActionSheetWithOptions,
+  ]);
+
+  if (loadState === 'not-found') {
+    return (
+      <EmptyState
+        icon="document-text"
+        title="頁面仍在準備中"
+        description="這個連結目前回傳 404。等 marketing site 上線後，這些頁面會直接顯示。"
+        actionLabel="在瀏覽器開啟"
+        onAction={() => void openExternalUrl(route.params.url)}
+        containerStyle={styles.container}
+      />
+    );
+  }
+
+  if (loadState === 'error') {
+    return (
+      <EmptyState
+        icon="cloud-offline"
+        title="未能載入內容"
+        description="請檢查您的網絡連接。如持續遇到此問題，請稍後再試。"
+        actionLabel="在瀏覽器開啟"
+        onAction={() => void openExternalUrl(route.params.url)}
+        containerStyle={styles.container}
+      />
+    );
+  }
+
   return (
-    <EmptyState
-      icon="globe"
-      title="頁面檢視器已就位"
-      description="新的 WebView 與外部瀏覽器操作會在下一個實作步驟接上。"
-      containerStyle={styles.container}
-    />
+    <View style={styles.container}>
+      <WebView
+        onError={() => setLoadState('error')}
+        onHttpError={({ nativeEvent }) => {
+          setLoadState(nativeEvent.statusCode === 404 ? 'not-found' : 'error');
+        }}
+        onLoadEnd={() => {
+          setLoadState((currentState) => (currentState === 'loading' ? 'ready' : currentState));
+        }}
+        source={{ uri: route.params.url }}
+        style={styles.webview}
+      />
+      {loadState === 'loading' ? <LoadingOverlay label="正在打開書店頁面…" /> : null}
+    </View>
   );
 }
 
@@ -18,5 +114,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.canvas,
+  },
+  webview: {
+    flex: 1,
+    backgroundColor: colors.surface,
+  },
+  headerButton: {
+    paddingHorizontal: spacing.xs,
   },
 });
