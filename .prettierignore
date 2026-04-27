@@ -7,5 +7,4 @@ coverage
 .env
 .DS_Store
 pnpm-lock.yaml
-legacy/
 **/test/fixtures/**

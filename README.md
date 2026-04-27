@@ -1,6 +1,6 @@
 # BooksCompare
 
-BooksCompare is being rewritten from an old Firebase function project into a monorepo with:
+BooksCompare is a monorepo with:
 
 - `apps/api` for the backend service
 - `apps/mobile` for the Expo-based mobile app
@@ -18,14 +18,14 @@ The mobile app currently includes:
 - In-app bookstore web views with a friendly 404 state
 - About pages and placeholder marketing-site links
 
-The new API currently provides:
+The API currently provides:
 
 - `GET /`
 - `GET /health`
 - `GET /isbn/:id`
-- `GET /book/isbn/:id` for legacy compatibility
+- `GET /book/isbn/:id`
 
-Right now the worker validates ISBN input and returns an empty placeholder response while the scraper layer is rebuilt. This is intentional: the legacy parsers have not been maintained for a long time, so they are not being carried over blindly.
+Right now the worker validates ISBN input and returns an empty placeholder response while the scraper layer is rebuilt.
 The mobile UI already handles that state and shows a user-facing notice when live scraping is unavailable.
 
 ## Monorepo Layout
@@ -34,13 +34,9 @@ The mobile UI already handles that state and shows a user-facing notice when liv
 apps/
   api/
   mobile/
-legacy/
-  firebase/
 packages/
   contracts/
 ```
-
-The old Firebase app now lives under `legacy/firebase/` so the workspace root stays focused on the new monorepo.
 
 ## Getting Started
 
@@ -108,11 +104,6 @@ pnpm check:api
 - The new API is intentionally simple first.
 - Shared response contracts live in `packages/contracts`.
 - The mobile app is iOS-first, but its Expo config keeps Android scaffolding viable for later.
-- Legacy Firebase scraper code remains in `legacy/firebase/functions/` so the old parsing logic can be ported carefully later.
-
-## Legacy Project Notes
-
-The original project was a Firebase + Express API that scraped book pricing from several Taiwan bookstores. That code is still in this repo under `legacy/firebase/` for reference, but it is no longer the direction for the new runtime.
 
 ## License
 

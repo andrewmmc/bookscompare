@@ -4,12 +4,11 @@ This file provides context and guidance for AI assistants working in this reposi
 
 ## Project Overview
 
-**BooksCompare** is a monorepo for a book price comparison app targeting Taiwan bookstores. It is being rewritten from a legacy Firebase/Express project into a modern monorepo with:
+**BooksCompare** is a monorepo for a book price comparison app targeting Taiwan bookstores with:
 
 - `apps/api` — Cloudflare Workers backend (Hono + Wrangler)
 - `apps/mobile` — Expo SDK 54 React Native mobile app (iOS-first)
 - `packages/contracts` — Shared API response contracts (TypeScript types)
-- `legacy/firebase/` — Old Firebase scraper code kept for reference only
 
 ## Monorepo Tooling
 
@@ -58,7 +57,7 @@ pnpm android:mobile   # expo run:android
 - Language: TypeScript (ESM)
 - Tests: Node.js native test runner via `tsx`
 - Current endpoints: `GET /`, `GET /health`, `GET /isbn/:id`, `GET /book/isbn/:id`
-- The scraper layer is intentionally stubbed — the old Firebase parsers are not carried over blindly
+- The scraper layer is intentionally stubbed while the new implementation is rebuilt
 
 ### Mobile (`apps/mobile`)
 
@@ -80,4 +79,3 @@ pnpm android:mobile   # expo run:android
 - All packages use **TypeScript**; strict mode is expected
 - Shared types always go in `packages/contracts`, not duplicated across apps
 - `EXPO_PUBLIC_API_BASE_URL` env var points the mobile app at a local or deployed API
-- Legacy code in `legacy/` is read-only reference; do not import from it in new code

@@ -16,7 +16,6 @@ export default tseslint.config(
       '**/.wrangler/**',
       '**/coverage/**',
       '**/.expo/**',
-      'legacy/**',
       'apps/mobile/android/**',
       'apps/mobile/ios/**',
       '**/*.config.js',
