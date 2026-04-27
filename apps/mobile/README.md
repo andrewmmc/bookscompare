@@ -41,6 +41,33 @@ pnpm test
 pnpm typecheck
 ```
 
+## Local development flow
+
+Start the API in one terminal:
+
+```bash
+pnpm dev:api
+```
+
+Start Expo in another terminal:
+
+```bash
+EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:8787 pnpm dev:mobile
+```
+
+Then launch the iOS app:
+
+```bash
+pnpm ios:mobile
+```
+
+If you are already in `apps/mobile/`, use:
+
+```bash
+pnpm dev
+pnpm ios
+```
+
 ## Environment
 
 `app.config.ts` reads these public Expo variables:
@@ -54,6 +81,7 @@ pnpm typecheck
 - Deployment target: iOS 17.0
 - Locale baseline: `zh_Hant_TW`
 - `pnpm prebuild:ios` successfully generates the native iOS project from the current Expo config
+- `xcodebuild` successfully builds the generated iOS project for `iphonesimulator`
 - CocoaPods must be available locally to finish native dependency installation during prebuild/run flows
 
 ## EAS profiles

@@ -50,16 +50,18 @@ Install dependencies:
 pnpm install
 ```
 
-Start the Cloudflare Worker locally:
+### Local mobile development
+
+Start the Cloudflare Worker locally in one terminal:
 
 ```bash
 pnpm dev:api
 ```
 
-Start the mobile Expo dev server:
+Then start the mobile Expo dev server in another terminal. Point the app at your local API first if you do not want to use the deployed Worker:
 
 ```bash
-pnpm dev:mobile
+EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:8787 pnpm dev:mobile
 ```
 
 Run the mobile app on iOS:
@@ -67,6 +69,21 @@ Run the mobile app on iOS:
 ```bash
 pnpm ios:mobile
 ```
+
+If you are working inside `apps/mobile/` directly, the equivalent commands are:
+
+```bash
+pnpm dev
+pnpm ios
+pnpm prebuild:ios
+```
+
+Notes:
+
+- `pnpm dev:mobile` runs `expo start --clear`
+- `pnpm ios:mobile` runs `expo run:ios`
+- Xcode / CocoaPods are required for native iOS flows
+- If Xcode is missing the simulator runtime, install it with `xcodebuild -downloadPlatform iOS`
 
 Typecheck the workspace:
 
