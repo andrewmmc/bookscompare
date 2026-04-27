@@ -1,0 +1,48 @@
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+import { WebViewScreen } from '../screens/common/WebViewScreen';
+import { BarcodeScannerScreen } from '../screens/home/BarcodeScannerScreen';
+import { HomeScreen } from '../screens/home/HomeScreen';
+import { SearchResultScreen } from '../screens/home/SearchResultScreen';
+import { colors } from '../theme/colors';
+import { typography } from '../theme/typography';
+
+import type { HomeStackParamList } from './types';
+
+const Stack = createNativeStackNavigator<HomeStackParamList>();
+const headerTitleStyle = {
+  fontFamily: typography.stackTitle.fontFamily,
+  fontSize: typography.stackTitle.fontSize,
+  fontWeight: '600' as const,
+};
+
+export function HomeStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerTintColor: colors.accent,
+        headerShadowVisible: false,
+        headerStyle: {
+          backgroundColor: colors.surface,
+        },
+        headerTitleStyle,
+        contentStyle: {
+          backgroundColor: colors.canvas,
+        },
+      }}
+    >
+      <Stack.Screen name="Home" component={HomeScreen} options={{ title: '好書價 BooksCompare' }} />
+      <Stack.Screen
+        name="BarcodeScanner"
+        component={BarcodeScannerScreen}
+        options={{ title: '國際標準書號掃描' }}
+      />
+      <Stack.Screen
+        name="SearchResult"
+        component={SearchResultScreen}
+        options={{ title: '搜尋結果' }}
+      />
+      <Stack.Screen name="SearchWebView" component={WebViewScreen} />
+    </Stack.Navigator>
+  );
+}

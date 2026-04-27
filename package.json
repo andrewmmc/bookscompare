@@ -4,10 +4,14 @@
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev:api": "pnpm --filter @bookscompare/api dev",
+    "dev:mobile": "pnpm --filter @bookscompare/mobile dev",
     "deploy:api": "pnpm --filter @bookscompare/api deploy",
     "check:api": "pnpm --filter @bookscompare/api check",
+    "ios:mobile": "pnpm --filter @bookscompare/mobile ios",
+    "android:mobile": "pnpm --filter @bookscompare/mobile android",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm --filter @bookscompare/api test",
+    "test:mobile": "pnpm --filter @bookscompare/mobile test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
@@ -15,13 +19,19 @@
     "prepare": "lefthook install"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@typescript-eslint/eslint-plugin": "^8.59.0",
     "@typescript-eslint/parser": "^8.59.0",
     "eslint": "^10.2.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-native": "^5.0.0",
+    "globals": "^16.5.0",
     "lefthook": "^2.1.6",
     "prettier": "^3.8.3",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.59.0"
   }
 }

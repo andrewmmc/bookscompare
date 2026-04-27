@@ -2,7 +2,36 @@
   "name": "@bookscompare/mobile",
   "private": true,
   "version": "0.1.0",
+  "main": "index.ts",
   "scripts": {
-    "dev": "echo \"Mobile app scaffold is reserved for the next implementation step.\""
+    "dev": "expo start --clear",
+    "ios": "expo run:ios",
+    "android": "expo run:android",
+    "prebuild": "expo prebuild",
+    "prebuild:ios": "expo prebuild --platform ios",
+    "typecheck": "pnpm exec tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@bookscompare/contracts": "workspace:*",
+    "@expo/react-native-action-sheet": "^4.1.1",
+    "@expo/vector-icons": "^15.0.3",
+    "@react-navigation/bottom-tabs": "^7.8.6",
+    "@react-navigation/native": "^7.1.21",
+    "@react-navigation/native-stack": "^7.4.2",
+    "@tanstack/react-query": "^5.90.5",
+    "expo": "~54.0.33",
+    "expo-camera": "~17.0.10",
+    "expo-status-bar": "~3.0.9",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-gesture-handler": "~2.28.0",
+    "react-native-paper": "^5.14.5",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-webview": "13.15.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.0",
+    "typescript": "~5.9.2"
   }
 }

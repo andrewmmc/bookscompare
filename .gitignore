@@ -74,5 +74,10 @@ typings/
 # Cloudflare Workers
 .wrangler
 
+# Expo / React Native
+apps/mobile/.expo/
+apps/mobile/android/
+apps/mobile/ios/
+
 # Build output
 dist

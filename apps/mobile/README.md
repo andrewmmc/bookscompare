@@ -1,11 +1,12 @@
-# Mobile App Placeholder
+# BooksCompare Mobile
 
-This directory is reserved for the new mobile app in the monorepo.
+The mobile app now lives here as an Expo SDK 54 workspace app.
 
-Planned stack:
+Current stack:
 
-- Expo
-- React Native
+- Expo + React Native
 - TypeScript
+- React Navigation
+- React Native Paper
 
-The API is being rebuilt first so the mobile app can target a stable contract instead of the old Firebase function shape.
+More setup and run instructions are added as the refactor lands.
