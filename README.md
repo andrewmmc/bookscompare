@@ -3,12 +3,20 @@
 BooksCompare is being rewritten from an old Firebase function project into a monorepo with:
 
 - `apps/api` for the backend service
-- `apps/mobile` for the future mobile app
+- `apps/mobile` for the Expo-based mobile app
 - `packages/contracts` for shared API contracts
 
 ## Current Status
 
-The new backend target is Cloudflare Workers so the service can stay on a free account.
+The new backend target is Cloudflare Workers so the service can stay on a free account, and the mobile client now runs as an Expo SDK 54 app in `apps/mobile`.
+
+The mobile app currently includes:
+
+- ISBN lookup by typing
+- ISBN barcode scanning with `expo-camera`
+- Search result cards backed by `@bookscompare/contracts`
+- In-app bookstore web views with a friendly 404 state
+- About pages and placeholder marketing-site links
 
 The new API currently provides:
 
@@ -18,6 +26,7 @@ The new API currently provides:
 - `GET /book/isbn/:id` for legacy compatibility
 
 Right now the worker validates ISBN input and returns an empty placeholder response while the scraper layer is rebuilt. This is intentional: the legacy parsers have not been maintained for a long time, so they are not being carried over blindly.
+The mobile UI already handles that state and shows a user-facing notice when live scraping is unavailable.
 
 ## Monorepo Layout
 
@@ -47,10 +56,28 @@ Start the Cloudflare Worker locally:
 pnpm dev:api
 ```
 
+Start the mobile Expo dev server:
+
+```bash
+pnpm dev:mobile
+```
+
+Run the mobile app on iOS:
+
+```bash
+pnpm ios:mobile
+```
+
 Typecheck the workspace:
 
 ```bash
 pnpm typecheck
+```
+
+Run the mobile tests:
+
+```bash
+pnpm test:mobile
 ```
 
 Dry-run the Cloudflare Worker deployment:
@@ -63,7 +90,7 @@ pnpm check:api
 
 - The new API is intentionally simple first.
 - Shared response contracts live in `packages/contracts`.
-- The mobile app folder exists as a placeholder until the API shape settles.
+- The mobile app is iOS-first, but its Expo config keeps Android scaffolding viable for later.
 - Legacy Firebase scraper code remains in `legacy/firebase/functions/` so the old parsing logic can be ported carefully later.
 
 ## Legacy Project Notes
