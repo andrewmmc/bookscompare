@@ -61,7 +61,7 @@ export interface LookupResponse {
 
 export interface ApiErrorResponse {
   error: {
-    code: 'INVALID_ISBN' | 'METHOD_NOT_ALLOWED' | 'NOT_FOUND';
+    code: 'INVALID_ISBN' | 'METHOD_NOT_ALLOWED' | 'NOT_FOUND' | 'RATE_LIMITED';
     message: string;
   };
 }

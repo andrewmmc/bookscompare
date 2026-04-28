@@ -2,3 +2,12 @@ name = "bookscompare-api"
 main = "src/index.ts"
 compatibility_date = "2026-04-26"
 workers_dev = true
+
+# Must remain unique within the Cloudflare account.
+[[ratelimits]]
+name = "ISBN_LIMITER"
+namespace_id = "978626756"
+
+[ratelimits.simple]
+limit = 10
+period = 10

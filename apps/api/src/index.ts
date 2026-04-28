@@ -4,20 +4,29 @@ import { isValidIsbn, normalizeIsbn } from './lib/isbn';
 import { createErrorResponse } from './lib/responses';
 import { searchBooksByIsbn } from './services/search-by-isbn';
 
+interface Env {
+  ISBN_LIMITER: {
+    limit(input: { key: string }): Promise<{ success: boolean }>;
+  };
+}
+
 const LOOKUP_CACHE_CONTROL = 'public, max-age=0, s-maxage=1800';
 const LOOKUP_CACHE_HEADER = 'x-bookscompare-cache';
+const LOOKUP_RETRY_AFTER_SECONDS = 10;
 
 function jsonResponse(
   payload: LookupResponse | ApiErrorResponse | Record<string, string | boolean>,
   status = 200,
-  cacheControl = 'no-store'
+  cacheControl = 'no-store',
+  extraHeaders?: HeadersInit
 ): Response {
+  const headers = new Headers(extraHeaders);
+  headers.set('cache-control', cacheControl);
+  headers.set('content-type', 'application/json; charset=utf-8');
+
   return new Response(JSON.stringify(payload, null, 2), {
     status,
-    headers: {
-      'cache-control': cacheControl,
-      'content-type': 'application/json; charset=utf-8',
-    },
+    headers,
   });
 }
 
@@ -37,6 +46,10 @@ function getLookupCache(): Cache {
   return (caches as CacheStorage & { default: Cache }).default;
 }
 
+function getLookupRateLimitKey(request: Request): string {
+  return `isbn:${request.headers.get('cf-connecting-ip') ?? 'anonymous'}`;
+}
+
 function shouldCacheLookupResponse(payload: LookupResponse): boolean {
   return payload.sources.every((source) => source.status !== 'error');
 }
@@ -53,7 +66,7 @@ function withLookupCacheStatus(response: Response, status: 'HIT' | 'MISS'): Resp
 }
 
 export default {
-  async fetch(request: Request, _env: unknown, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const { method } = request;
     const { pathname } = url;
@@ -104,6 +117,24 @@ export default {
         return withLookupCacheStatus(cachedResponse, 'HIT');
       }
 
+      const { success } = await env.ISBN_LIMITER.limit({
+        key: getLookupRateLimitKey(request),
+      });
+
+      if (!success) {
+        return withLookupCacheStatus(
+          jsonResponse(
+            createErrorResponse('RATE_LIMITED', 'Too many ISBN lookups. Try again shortly.'),
+            429,
+            'no-store',
+            {
+              'retry-after': String(LOOKUP_RETRY_AFTER_SECONDS),
+            }
+          ),
+          'MISS'
+        );
+      }
+
       const lookupResponse = await searchBooksByIsbn(isbn);
 
       if (!shouldCacheLookupResponse(lookupResponse)) {
@@ -118,4 +149,4 @@ export default {
 
     return jsonResponse(createErrorResponse('NOT_FOUND', `No route matches ${url.pathname}.`), 404);
   },
-} satisfies ExportedHandler;
+} satisfies ExportedHandler<Env>;
