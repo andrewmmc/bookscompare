@@ -2,6 +2,10 @@
   "name": "bookscompare",
   "private": true,
   "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20",
+    "pnpm": "9.15.0"
+  },
   "scripts": {
     "dev:api": "pnpm --filter @bookscompare/api dev",
     "dev:mobile": "pnpm --filter @bookscompare/mobile dev",
@@ -12,6 +16,7 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm --filter @bookscompare/api test",
     "test:mobile": "pnpm --filter @bookscompare/mobile test",
+    "verify": "pnpm typecheck && pnpm lint && pnpm test && pnpm test:mobile && pnpm check:api",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",

@@ -1,7 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useActionSheet } from '@expo/react-native-action-sheet';
 import { useLayoutEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, Share, StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 import { track } from '../../analytics';
@@ -21,7 +20,6 @@ type Props =
 type LoadState = 'loading' | 'ready' | 'not-found' | 'error';
 
 export function WebViewScreen({ navigation, route }: Props) {
-  const { showActionSheetWithOptions } = useActionSheet();
   const [loadState, setLoadState] = useState<LoadState>('loading');
 
   useLayoutEffect(() => {
@@ -31,24 +29,18 @@ export function WebViewScreen({ navigation, route }: Props) {
         ? {
             headerRight: () => (
               <Pressable
-                accessibilityLabel="在瀏覽器開啟"
+                accessibilityLabel="分享"
+                accessibilityRole="button"
                 onPress={() => {
-                  track('webview_show_actions', { title: route.params.title });
-                  showActionSheetWithOptions(
-                    {
-                      title: '在其他瀏覽器開啟',
-                      options: ['以瀏覽器開啟', '取消'],
-                      cancelButtonIndex: 1,
-                    },
-                    (selectedIndex) => {
-                      if (selectedIndex !== 0) {
-                        return;
-                      }
-
-                      track('webview_open_external_browser', { title: route.params.title });
-                      void openExternalUrl(route.params.url);
-                    }
-                  );
+                  track('webview_share', { title: route.params.title });
+                  void Share.share({
+                    title: route.params.title,
+                    message: route.params.url,
+                    url: route.params.url,
+                  }).catch(() => {
+                    // Fall back to opening the URL externally if sharing is unavailable.
+                    void openExternalUrl(route.params.url);
+                  });
                 }}
                 style={styles.headerButton}
               >
@@ -58,13 +50,7 @@ export function WebViewScreen({ navigation, route }: Props) {
           }
         : {}),
     });
-  }, [
-    navigation,
-    route.params.showOptions,
-    route.params.title,
-    route.params.url,
-    showActionSheetWithOptions,
-  ]);
+  }, [navigation, route.params.showOptions, route.params.title, route.params.url]);
 
   if (loadState === 'not-found') {
     return (

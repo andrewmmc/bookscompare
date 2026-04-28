@@ -1,4 +1,5 @@
 import { createDisabledSourceState, createLookupResponse } from '../lib/responses';
+import { logProviderResult } from '../lib/logger';
 import { providers } from '../providers/registry';
 
 import type { LookupResponse, SourceState } from '@bookscompare/contracts';
@@ -16,15 +17,30 @@ export async function searchBooksByIsbn(isbn: string): Promise<LookupResponse> {
   const providerResults = await Promise.all(
     providers.map(async (provider) => {
       if (!provider.enabled || !isBookProvider(provider)) {
+        logProviderResult({
+          providerId: provider.id,
+          status: 'disabled',
+          durationMs: 0,
+        });
         return {
           provider,
           status: 'disabled' as const,
         };
       }
 
+      const startedAt = Date.now();
+
       try {
         const offers = await provider.searchByIsbn(isbn, {
           timeoutMs: provider.timeoutMs,
+        });
+        const durationMs = Date.now() - startedAt;
+
+        logProviderResult({
+          providerId: provider.id,
+          status: 'ready',
+          durationMs,
+          offerCount: offers.length,
         });
 
         return {
@@ -33,6 +49,15 @@ export async function searchBooksByIsbn(isbn: string): Promise<LookupResponse> {
           offers,
         };
       } catch (error) {
+        const durationMs = Date.now() - startedAt;
+
+        logProviderResult({
+          providerId: provider.id,
+          status: 'error',
+          durationMs,
+          message: error instanceof Error ? error.message : String(error),
+        });
+
         return {
           provider,
           status: 'error' as const,

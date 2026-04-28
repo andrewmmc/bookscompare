@@ -5,6 +5,9 @@ import pkg from './package.json';
 const defaultApiBaseUrl = 'https://bookscompare-api.andrewmmc.workers.dev';
 const expoOwner = process.env.EXPO_OWNER?.trim() || undefined;
 const easProjectId = process.env.EXPO_PROJECT_ID?.trim() || undefined;
+const iosBuildNumber = process.env.IOS_BUILD_NUMBER?.trim() || '1';
+const androidVersionCodeRaw = process.env.ANDROID_VERSION_CODE?.trim();
+const androidVersionCode = androidVersionCodeRaw ? Number(androidVersionCodeRaw) : 1;
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -34,6 +37,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   assetBundlePatterns: ['**/*'],
   ios: {
     bundleIdentifier: 'com.andrewmmc.BookPriceApp',
+    buildNumber: iosBuildNumber,
     supportsTablet: false,
     infoPlist: {
       CFBundleDevelopmentRegion: 'zh_Hant_TW',
@@ -66,6 +70,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: 'com.andrewmmc.BookPriceApp',
+    versionCode: androidVersionCode,
     adaptiveIcon: {
       foregroundImage: './assets/icon.png',
       backgroundColor: '#ffffff',

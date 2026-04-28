@@ -40,3 +40,6 @@ jobs:
 
       - name: Mobile tests
         run: pnpm test:mobile
+
+      - name: API deploy dry-run
+        run: pnpm check:api

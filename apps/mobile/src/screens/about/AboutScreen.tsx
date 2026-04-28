@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { Image, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
@@ -15,6 +16,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AboutStackParamList } from '../../navigation/types';
 
 const appVersion = packageJson.version;
+const buildNumber = Constants.nativeBuildVersion ?? '';
 
 type Props = NativeStackScreenProps<AboutStackParamList, 'About'>;
 
@@ -51,7 +53,10 @@ export function AboutScreen({ navigation }: Props) {
       <View style={styles.hero}>
         <Image source={logo} style={styles.logo} />
         <Text style={styles.title}>{strings.about.title}</Text>
-        <Text style={styles.version}>版本 v{appVersion}</Text>
+        <Text style={styles.version}>
+          版本 v{appVersion}
+          {buildNumber ? ` (${buildNumber})` : ''}
+        </Text>
       </View>
 
       <View style={styles.list}>

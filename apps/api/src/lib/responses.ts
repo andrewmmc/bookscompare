@@ -5,8 +5,7 @@ import {
   type SourceState,
 } from '@bookscompare/contracts';
 
-const disabledSourceMessage =
-  'This source is still disabled while the API is being rebuilt for Cloudflare Workers.';
+const disabledSourceMessage = 'This source does not yet have a live provider implementation.';
 
 interface CreateLookupResponseInput {
   isbn: string;

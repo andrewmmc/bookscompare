@@ -12,10 +12,22 @@ import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { PriceTag } from '../../components/PriceTag';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { BookOffer } from '@bookscompare/contracts';
+import type { BookOffer, SourceState } from '@bookscompare/contracts';
 import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
+
+const sourceStatusLabels: Record<SourceState['status'], string> = {
+  ready: '已比對',
+  error: '暫時無法連線',
+  disabled: '尚未支援',
+};
+
+const sourceStatusStyles: Record<SourceState['status'], { bg: string; fg: string }> = {
+  ready: { bg: colors.highlightSoft, fg: colors.ink },
+  error: { bg: '#fde2dd', fg: colors.danger },
+  disabled: { bg: colors.border, fg: colors.inkMuted },
+};
 
 export function SearchResultScreen({ navigation, route }: Props) {
   const { data, error, isLoading, isRefetching, refetch } = useIsbnLookup(route.params.isbn);
@@ -23,6 +35,9 @@ export function SearchResultScreen({ navigation, route }: Props) {
     () => [...(data?.data ?? [])].sort((left, right) => left.price - right.price),
     [data?.data]
   );
+  const sources = data?.sources ?? [];
+  const liveScraping = data?.meta.liveScraping ?? false;
+  const allSourcesErrored = sources.length > 0 && sources.every((s) => s.status === 'error');
 
   const openOffer = (item: BookOffer) => {
     track('search_result_open_offer', {
@@ -34,6 +49,31 @@ export function SearchResultScreen({ navigation, route }: Props) {
       url: item.url,
       showOptions: true,
     });
+  };
+
+  const renderSourceChips = () => {
+    if (sources.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.chipsRow} accessibilityLabel="書店狀態">
+        {sources.map((source) => {
+          const palette = sourceStatusStyles[source.status];
+          return (
+            <View
+              key={source.id}
+              style={[styles.chip, { backgroundColor: palette.bg }]}
+              accessibilityLabel={`${source.name} ${sourceStatusLabels[source.status]}`}
+            >
+              <Text style={[styles.chipText, { color: palette.fg }]} numberOfLines={1}>
+                {source.name} · {sourceStatusLabels[source.status]}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    );
   };
 
   const renderOffer = ({ item }: { item: BookOffer }) => (
@@ -89,15 +129,47 @@ export function SearchResultScreen({ navigation, route }: Props) {
   }
 
   if (!isLoading && offers.length === 0) {
+    if (allSourcesErrored) {
+      return (
+        <View style={styles.container}>
+          {renderSourceChips()}
+          <EmptyState
+            icon="cloud-offline"
+            title="書店暫時無法回應"
+            description={'所有書店連線都失敗了。\n請稍後再試，或下拉重新整理。'}
+            actionLabel="重新載入"
+            onAction={() => void refetch()}
+          />
+        </View>
+      );
+    }
+
+    if (!liveScraping) {
+      return (
+        <View style={styles.container}>
+          {renderSourceChips()}
+          <EmptyState
+            icon="construct"
+            title="即時搜尋尚未啟用"
+            description={'目前沒有可用的書店即時資料。\n請稍後再試。'}
+            actionLabel="重新載入"
+            onAction={() => void refetch()}
+          />
+        </View>
+      );
+    }
+
     return (
-      <EmptyState
-        icon="sad"
-        title="未能找到結果"
-        description={
-          '抱歉，找不到所搜尋書本的價格資料。\n您慣用的網絡書店不在名單上？\n歡迎提交意見給我們！'
-        }
-        containerStyle={styles.container}
-      />
+      <View style={styles.container}>
+        {renderSourceChips()}
+        <EmptyState
+          icon="sad"
+          title="未能找到結果"
+          description={
+            '抱歉，找不到所搜尋書本的價格資料。\n您慣用的網絡書店不在名單上？\n歡迎提交意見給我們！'
+          }
+        />
+      </View>
     );
   }
 
@@ -107,11 +179,14 @@ export function SearchResultScreen({ navigation, route }: Props) {
         data={offers}
         keyExtractor={(item) => `${item.sourceId}:${item.sourceProductId}`}
         ListHeaderComponent={
-          offers.length > 0 ? (
-            <View style={styles.divider}>
-              <Text style={styles.dividerText}>共找到 {offers.length} 個結果。</Text>
-            </View>
-          ) : null
+          <View>
+            {renderSourceChips()}
+            {offers.length > 0 ? (
+              <View style={styles.divider}>
+                <Text style={styles.dividerText}>共找到 {offers.length} 個結果。</Text>
+              </View>
+            ) : null}
+          </View>
         }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         onRefresh={() => void refetch()}
@@ -127,6 +202,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.canvas,
+  },
+  chipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.surface,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.divider,
+  },
+  chip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs,
+    borderRadius: 999,
+  },
+  chipText: {
+    ...typography.caption,
+    fontSize: 12,
   },
   divider: {
     backgroundColor: colors.highlightSoft,

@@ -82,8 +82,7 @@ export default {
       return jsonResponse({
         ok: true,
         service: 'bookscompare-api',
-        message:
-          'Cloudflare Worker is running. Live scrapers are intentionally disabled during the rebuild.',
+        message: 'Cloudflare Worker is running. Use /isbn/:id to look up live offers.',
       });
     }
 
