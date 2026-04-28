@@ -4,6 +4,7 @@ import { WebViewScreen } from '../screens/common/WebViewScreen';
 import { BarcodeScannerScreen } from '../screens/home/BarcodeScannerScreen';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { SearchResultScreen } from '../screens/home/SearchResultScreen';
+import { strings } from '../i18n/strings';
 import { colors } from '../theme/colors';
 
 import type { HomeStackParamList } from './types';
@@ -29,16 +30,20 @@ export function HomeStack() {
         },
       }}
     >
-      <Stack.Screen name="Home" component={HomeScreen} options={{ title: '好書價 BooksCompare' }} />
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ title: strings.navigation.home }}
+      />
       <Stack.Screen
         name="BarcodeScanner"
         component={BarcodeScannerScreen}
-        options={{ title: '國際標準書號掃描' }}
+        options={{ title: strings.navigation.barcodeScanner }}
       />
       <Stack.Screen
         name="SearchResult"
         component={SearchResultScreen}
-        options={{ title: '搜尋結果' }}
+        options={{ title: strings.navigation.searchResult }}
       />
       <Stack.Screen name="SearchWebView" component={WebViewScreen} />
     </Stack.Navigator>

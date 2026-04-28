@@ -1,10 +1,13 @@
-type AnalyticsProps = Record<string, string | number | boolean | undefined>;
+import type { AnalyticsProps, AnalyticsProvider } from '../types';
 
-export const noopAnalyticsProvider = {
+export const noopAnalyticsProvider: AnalyticsProvider = {
+  init(): void {
+    // No-op: analytics is disabled when no provider key is configured.
+  },
   track(_event: string, _props?: AnalyticsProps): void {
-    // Intentionally blank while analytics is disabled in v2.
+    // No-op
   },
   identify(_userId?: string): void {
-    // Intentionally blank while analytics is disabled in v2.
+    // No-op
   },
 };

@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { AboutScreen } from '../screens/about/AboutScreen';
 import { WebViewScreen } from '../screens/common/WebViewScreen';
+import { strings } from '../i18n/strings';
 import { colors } from '../theme/colors';
 
 import type { AboutStackParamList } from './types';
@@ -27,7 +28,11 @@ export function AboutStack() {
         },
       }}
     >
-      <Stack.Screen name="About" component={AboutScreen} options={{ title: '關於我們' }} />
+      <Stack.Screen
+        name="About"
+        component={AboutScreen}
+        options={{ title: strings.navigation.about }}
+      />
       <Stack.Screen name="AboutWebView" component={WebViewScreen} />
     </Stack.Navigator>
   );

@@ -4,6 +4,7 @@ import { Text } from 'react-native-paper';
 
 import { track } from '../../analytics';
 import { useIsbnLookup } from '../../api/queries';
+import { strings } from '../../i18n/strings';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
@@ -18,9 +19,9 @@ import type { HomeStackParamList } from '../../navigation/types';
 type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
 
 const sourceStatusLabels: Record<SourceState['status'], string> = {
-  ready: '已比對',
-  error: '暫時無法連線',
-  disabled: '尚未支援',
+  ready: strings.searchResult.sourceStatus.ready,
+  error: strings.searchResult.sourceStatus.error,
+  disabled: strings.searchResult.sourceStatus.disabled,
 };
 
 const sourceStatusStyles: Record<SourceState['status'], { bg: string; fg: string }> = {
@@ -57,7 +58,10 @@ export function SearchResultScreen({ navigation, route }: Props) {
     }
 
     return (
-      <View style={styles.chipsRow} accessibilityLabel="書店狀態">
+      <View
+        style={styles.chipsRow}
+        accessibilityLabel={strings.searchResult.sourceChipsAccessibilityLabel}
+      >
         {sources.map((source) => {
           const palette = sourceStatusStyles[source.status];
           return (
@@ -90,7 +94,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
       <View style={styles.body}>
         {item.productType === '電子書' ? (
           <View style={styles.ebookBadge}>
-            <Text style={styles.ebookBadgeText}>電子書</Text>
+            <Text style={styles.ebookBadgeText}>{strings.searchResult.ebookBadge}</Text>
           </View>
         ) : null}
         <Text style={styles.title} numberOfLines={2}>
@@ -119,9 +123,9 @@ export function SearchResultScreen({ navigation, route }: Props) {
     return (
       <EmptyState
         icon="sad"
-        title="未能載入內容"
-        description={'請檢查您的網絡連接。\n如持續遇到此問題，請聯絡我們以取得協助。'}
-        actionLabel="重新載入"
+        title={strings.searchResult.networkErrorTitle}
+        description={strings.searchResult.networkErrorDescription}
+        actionLabel={strings.searchResult.retryAction}
         onAction={() => void refetch()}
         containerStyle={styles.container}
       />
@@ -135,9 +139,9 @@ export function SearchResultScreen({ navigation, route }: Props) {
           {renderSourceChips()}
           <EmptyState
             icon="cloud-offline"
-            title="書店暫時無法回應"
-            description={'所有書店連線都失敗了。\n請稍後再試，或下拉重新整理。'}
-            actionLabel="重新載入"
+            title={strings.searchResult.allErroredTitle}
+            description={strings.searchResult.allErroredDescription}
+            actionLabel={strings.searchResult.retryAction}
             onAction={() => void refetch()}
           />
         </View>
@@ -150,9 +154,9 @@ export function SearchResultScreen({ navigation, route }: Props) {
           {renderSourceChips()}
           <EmptyState
             icon="construct"
-            title="即時搜尋尚未啟用"
-            description={'目前沒有可用的書店即時資料。\n請稍後再試。'}
-            actionLabel="重新載入"
+            title={strings.searchResult.notLiveTitle}
+            description={strings.searchResult.notLiveDescription}
+            actionLabel={strings.searchResult.retryAction}
             onAction={() => void refetch()}
           />
         </View>
@@ -164,10 +168,8 @@ export function SearchResultScreen({ navigation, route }: Props) {
         {renderSourceChips()}
         <EmptyState
           icon="sad"
-          title="未能找到結果"
-          description={
-            '抱歉，找不到所搜尋書本的價格資料。\n您慣用的網絡書店不在名單上？\n歡迎提交意見給我們！'
-          }
+          title={strings.searchResult.notFoundTitle}
+          description={strings.searchResult.notFoundDescription}
         />
       </View>
     );
@@ -183,7 +185,9 @@ export function SearchResultScreen({ navigation, route }: Props) {
             {renderSourceChips()}
             {offers.length > 0 ? (
               <View style={styles.divider}>
-                <Text style={styles.dividerText}>共找到 {offers.length} 個結果。</Text>
+                <Text style={styles.dividerText}>
+                  {strings.searchResult.resultsCount(offers.length)}
+                </Text>
               </View>
             ) : null}
           </View>
@@ -193,7 +197,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
         refreshing={isRefetching}
         renderItem={renderOffer}
       />
-      {isLoading ? <LoadingOverlay label="正在比對最新書價…" /> : null}
+      {isLoading ? <LoadingOverlay label={strings.searchResult.loadingLabel} /> : null}
     </View>
   );
 }

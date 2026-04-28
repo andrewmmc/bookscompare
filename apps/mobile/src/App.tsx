@@ -2,17 +2,22 @@ import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { initAnalytics } from './analytics';
 import { RootNavigator } from './navigation/RootNavigator';
 import { paperTheme } from './theme/paperTheme';
 
 const queryClient = new QueryClient();
 
 export default function App() {
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
   const navigationTheme = useMemo(
     () => ({
       ...DefaultTheme,

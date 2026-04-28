@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
 
+import { strings } from '../i18n/strings';
 import { spacing } from '../theme/spacing';
 import { typography } from '../theme/typography';
 
@@ -8,7 +9,7 @@ interface LoadingOverlayProps {
   label?: string;
 }
 
-export function LoadingOverlay({ label = '載入中…' }: LoadingOverlayProps) {
+export function LoadingOverlay({ label = strings.loading.defaultLabel }: LoadingOverlayProps) {
   return (
     <View style={styles.overlay} pointerEvents="none">
       <View style={styles.card}>

@@ -6,6 +6,7 @@ import { WebView } from 'react-native-webview';
 import { track } from '../../analytics';
 import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
+import { strings } from '../../i18n/strings';
 import { openExternalUrl } from '../../lib/linking';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
@@ -29,7 +30,7 @@ export function WebViewScreen({ navigation, route }: Props) {
         ? {
             headerRight: () => (
               <Pressable
-                accessibilityLabel="分享"
+                accessibilityLabel={strings.webview.shareAccessibility}
                 accessibilityRole="button"
                 onPress={() => {
                   track('webview_share', { title: route.params.title });
@@ -56,9 +57,9 @@ export function WebViewScreen({ navigation, route }: Props) {
     return (
       <EmptyState
         icon="document-text"
-        title="頁面仍在準備中"
-        description="這個連結目前回傳 404。等 marketing site 上線後，這些頁面會直接顯示。"
-        actionLabel="在瀏覽器開啟"
+        title={strings.webview.notFoundTitle}
+        description={strings.webview.notFoundDescription}
+        actionLabel={strings.webview.notFoundAction}
         onAction={() => void openExternalUrl(route.params.url)}
         containerStyle={styles.container}
       />
@@ -69,9 +70,9 @@ export function WebViewScreen({ navigation, route }: Props) {
     return (
       <EmptyState
         icon="cloud-offline"
-        title="未能載入內容"
-        description="請檢查您的網絡連接。如持續遇到此問題，請稍後再試。"
-        actionLabel="在瀏覽器開啟"
+        title={strings.webview.errorTitle}
+        description={strings.webview.errorDescription}
+        actionLabel={strings.webview.errorAction}
         onAction={() => void openExternalUrl(route.params.url)}
         containerStyle={styles.container}
       />
@@ -91,7 +92,7 @@ export function WebViewScreen({ navigation, route }: Props) {
         source={{ uri: route.params.url }}
         style={styles.webview}
       />
-      {loadState === 'loading' ? <LoadingOverlay label="正在打開書店頁面…" /> : null}
+      {loadState === 'loading' ? <LoadingOverlay label={strings.webview.loadingLabel} /> : null}
     </View>
   );
 }

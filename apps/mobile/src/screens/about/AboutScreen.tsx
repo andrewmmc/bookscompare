@@ -22,25 +22,29 @@ type Props = NativeStackScreenProps<AboutStackParamList, 'About'>;
 
 const aboutItems = [
   {
-    title: '使用條款及私隱政策',
+    key: 'privacy',
+    title: strings.about.items.privacy,
     icon: 'information-circle',
     url: 'https://bookscompare.mmc.dev/privacy',
     inApp: true,
   },
   {
-    title: '免責聲明',
+    key: 'declaration',
+    title: strings.about.items.declaration,
     icon: 'shield-checkmark',
     url: 'https://bookscompare.mmc.dev/declaration',
     inApp: true,
   },
   {
-    title: '提交意見',
+    key: 'feedback',
+    title: strings.about.items.feedback,
     icon: 'star',
     url: 'https://bookscompare.mmc.dev/feedback',
     inApp: true,
   },
   {
-    title: '(c) 2026 Andrew Mok',
+    key: 'copyright',
+    title: strings.about.items.copyright,
     icon: 'home',
     url: 'https://andrewmmc.com',
     inApp: false,
@@ -53,19 +57,16 @@ export function AboutScreen({ navigation }: Props) {
       <View style={styles.hero}>
         <Image source={logo} style={styles.logo} />
         <Text style={styles.title}>{strings.about.title}</Text>
-        <Text style={styles.version}>
-          版本 v{appVersion}
-          {buildNumber ? ` (${buildNumber})` : ''}
-        </Text>
+        <Text style={styles.version}>{strings.about.version(appVersion, buildNumber)}</Text>
       </View>
 
       <View style={styles.list}>
         {aboutItems.map((item) => (
           <ListRow
-            key={item.title}
+            key={item.key}
             icon={item.icon}
             onPress={() => {
-              track('about_open_link', { title: item.title });
+              track('about_open_link', { key: item.key });
 
               if (item.inApp) {
                 navigation.navigate('AboutWebView', {

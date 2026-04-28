@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AboutStack } from './AboutStack';
 import { HomeStack } from './HomeStack';
 
+import { strings } from '../i18n/strings';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 
@@ -32,8 +33,8 @@ export function RootNavigator() {
         ),
       })}
     >
-      <Tab.Screen name="HomeTab" component={HomeStack} options={{ title: '書本搜尋' }} />
-      <Tab.Screen name="AboutTab" component={AboutStack} options={{ title: '關於我們' }} />
+      <Tab.Screen name="HomeTab" component={HomeStack} options={{ title: strings.tabs.home }} />
+      <Tab.Screen name="AboutTab" component={AboutStack} options={{ title: strings.tabs.about }} />
     </Tab.Navigator>
   );
 }

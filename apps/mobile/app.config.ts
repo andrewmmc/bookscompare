@@ -81,6 +81,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? defaultApiBaseUrl,
     posthogKey: process.env.EXPO_PUBLIC_POSTHOG_KEY ?? '',
+    posthogHost: process.env.EXPO_PUBLIC_POSTHOG_HOST ?? '',
     ...(easProjectId ? { eas: { projectId: easProjectId } } : {}),
   },
   plugins: [

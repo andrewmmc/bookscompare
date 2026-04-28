@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
+import { strings } from '../i18n/strings';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 import { typography } from '../theme/typography';
@@ -16,7 +17,9 @@ export function PriceTag({ currency, price, discountRate }: PriceTagProps) {
     <View style={styles.container}>
       <Text style={styles.currency}>{currency}</Text>
       <Text style={styles.price}>{price.toLocaleString('en-US')}</Text>
-      {discountRate ? <Text style={styles.discount}>{discountRate}折</Text> : null}
+      {discountRate ? (
+        <Text style={styles.discount}>{strings.priceTag.discountTag(discountRate)}</Text>
+      ) : null}
     </View>
   );
 }
