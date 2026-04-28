@@ -3,11 +3,14 @@ import type { ExpoConfig, ConfigContext } from 'expo/config';
 import pkg from './package.json';
 
 const defaultApiBaseUrl = 'https://bookscompare-api.andrewmmc.workers.dev';
+const expoOwner = process.env.EXPO_OWNER?.trim() || undefined;
+const easProjectId = process.env.EXPO_PROJECT_ID?.trim() || undefined;
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'BooksCompare',
   slug: 'bookscompare-mobile',
+  owner: expoOwner,
   version: pkg.version,
   orientation: 'portrait',
   icon: './assets/icon.png',
@@ -73,6 +76,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? defaultApiBaseUrl,
     posthogKey: process.env.EXPO_PUBLIC_POSTHOG_KEY ?? '',
+    ...(easProjectId ? { eas: { projectId: easProjectId } } : {}),
   },
   plugins: [
     [

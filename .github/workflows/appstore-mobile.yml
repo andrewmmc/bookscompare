@@ -1,0 +1,160 @@
+name: App Store Mobile Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      what_to_test:
+        description: TestFlight "What to Test" notes
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish-ios:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EXPO_OWNER: ${{ vars.EXPO_OWNER }}
+      EXPO_PROJECT_ID: ${{ vars.EXPO_PROJECT_ID }}
+      EXPO_ASC_APP_ID: ${{ vars.EXPO_ASC_APP_ID }}
+      EXPO_PUBLIC_API_BASE_URL: ${{ vars.EXPO_PUBLIC_API_BASE_URL }}
+      EXPO_PUBLIC_POSTHOG_KEY: ${{ secrets.EXPO_PUBLIC_POSTHOG_KEY }}
+      EXPO_ASC_KEY_ID: ${{ vars.EXPO_ASC_KEY_ID }}
+      EXPO_ASC_ISSUER_ID: ${{ vars.EXPO_ASC_ISSUER_ID }}
+      EXPO_APPLE_TEAM_ID: ${{ vars.EXPO_APPLE_TEAM_ID }}
+      EXPO_APPLE_TEAM_TYPE: ${{ vars.EXPO_APPLE_TEAM_TYPE }}
+      EXPO_APPLE_ID: ${{ vars.EXPO_APPLE_ID }}
+      EXPO_APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.EXPO_APPLE_APP_SPECIFIC_PASSWORD }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Set up Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          packager: pnpm
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Validate release configuration
+        env:
+          EXPO_ASC_API_KEY_BASE64: ${{ secrets.EXPO_ASC_API_KEY_BASE64 }}
+        run: |
+          missing=()
+
+          for var in EXPO_TOKEN EXPO_PROJECT_ID EXPO_ASC_APP_ID; do
+            if [ -z "${!var}" ]; then
+              missing+=("$var")
+            fi
+          done
+
+          use_api_key=false
+          if [ -n "$EXPO_ASC_API_KEY_BASE64" ] || [ -n "$EXPO_ASC_KEY_ID" ] || [ -n "$EXPO_ASC_ISSUER_ID" ]; then
+            use_api_key=true
+            for var in EXPO_ASC_API_KEY_BASE64 EXPO_ASC_KEY_ID EXPO_ASC_ISSUER_ID; do
+              if [ -z "${!var}" ]; then
+                missing+=("$var")
+              fi
+            done
+          fi
+
+          if [ "$use_api_key" = true ]; then
+            for var in EXPO_APPLE_TEAM_ID EXPO_APPLE_TEAM_TYPE; do
+              if [ -z "${!var}" ]; then
+                missing+=("$var")
+              fi
+            done
+          fi
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            printf 'Missing required GitHub configuration: %s\n' "${missing[*]}" >&2
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Write App Store Connect API key
+        env:
+          EXPO_ASC_API_KEY_BASE64: ${{ secrets.EXPO_ASC_API_KEY_BASE64 }}
+        run: |
+          if [ -z "$EXPO_ASC_API_KEY_BASE64" ]; then
+            exit 0
+          fi
+
+          mkdir -p apps/mobile/.tmp
+          echo "$EXPO_ASC_API_KEY_BASE64" | base64 --decode > apps/mobile/.tmp/AuthKey.p8
+          echo "EXPO_ASC_API_KEY_PATH=${{ github.workspace }}/apps/mobile/.tmp/AuthKey.p8" >> "$GITHUB_ENV"
+
+      - name: Prepare EAS build and submit profiles
+        working-directory: apps/mobile
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+
+          const path = 'eas.json';
+          const config = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const build = (config.build ??= {});
+          const buildProduction = (build.production ??= {});
+          const buildEnv = { ...(buildProduction.env ?? {}) };
+          const submit = (config.submit ??= {});
+          const submitProduction = (submit.production ??= {});
+          const ios = (submitProduction.ios ??= {});
+
+          if (process.env.EXPO_PUBLIC_API_BASE_URL) {
+            buildEnv.EXPO_PUBLIC_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+          }
+          if (process.env.EXPO_PUBLIC_POSTHOG_KEY) {
+            buildEnv.EXPO_PUBLIC_POSTHOG_KEY = process.env.EXPO_PUBLIC_POSTHOG_KEY;
+          }
+          if (Object.keys(buildEnv).length > 0) {
+            buildProduction.env = buildEnv;
+          }
+
+          ios.ascAppId = process.env.EXPO_ASC_APP_ID;
+
+          if (process.env.EXPO_ASC_API_KEY_PATH) {
+            ios.ascApiKeyPath = process.env.EXPO_ASC_API_KEY_PATH;
+          }
+          if (process.env.EXPO_ASC_KEY_ID) {
+            ios.ascApiKeyId = process.env.EXPO_ASC_KEY_ID;
+          }
+          if (process.env.EXPO_ASC_ISSUER_ID) {
+            ios.ascApiKeyIssuerId = process.env.EXPO_ASC_ISSUER_ID;
+          }
+          if (process.env.EXPO_APPLE_ID) {
+            ios.appleId = process.env.EXPO_APPLE_ID;
+          }
+          if (process.env.EXPO_APPLE_TEAM_ID) {
+            ios.appleTeamId = process.env.EXPO_APPLE_TEAM_ID;
+          }
+
+          fs.writeFileSync(path, `${JSON.stringify(config, null, 2)}\n`);
+          EOF
+
+      - name: Trigger iOS App Store build and submit
+        working-directory: apps/mobile
+        env:
+          WHAT_TO_TEST: ${{ github.event.inputs.what_to_test }}
+        run: |
+          cmd=(eas build --platform ios --profile production --auto-submit --non-interactive --no-wait)
+
+          if [ -n "$WHAT_TO_TEST" ]; then
+            cmd+=(--what-to-test "$WHAT_TO_TEST")
+          fi
+
+          "${cmd[@]}"
