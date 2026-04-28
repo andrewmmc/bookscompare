@@ -11,4 +11,5 @@ export interface BookProvider {
   usesJsonApi: boolean;
   timeoutMs: number;
   searchByIsbn(isbn: string, options?: ProviderSearchOptions): Promise<BookOffer[]>;
+  searchByTitle(title: string, options?: ProviderSearchOptions): Promise<BookOffer[]>;
 }

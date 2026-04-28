@@ -24,6 +24,7 @@ The API currently provides:
 - `GET /health`
 - `GET /isbn/:id`
 - `GET /book/isbn/:id`
+- `GET /search?q=<title>`
 
 Right now the worker validates ISBN input and returns an empty placeholder response while the scraper layer is rebuilt.
 The mobile UI already handles that state and shows a user-facing notice when live scraping is unavailable.

@@ -1,4 +1,4 @@
-import { fetchCiteOffersByIsbn } from '../sources/cite';
+import { fetchCiteOffersByIsbn, fetchCiteOffersByTitle } from '../sources/cite';
 
 import type { BookProvider } from './types';
 
@@ -9,4 +9,5 @@ export const citeProvider: BookProvider = {
   usesJsonApi: false,
   timeoutMs: 8000,
   searchByIsbn: fetchCiteOffersByIsbn,
+  searchByTitle: fetchCiteOffersByTitle,
 };

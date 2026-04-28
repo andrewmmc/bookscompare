@@ -1,6 +1,7 @@
 import {
   BOOK_SOURCES,
   type ApiErrorResponse,
+  type LookupQuery,
   type LookupResponse,
   type SourceState,
 } from '@bookscompare/contracts';
@@ -8,7 +9,7 @@ import {
 const disabledSourceMessage = 'This source does not yet have a live provider implementation.';
 
 interface CreateLookupResponseInput {
-  isbn: string;
+  query: LookupQuery;
   data: LookupResponse['data'];
   sources: SourceState[];
   liveScraping: boolean;
@@ -16,14 +17,14 @@ interface CreateLookupResponseInput {
 }
 
 export function createLookupResponse({
-  isbn,
+  query,
   data,
   sources,
   liveScraping,
   message,
 }: CreateLookupResponseInput): LookupResponse {
   return {
-    query: { isbn },
+    query,
     data,
     sources,
     meta: {

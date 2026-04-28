@@ -1,109 +1,13 @@
-import { createDisabledSourceState, createLookupResponse } from '../lib/responses';
-import { logProviderResult } from '../lib/logger';
-import { providers } from '../providers/registry';
+import { runProviderSearch } from './provider-fanout';
 
-import type { LookupResponse, SourceState } from '@bookscompare/contracts';
-import type { BookProvider } from '../providers/types';
+import type { LookupResponse } from '@bookscompare/contracts';
 
-function isBookProvider(provider: (typeof providers)[number]): provider is BookProvider {
-  return 'searchByIsbn' in provider;
-}
-
-export async function searchBooksByIsbn(isbn: string): Promise<LookupResponse> {
-  const data: LookupResponse['data'] = [];
-  const sources: SourceState[] = [];
-  let liveScraping = false;
-  let message: string | undefined;
-  const providerResults = await Promise.all(
-    providers.map(async (provider) => {
-      if (!provider.enabled || !isBookProvider(provider)) {
-        logProviderResult({
-          providerId: provider.id,
-          status: 'disabled',
-          durationMs: 0,
-        });
-        return {
-          provider,
-          status: 'disabled' as const,
-        };
-      }
-
-      const startedAt = Date.now();
-
-      try {
-        const offers = await provider.searchByIsbn(isbn, {
-          timeoutMs: provider.timeoutMs,
-        });
-        const durationMs = Date.now() - startedAt;
-
-        logProviderResult({
-          providerId: provider.id,
-          status: 'ready',
-          durationMs,
-          offerCount: offers.length,
-        });
-
-        return {
-          provider,
-          status: 'ready' as const,
-          offers,
-        };
-      } catch (error) {
-        const durationMs = Date.now() - startedAt;
-
-        logProviderResult({
-          providerId: provider.id,
-          status: 'error',
-          durationMs,
-          message: error instanceof Error ? error.message : String(error),
-        });
-
-        return {
-          provider,
-          status: 'error' as const,
-          error,
-        };
-      }
-    })
-  );
-
-  for (const result of providerResults) {
-    if (result.status === 'disabled') {
-      sources.push(createDisabledSourceState(result.provider.id));
-      continue;
-    }
-
-    if (result.status === 'ready') {
-      data.push(...result.offers);
-      sources.push({
-        id: result.provider.id,
-        name: result.provider.name,
-        status: 'ready',
-        ...(result.offers.length === 0
-          ? { message: `No ${result.provider.name} search results matched this ISBN.` }
-          : {}),
-      });
-      liveScraping = true;
-      continue;
-    }
-
-    sources.push({
-      id: result.provider.id,
-      name: result.provider.name,
-      status: 'error',
-      message:
-        result.error instanceof Error
-          ? result.error.message
-          : `Unexpected ${result.provider.name} parser error.`,
-    });
-    message = 'One or more providers failed during ISBN search.';
-  }
-
-  return createLookupResponse({
-    isbn,
-    data,
-    sources,
-    liveScraping,
-    ...(message ? { message } : {}),
+export function searchBooksByIsbn(isbn: string): Promise<LookupResponse> {
+  return runProviderSearch({
+    query: { isbn },
+    method: 'searchByIsbn',
+    value: isbn,
+    failureMessage: 'One or more providers failed during ISBN search.',
+    emptyMessage: (providerName) => `No ${providerName} search results matched this ISBN.`,
   });
 }

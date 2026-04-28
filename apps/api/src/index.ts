@@ -3,6 +3,7 @@ import type { ApiErrorResponse, LookupResponse } from '@bookscompare/contracts';
 import { isValidIsbn, normalizeIsbn } from './lib/isbn';
 import { createErrorResponse } from './lib/responses';
 import { searchBooksByIsbn } from './services/search-by-isbn';
+import { searchBooksByTitle } from './services/search-by-title';
 
 interface Env {
   ISBN_LIMITER: {
@@ -13,6 +14,7 @@ interface Env {
 const LOOKUP_CACHE_CONTROL = 'public, max-age=0, s-maxage=1800';
 const LOOKUP_CACHE_HEADER = 'x-bookscompare-cache';
 const LOOKUP_RETRY_AFTER_SECONDS = 10;
+const SEARCH_QUERY_MAX_LENGTH = 100;
 
 function jsonResponse(
   payload: LookupResponse | ApiErrorResponse | Record<string, string | boolean>,
@@ -42,12 +44,27 @@ function createLookupCacheKey(request: Request, isbn: string): Request {
   });
 }
 
+function createSearchCacheKey(request: Request, query: string): Request {
+  const url = new URL('/search', request.url);
+  url.searchParams.set('q', query);
+
+  return new Request(url.toString(), { method: 'GET' });
+}
+
 function getLookupCache(): Cache {
   return (caches as CacheStorage & { default: Cache }).default;
 }
 
 function getLookupRateLimitKey(request: Request): string {
   return `isbn:${request.headers.get('cf-connecting-ip') ?? 'anonymous'}`;
+}
+
+function getSearchRateLimitKey(request: Request): string {
+  return `search:${request.headers.get('cf-connecting-ip') ?? 'anonymous'}`;
+}
+
+function normalizeSearchQuery(input: string | null): string {
+  return (input ?? '').trim().replace(/\s+/g, ' ');
 }
 
 function shouldCacheLookupResponse(payload: LookupResponse): boolean {
@@ -82,7 +99,8 @@ export default {
       return jsonResponse({
         ok: true,
         service: 'bookscompare-api',
-        message: 'Cloudflare Worker is running. Use /isbn/:id to look up live offers.',
+        message:
+          'Cloudflare Worker is running. Use /isbn/:id to look up live offers, or /search?q= for title search.',
       });
     }
 
@@ -135,6 +153,70 @@ export default {
       }
 
       const lookupResponse = await searchBooksByIsbn(isbn);
+
+      if (!shouldCacheLookupResponse(lookupResponse)) {
+        return withLookupCacheStatus(jsonResponse(lookupResponse), 'MISS');
+      }
+
+      const response = jsonResponse(lookupResponse, 200, LOOKUP_CACHE_CONTROL);
+      ctx.waitUntil(cache.put(cacheKey, response.clone()));
+
+      return withLookupCacheStatus(response, 'MISS');
+    }
+
+    if (pathname === '/search') {
+      const query = normalizeSearchQuery(url.searchParams.get('q'));
+
+      if (!query) {
+        return withLookupCacheStatus(
+          jsonResponse(
+            createErrorResponse('INVALID_QUERY', 'Provide a non-empty search query via ?q=.'),
+            400
+          ),
+          'MISS'
+        );
+      }
+
+      if (query.length > SEARCH_QUERY_MAX_LENGTH) {
+        return withLookupCacheStatus(
+          jsonResponse(
+            createErrorResponse(
+              'INVALID_QUERY',
+              `Search query must be ${SEARCH_QUERY_MAX_LENGTH} characters or fewer.`
+            ),
+            400
+          ),
+          'MISS'
+        );
+      }
+
+      const cacheKey = createSearchCacheKey(request, query);
+      const cache = getLookupCache();
+      const cachedResponse = await cache.match(cacheKey);
+
+      if (cachedResponse) {
+        return withLookupCacheStatus(cachedResponse, 'HIT');
+      }
+
+      const { success } = await env.ISBN_LIMITER.limit({
+        key: getSearchRateLimitKey(request),
+      });
+
+      if (!success) {
+        return withLookupCacheStatus(
+          jsonResponse(
+            createErrorResponse('RATE_LIMITED', 'Too many searches. Try again shortly.'),
+            429,
+            'no-store',
+            {
+              'retry-after': String(LOOKUP_RETRY_AFTER_SECONDS),
+            }
+          ),
+          'MISS'
+        );
+      }
+
+      const lookupResponse = await searchBooksByTitle(query);
 
       if (!shouldCacheLookupResponse(lookupResponse)) {
         return withLookupCacheStatus(jsonResponse(lookupResponse), 'MISS');

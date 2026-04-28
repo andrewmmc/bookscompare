@@ -192,11 +192,11 @@ export function parseKingstoneSearchResults(html: string): BookOffer[] {
   return results;
 }
 
-export async function fetchKingstoneOffersByIsbn(
-  isbn: string,
+async function fetchKingstoneOffersByKeyword(
+  keyword: string,
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
-  const html = await fetchHtml(`${KINGSTONE_SEARCH_URL}${encodeURIComponent(isbn)}/dis/list?`, {
+  const html = await fetchHtml(`${KINGSTONE_SEARCH_URL}${encodeURIComponent(keyword)}/dis/list?`, {
     headers: {
       'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
     },
@@ -216,4 +216,18 @@ export async function fetchKingstoneOffersByIsbn(
   }
 
   return searchOffers;
+}
+
+export function fetchKingstoneOffersByIsbn(
+  isbn: string,
+  options: ProviderSearchOptions = {}
+): Promise<BookOffer[]> {
+  return fetchKingstoneOffersByKeyword(isbn, options);
+}
+
+export function fetchKingstoneOffersByTitle(
+  title: string,
+  options: ProviderSearchOptions = {}
+): Promise<BookOffer[]> {
+  return fetchKingstoneOffersByKeyword(title, options);
 }

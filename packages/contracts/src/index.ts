@@ -46,10 +46,10 @@ export interface SourceState {
   message?: string;
 }
 
+export type LookupQuery = { isbn: string; title?: never } | { title: string; isbn?: never };
+
 export interface LookupResponse {
-  query: {
-    isbn: string;
-  };
+  query: LookupQuery;
   data: BookOffer[];
   sources: SourceState[];
   meta: {
@@ -61,7 +61,7 @@ export interface LookupResponse {
 
 export interface ApiErrorResponse {
   error: {
-    code: 'INVALID_ISBN' | 'METHOD_NOT_ALLOWED' | 'NOT_FOUND' | 'RATE_LIMITED';
+    code: 'INVALID_ISBN' | 'INVALID_QUERY' | 'METHOD_NOT_ALLOWED' | 'NOT_FOUND' | 'RATE_LIMITED';
     message: string;
   };
 }

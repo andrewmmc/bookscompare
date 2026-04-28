@@ -225,11 +225,11 @@ export function parseBooksComTwSearchResults(html: string): BookOffer[] {
   return results;
 }
 
-export async function fetchBooksComTwOffersByIsbn(
-  isbn: string,
+async function fetchBooksComTwOffersByKeyword(
+  keyword: string,
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
-  const html = await fetchHtml(`${BOOKS_COM_TW_SEARCH_URL}${encodeURIComponent(isbn)}`, {
+  const html = await fetchHtml(`${BOOKS_COM_TW_SEARCH_URL}${encodeURIComponent(keyword)}`, {
     headers: {
       'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
     },
@@ -243,4 +243,18 @@ export async function fetchBooksComTwOffersByIsbn(
   }
 
   return parseBooksComTwSearchResults(html);
+}
+
+export function fetchBooksComTwOffersByIsbn(
+  isbn: string,
+  options: ProviderSearchOptions = {}
+): Promise<BookOffer[]> {
+  return fetchBooksComTwOffersByKeyword(isbn, options);
+}
+
+export function fetchBooksComTwOffersByTitle(
+  title: string,
+  options: ProviderSearchOptions = {}
+): Promise<BookOffer[]> {
+  return fetchBooksComTwOffersByKeyword(title, options);
 }

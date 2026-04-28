@@ -205,11 +205,11 @@ export function parseCiteSearchResults(html: string): BookOffer[] {
   return results;
 }
 
-export async function fetchCiteOffersByIsbn(
-  isbn: string,
+async function fetchCiteOffersByKeyword(
+  keyword: string,
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
-  const html = await fetchHtml(`${CITE_SEARCH_URL}${encodeURIComponent(isbn)}`, {
+  const html = await fetchHtml(`${CITE_SEARCH_URL}${encodeURIComponent(keyword)}`, {
     headers: {
       'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
       'user-agent': CITE_USER_AGENT,
@@ -224,4 +224,18 @@ export async function fetchCiteOffersByIsbn(
   }
 
   return parseCiteSearchResults(html);
+}
+
+export function fetchCiteOffersByIsbn(
+  isbn: string,
+  options: ProviderSearchOptions = {}
+): Promise<BookOffer[]> {
+  return fetchCiteOffersByKeyword(isbn, options);
+}
+
+export function fetchCiteOffersByTitle(
+  title: string,
+  options: ProviderSearchOptions = {}
+): Promise<BookOffer[]> {
+  return fetchCiteOffersByKeyword(title, options);
 }

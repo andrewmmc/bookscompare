@@ -157,15 +157,15 @@ export function parseEsliteSearchResults(payload: EsliteSearchResponse): BookOff
   return hits.filter((hit) => hit.fields?.is_book !== 'no').map(parseEsliteOffer);
 }
 
-export async function fetchEsliteOffersByIsbn(
-  isbn: string,
+async function fetchEsliteOffersByKeyword(
+  keyword: string,
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
   let response: Response;
 
   try {
     response = await fetchWithTimeout(
-      `${ESLITE_SEARCH_URL}${encodeURIComponent(isbn)}`,
+      `${ESLITE_SEARCH_URL}${encodeURIComponent(keyword)}`,
       {
         headers: {
           accept: 'application/json',
@@ -192,4 +192,18 @@ export async function fetchEsliteOffersByIsbn(
   }
 
   return parseEsliteSearchResults((await response.json()) as EsliteSearchResponse);
+}
+
+export function fetchEsliteOffersByIsbn(
+  isbn: string,
+  options: ProviderSearchOptions = {}
+): Promise<BookOffer[]> {
+  return fetchEsliteOffersByKeyword(isbn, options);
+}
+
+export function fetchEsliteOffersByTitle(
+  title: string,
+  options: ProviderSearchOptions = {}
+): Promise<BookOffer[]> {
+  return fetchEsliteOffersByKeyword(title, options);
 }
