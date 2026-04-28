@@ -51,7 +51,9 @@ function parseKingstoneDiscountRate(block: string): number | undefined {
 function parseKingstoneTitleAndUrl(
   block: string
 ): Pick<BookOffer, 'sourceProductId' | 'title' | 'url'> {
-  const match = block.match(/<h3 class="pdnamebox">\s*<a href="([^"]+)">([\s\S]*?)<\/a>\s*<\/h3>/);
+  const match = block.match(
+    /<h3 class="pdnamebox">\s*<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a\s*>\s*<\/h3>/
+  );
 
   if (!match) {
     throw new Error('Kingstone parser could not find the product title.');
@@ -89,9 +91,9 @@ function parseKingstoneProductType(block: string): string {
 }
 
 function parseKingstonePublisher(block: string): string {
-  const publisherBlock = matchFirst(/<span class="publish">([\s\S]*?)<\/span>/, block);
+  const publisherBlock = matchFirst(/<span class="publish"\s*>([\s\S]*?)<\/span\s*>/, block);
   const publisher = publisherBlock
-    ? matchFirst(/<a[^>]*>([\s\S]*?)<\/a>/, publisherBlock)
+    ? matchFirst(/<a[^>]*>([\s\S]*?)<\/a\s*>/, publisherBlock)
     : undefined;
 
   if (!publisher) {
@@ -140,7 +142,7 @@ function parseKingstoneSearchOffer(block: string): BookOffer {
     sourceProductId,
     title,
     productType: parseKingstoneProductType(block),
-    authors: extractAll(/<a[^>]*>([\s\S]*?)<\/a>/g, authorBlock),
+    authors: extractAll(/<a[^>]*>([\s\S]*?)<\/a\s*>/g, authorBlock),
     publisher: parseKingstonePublisher(block),
     summary: summaryHtml ? normalizeKingstoneSummary(summaryHtml) : '',
     currency: KINGSTONE_CURRENCY,
