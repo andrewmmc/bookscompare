@@ -146,4 +146,4 @@ The worker is configured in `apps/api/wrangler.toml`, including the `ISBN_LIMITE
 
 ## License
 
-Apache License 2.0. See [LICENSE.md](./LICENSE.md).
+MIT License. See [LICENSE.md](./LICENSE.md).
