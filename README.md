@@ -36,24 +36,23 @@
 
 實際 App 的截圖，幫助你在下載前快速感受好書價的樣貌。
 
-<p align="center">
-  <img src="./assets/screenshot-1.png" alt="好書價首頁：輸入或掃描 ISBN 條碼" width="92%" />
-</p>
-<p align="center">
-  <strong>掃條碼或輸入書名</strong><br />
-  首頁直接輸入 ISBN，或開啟相機掃描書本條碼。
-</p>
-
 <table>
   <tr>
-    <td width="50%" valign="top">
+    <td width="33%" valign="top">
+      <img src="./assets/screenshot-1.png" alt="好書價首頁：輸入或掃描 ISBN 條碼" />
+      <p>
+        <strong>掃條碼或輸入書名</strong><br />
+        首頁直接輸入 ISBN，或開啟相機掃描書本條碼。
+      </p>
+    </td>
+    <td width="33%" valign="top">
       <img src="./assets/screenshot-2.png" alt="好書價搜尋結果：四大書店售價比較" />
       <p>
         <strong>四大通路售價一目了然</strong><br />
         一次列出實體書與電子書版本，清楚標示原價、折扣與最終售價。
       </p>
     </td>
-    <td width="50%" valign="top">
+    <td width="33%" valign="top">
       <img src="./assets/screenshot-3.png" alt="好書價關於頁面與版本資訊" />
       <p>
         <strong>清爽乾淨，專注比價</strong><br />
