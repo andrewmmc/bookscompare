@@ -6,10 +6,13 @@ export interface WebViewScreenParams {
   showOptions?: boolean;
 }
 
+export type BookDetailParams = { isbn: string } | { title: string; author?: string };
+
 export type HomeStackParamList = {
   Home: undefined;
   BarcodeScanner: undefined;
-  SearchResult: { isbn: string; title?: never } | { title: string; isbn?: never };
+  SearchResult: { title: string };
+  BookDetail: BookDetailParams;
   SearchWebView: WebViewScreenParams;
 };
 

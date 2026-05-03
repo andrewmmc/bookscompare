@@ -1,7 +1,7 @@
 import { apiGet } from './client';
 
-import type { LookupResponse } from '@bookscompare/contracts';
+import type { BookDetailResponse } from '@bookscompare/contracts';
 
-export function lookupIsbn(isbn: string): Promise<LookupResponse> {
-  return apiGet<LookupResponse>(`/isbn/${encodeURIComponent(isbn)}`);
+export function lookupIsbn(isbn: string): Promise<BookDetailResponse> {
+  return apiGet<BookDetailResponse>(`/isbn/${encodeURIComponent(isbn)}`);
 }

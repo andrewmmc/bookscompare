@@ -1,19 +1,17 @@
-import { useMemo } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
 import { track } from '../../analytics';
-import { useIsbnLookup, useTitleSearch } from '../../api/queries';
+import { useTitleSearch } from '../../api/queries';
 import { strings } from '../../i18n/strings';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
 import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
-import { PriceTag } from '../../components/PriceTag';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { BookOffer, SourceState } from '@bookscompare/contracts';
+import type { BookSummary, SourceState } from '@bookscompare/contracts';
 import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
@@ -31,28 +29,29 @@ const sourceStatusStyles: Record<SourceState['status'], { bg: string; fg: string
 };
 
 export function SearchResultScreen({ navigation, route }: Props) {
-  const isbnParam = 'isbn' in route.params ? route.params.isbn : '';
-  const titleParam = 'title' in route.params ? route.params.title : '';
-  const isbnQuery = useIsbnLookup(isbnParam);
-  const titleQuery = useTitleSearch(titleParam);
-  const { data, error, isLoading, isRefetching, refetch } = isbnParam ? isbnQuery : titleQuery;
-  const offers = useMemo(
-    () => [...(data?.data ?? [])].sort((left, right) => left.price - right.price),
-    [data?.data]
-  );
+  const titleParam = route.params.title;
+  const { data, error, isLoading, isRefetching, refetch } = useTitleSearch(titleParam);
+  const books = data?.books ?? [];
   const sources = data?.sources ?? [];
   const liveScraping = data?.meta.liveScraping ?? false;
-  const allSourcesErrored = sources.length > 0 && sources.every((s) => s.status === 'error');
+  const allSourcesErrored =
+    sources.length > 0 && sources.every((source) => source.status === 'error');
 
-  const openOffer = (item: BookOffer) => {
-    track('search_result_open_offer', {
-      ...(isbnParam ? { isbn: isbnParam } : { title: titleParam }),
-      sourceId: item.sourceId,
+  const openBook = (item: BookSummary) => {
+    track('search_result_open_book', {
+      title: titleParam,
+      bookId: item.id,
+      hasIsbn: Boolean(item.isbn),
     });
-    navigation.navigate('SearchWebView', {
-      title: `${item.sourceName} - ${item.title}`,
-      url: item.url,
-      showOptions: true,
+
+    if (item.isbn) {
+      navigation.navigate('BookDetail', { isbn: item.isbn });
+      return;
+    }
+
+    navigation.navigate('BookDetail', {
+      title: item.title,
+      ...(item.authors[0] ? { author: item.authors[0] } : {}),
     });
   };
 
@@ -84,10 +83,10 @@ export function SearchResultScreen({ navigation, route }: Props) {
     );
   };
 
-  const renderOffer = ({ item }: { item: BookOffer }) => (
+  const renderBook = ({ item }: { item: BookSummary }) => (
     <Pressable
       android_ripple={{ color: colors.highlightSoft }}
-      onPress={() => openOffer(item)}
+      onPress={() => openBook(item)}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
     >
       <Image
@@ -96,13 +95,8 @@ export function SearchResultScreen({ navigation, route }: Props) {
         resizeMode="cover"
       />
       <View style={styles.body}>
-        {item.productType === '電子書' ? (
-          <View style={styles.ebookBadge}>
-            <Text style={styles.ebookBadgeText}>{strings.searchResult.ebookBadge}</Text>
-          </View>
-        ) : null}
         <Text style={styles.title} numberOfLines={2}>
-          {item.sourceName}: {item.title}
+          {item.title}
         </Text>
         {item.authors.length > 0 ? (
           <Text style={styles.note} numberOfLines={1}>
@@ -114,12 +108,17 @@ export function SearchResultScreen({ navigation, route }: Props) {
             {item.publisher}
           </Text>
         ) : null}
+        <View style={styles.meta}>
+          {typeof item.lowestPrice === 'number' ? (
+            <Text style={styles.price}>
+              {strings.searchResult.fromPrice(
+                `${item.currency} ${item.lowestPrice.toLocaleString('en-US')}`
+              )}
+            </Text>
+          ) : null}
+          <Text style={styles.note}>{strings.searchResult.storeCount(item.offerCount)}</Text>
+        </View>
       </View>
-      <PriceTag
-        currency={item.currency}
-        price={item.price}
-        {...(item.discountRate ? { discountRate: item.discountRate } : {})}
-      />
     </Pressable>
   );
 
@@ -136,7 +135,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
     );
   }
 
-  if (!isLoading && offers.length === 0) {
+  if (!isLoading && books.length === 0) {
     if (allSourcesErrored) {
       return (
         <View style={styles.container}>
@@ -182,15 +181,15 @@ export function SearchResultScreen({ navigation, route }: Props) {
   return (
     <View style={styles.container}>
       <FlatList
-        data={offers}
-        keyExtractor={(item) => `${item.sourceId}:${item.sourceProductId}`}
+        data={books}
+        keyExtractor={(item) => item.id}
         ListHeaderComponent={
           <View>
             {renderSourceChips()}
-            {offers.length > 0 ? (
+            {books.length > 0 ? (
               <View style={styles.divider}>
                 <Text style={styles.dividerText}>
-                  {strings.searchResult.resultsCount(offers.length)}
+                  {strings.searchResult.resultsCount(books.length)}
                 </Text>
               </View>
             ) : null}
@@ -199,7 +198,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         onRefresh={() => void refetch()}
         refreshing={isRefetching}
-        renderItem={renderOffer}
+        renderItem={renderBook}
       />
       {isLoading ? <LoadingOverlay label={strings.searchResult.loadingLabel} /> : null}
     </View>
@@ -248,7 +247,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     backgroundColor: colors.surface,
@@ -266,31 +265,23 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xxs,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.xs,
-  },
-  ebookBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 1,
-    borderRadius: 3,
-    backgroundColor: colors.inkMuted,
-  },
-  ebookBadgeText: {
-    ...typography.caption,
-    color: '#ffffff',
-    fontSize: 11,
-    lineHeight: 14,
-  },
   title: {
     ...typography.body,
     color: colors.ink,
-    flex: 1,
   },
   note: {
     ...typography.caption,
     color: colors.inkMuted,
+  },
+  meta: {
+    marginTop: spacing.xxs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  price: {
+    ...typography.caption,
+    color: colors.accent,
+    fontWeight: '600',
   },
 });

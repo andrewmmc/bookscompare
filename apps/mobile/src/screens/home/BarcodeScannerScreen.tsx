@@ -57,7 +57,7 @@ export function BarcodeScannerScreen({ navigation }: Props) {
 
                 setHasScanned(true);
                 track('barcode_scanner_valid_barcode', { isbnLength: isbn.length });
-                navigation.replace('SearchResult', { isbn });
+                navigation.replace('BookDetail', { isbn });
               }
         }
         style={StyleSheet.absoluteFillObject}

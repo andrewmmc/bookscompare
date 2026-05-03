@@ -23,6 +23,7 @@ export interface BookOffer {
   sourceId: BookSourceId;
   sourceName: string;
   sourceProductId: string;
+  isbn?: string;
   title: string;
   productType: string;
   authors: string[];
@@ -46,17 +47,49 @@ export interface SourceState {
   message?: string;
 }
 
-export type LookupQuery = { isbn: string; title?: never } | { title: string; isbn?: never };
+export interface BookSummary {
+  id: string;
+  isbn?: string;
+  title: string;
+  authors: string[];
+  publisher?: string;
+  publicationDate?: string;
+  imageUrl: string;
+  lowestPrice?: number;
+  currency: 'TWD';
+  offerCount: number;
+}
 
-export interface LookupResponse {
-  query: LookupQuery;
-  data: BookOffer[];
+export interface BookDetail {
+  id: string;
+  isbn?: string;
+  title: string;
+  authors: string[];
+  publisher?: string;
+  publicationDate?: string;
+  imageUrl: string;
+  summary: string;
+  offers: BookOffer[];
+}
+
+export interface ResponseMeta {
+  liveScraping: boolean;
+  requestedAt: string;
+  message?: string;
+}
+
+export interface SearchResponse {
+  query: { title: string };
+  books: BookSummary[];
   sources: SourceState[];
-  meta: {
-    liveScraping: boolean;
-    requestedAt: string;
-    message?: string;
-  };
+  meta: ResponseMeta;
+}
+
+export interface BookDetailResponse {
+  query: { isbn: string } | { title: string; author?: string };
+  book: BookDetail | null;
+  sources: SourceState[];
+  meta: ResponseMeta;
 }
 
 export interface ApiErrorResponse {

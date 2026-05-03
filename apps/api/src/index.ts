@@ -1,7 +1,8 @@
-import type { ApiErrorResponse, LookupResponse } from '@bookscompare/contracts';
+import type { ApiErrorResponse, BookDetailResponse, SearchResponse } from '@bookscompare/contracts';
 
 import { isValidIsbn, normalizeIsbn } from './lib/isbn';
 import { createErrorResponse } from './lib/responses';
+import { lookupBookByTitleAuthor } from './services/book-by-title';
 import { searchBooksByIsbn } from './services/search-by-isbn';
 import { searchBooksByTitle } from './services/search-by-title';
 
@@ -15,9 +16,16 @@ const LOOKUP_CACHE_CONTROL = 'public, max-age=0, s-maxage=1800';
 const LOOKUP_CACHE_HEADER = 'x-bookscompare-cache';
 const LOOKUP_RETRY_AFTER_SECONDS = 10;
 const SEARCH_QUERY_MAX_LENGTH = 100;
+const AUTHOR_QUERY_MAX_LENGTH = 100;
+
+type CachedLookupPayload =
+  | SearchResponse
+  | BookDetailResponse
+  | ApiErrorResponse
+  | Record<string, string | boolean>;
 
 function jsonResponse(
-  payload: LookupResponse | ApiErrorResponse | Record<string, string | boolean>,
+  payload: CachedLookupPayload,
   status = 200,
   cacheControl = 'no-store',
   extraHeaders?: HeadersInit
@@ -38,7 +46,7 @@ function matchIsbnPath(pathname: string): string | null {
   return match?.[1] ?? null;
 }
 
-function createLookupCacheKey(request: Request, isbn: string): Request {
+function createIsbnCacheKey(request: Request, isbn: string): Request {
   return new Request(new URL(`/isbn/${encodeURIComponent(isbn)}`, request.url).toString(), {
     method: 'GET',
   });
@@ -47,6 +55,16 @@ function createLookupCacheKey(request: Request, isbn: string): Request {
 function createSearchCacheKey(request: Request, query: string): Request {
   const url = new URL('/search', request.url);
   url.searchParams.set('q', query);
+
+  return new Request(url.toString(), { method: 'GET' });
+}
+
+function createBookByTitleCacheKey(request: Request, title: string, author?: string): Request {
+  const url = new URL('/book/by-title', request.url);
+  url.searchParams.set('title', title);
+  if (author) {
+    url.searchParams.set('author', author);
+  }
 
   return new Request(url.toString(), { method: 'GET' });
 }
@@ -63,11 +81,11 @@ function getSearchRateLimitKey(request: Request): string {
   return `search:${request.headers.get('cf-connecting-ip') ?? 'anonymous'}`;
 }
 
-function normalizeSearchQuery(input: string | null): string {
+function normalizeFreeTextQuery(input: string | null): string {
   return (input ?? '').trim().replace(/\s+/g, ' ');
 }
 
-function shouldCacheLookupResponse(payload: LookupResponse): boolean {
+function shouldCacheLookupResponse(payload: SearchResponse | BookDetailResponse): boolean {
   return payload.sources.every((source) => source.status !== 'error');
 }
 
@@ -80,6 +98,211 @@ function withLookupCacheStatus(response: Response, status: 'HIT' | 'MISS'): Resp
     statusText: response.statusText,
     headers,
   });
+}
+
+async function handleIsbnRoute(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+  rawIsbn: string
+): Promise<Response> {
+  const isbn = normalizeIsbn(rawIsbn);
+
+  if (!isValidIsbn(isbn)) {
+    return withLookupCacheStatus(
+      jsonResponse(
+        createErrorResponse('INVALID_ISBN', 'Provide a valid ISBN-10 or ISBN-13 value.'),
+        400
+      ),
+      'MISS'
+    );
+  }
+
+  const cacheKey = createIsbnCacheKey(request, isbn);
+  const cache = getLookupCache();
+  const cachedResponse = await cache.match(cacheKey);
+
+  if (cachedResponse) {
+    return withLookupCacheStatus(cachedResponse, 'HIT');
+  }
+
+  const { success } = await env.ISBN_LIMITER.limit({
+    key: getLookupRateLimitKey(request),
+  });
+
+  if (!success) {
+    return withLookupCacheStatus(
+      jsonResponse(
+        createErrorResponse('RATE_LIMITED', 'Too many ISBN lookups. Try again shortly.'),
+        429,
+        'no-store',
+        { 'retry-after': String(LOOKUP_RETRY_AFTER_SECONDS) }
+      ),
+      'MISS'
+    );
+  }
+
+  const lookupResponse = await searchBooksByIsbn(isbn);
+
+  if (!shouldCacheLookupResponse(lookupResponse)) {
+    return withLookupCacheStatus(jsonResponse(lookupResponse), 'MISS');
+  }
+
+  const response = jsonResponse(lookupResponse, 200, LOOKUP_CACHE_CONTROL);
+  ctx.waitUntil(cache.put(cacheKey, response.clone()));
+
+  return withLookupCacheStatus(response, 'MISS');
+}
+
+async function handleSearchRoute(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+  url: URL
+): Promise<Response> {
+  const query = normalizeFreeTextQuery(url.searchParams.get('q'));
+
+  if (!query) {
+    return withLookupCacheStatus(
+      jsonResponse(
+        createErrorResponse('INVALID_QUERY', 'Provide a non-empty search query via ?q=.'),
+        400
+      ),
+      'MISS'
+    );
+  }
+
+  if (query.length > SEARCH_QUERY_MAX_LENGTH) {
+    return withLookupCacheStatus(
+      jsonResponse(
+        createErrorResponse(
+          'INVALID_QUERY',
+          `Search query must be ${SEARCH_QUERY_MAX_LENGTH} characters or fewer.`
+        ),
+        400
+      ),
+      'MISS'
+    );
+  }
+
+  const cacheKey = createSearchCacheKey(request, query);
+  const cache = getLookupCache();
+  const cachedResponse = await cache.match(cacheKey);
+
+  if (cachedResponse) {
+    return withLookupCacheStatus(cachedResponse, 'HIT');
+  }
+
+  const { success } = await env.ISBN_LIMITER.limit({
+    key: getSearchRateLimitKey(request),
+  });
+
+  if (!success) {
+    return withLookupCacheStatus(
+      jsonResponse(
+        createErrorResponse('RATE_LIMITED', 'Too many searches. Try again shortly.'),
+        429,
+        'no-store',
+        { 'retry-after': String(LOOKUP_RETRY_AFTER_SECONDS) }
+      ),
+      'MISS'
+    );
+  }
+
+  const lookupResponse = await searchBooksByTitle(query);
+
+  if (!shouldCacheLookupResponse(lookupResponse)) {
+    return withLookupCacheStatus(jsonResponse(lookupResponse), 'MISS');
+  }
+
+  const response = jsonResponse(lookupResponse, 200, LOOKUP_CACHE_CONTROL);
+  ctx.waitUntil(cache.put(cacheKey, response.clone()));
+
+  return withLookupCacheStatus(response, 'MISS');
+}
+
+async function handleBookByTitleRoute(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+  url: URL
+): Promise<Response> {
+  const title = normalizeFreeTextQuery(url.searchParams.get('title'));
+  const author = normalizeFreeTextQuery(url.searchParams.get('author'));
+
+  if (!title) {
+    return withLookupCacheStatus(
+      jsonResponse(
+        createErrorResponse('INVALID_QUERY', 'Provide a non-empty title via ?title=.'),
+        400
+      ),
+      'MISS'
+    );
+  }
+
+  if (title.length > SEARCH_QUERY_MAX_LENGTH) {
+    return withLookupCacheStatus(
+      jsonResponse(
+        createErrorResponse(
+          'INVALID_QUERY',
+          `Title must be ${SEARCH_QUERY_MAX_LENGTH} characters or fewer.`
+        ),
+        400
+      ),
+      'MISS'
+    );
+  }
+
+  if (author && author.length > AUTHOR_QUERY_MAX_LENGTH) {
+    return withLookupCacheStatus(
+      jsonResponse(
+        createErrorResponse(
+          'INVALID_QUERY',
+          `Author must be ${AUTHOR_QUERY_MAX_LENGTH} characters or fewer.`
+        ),
+        400
+      ),
+      'MISS'
+    );
+  }
+
+  const cacheKey = createBookByTitleCacheKey(request, title, author || undefined);
+  const cache = getLookupCache();
+  const cachedResponse = await cache.match(cacheKey);
+
+  if (cachedResponse) {
+    return withLookupCacheStatus(cachedResponse, 'HIT');
+  }
+
+  const { success } = await env.ISBN_LIMITER.limit({
+    key: getSearchRateLimitKey(request),
+  });
+
+  if (!success) {
+    return withLookupCacheStatus(
+      jsonResponse(
+        createErrorResponse('RATE_LIMITED', 'Too many searches. Try again shortly.'),
+        429,
+        'no-store',
+        { 'retry-after': String(LOOKUP_RETRY_AFTER_SECONDS) }
+      ),
+      'MISS'
+    );
+  }
+
+  const lookupResponse = await lookupBookByTitleAuthor({
+    title,
+    ...(author ? { author } : {}),
+  });
+
+  if (!shouldCacheLookupResponse(lookupResponse)) {
+    return withLookupCacheStatus(jsonResponse(lookupResponse), 'MISS');
+  }
+
+  const response = jsonResponse(lookupResponse, 200, LOOKUP_CACHE_CONTROL);
+  ctx.waitUntil(cache.put(cacheKey, response.clone()));
+
+  return withLookupCacheStatus(response, 'MISS');
 }
 
 export default {
@@ -100,7 +323,7 @@ export default {
         ok: true,
         service: 'bookscompare-api',
         message:
-          'Cloudflare Worker is running. Use /isbn/:id to look up live offers, or /search?q= for title search.',
+          'Cloudflare Worker is running. Use /isbn/:id for ISBN lookups, /search?q= for title search, and /book/by-title?title=&author= for non-ISBN book detail.',
       });
     }
 
@@ -114,118 +337,15 @@ export default {
     const isbnParam = matchIsbnPath(pathname);
 
     if (isbnParam) {
-      const isbn = normalizeIsbn(isbnParam);
-
-      if (!isValidIsbn(isbn)) {
-        return withLookupCacheStatus(
-          jsonResponse(
-            createErrorResponse('INVALID_ISBN', 'Provide a valid ISBN-10 or ISBN-13 value.'),
-            400
-          ),
-          'MISS'
-        );
-      }
-
-      const cacheKey = createLookupCacheKey(request, isbn);
-      const cache = getLookupCache();
-      const cachedResponse = await cache.match(cacheKey);
-
-      if (cachedResponse) {
-        return withLookupCacheStatus(cachedResponse, 'HIT');
-      }
-
-      const { success } = await env.ISBN_LIMITER.limit({
-        key: getLookupRateLimitKey(request),
-      });
-
-      if (!success) {
-        return withLookupCacheStatus(
-          jsonResponse(
-            createErrorResponse('RATE_LIMITED', 'Too many ISBN lookups. Try again shortly.'),
-            429,
-            'no-store',
-            {
-              'retry-after': String(LOOKUP_RETRY_AFTER_SECONDS),
-            }
-          ),
-          'MISS'
-        );
-      }
-
-      const lookupResponse = await searchBooksByIsbn(isbn);
-
-      if (!shouldCacheLookupResponse(lookupResponse)) {
-        return withLookupCacheStatus(jsonResponse(lookupResponse), 'MISS');
-      }
-
-      const response = jsonResponse(lookupResponse, 200, LOOKUP_CACHE_CONTROL);
-      ctx.waitUntil(cache.put(cacheKey, response.clone()));
-
-      return withLookupCacheStatus(response, 'MISS');
+      return handleIsbnRoute(request, env, ctx, isbnParam);
     }
 
     if (pathname === '/search') {
-      const query = normalizeSearchQuery(url.searchParams.get('q'));
+      return handleSearchRoute(request, env, ctx, url);
+    }
 
-      if (!query) {
-        return withLookupCacheStatus(
-          jsonResponse(
-            createErrorResponse('INVALID_QUERY', 'Provide a non-empty search query via ?q=.'),
-            400
-          ),
-          'MISS'
-        );
-      }
-
-      if (query.length > SEARCH_QUERY_MAX_LENGTH) {
-        return withLookupCacheStatus(
-          jsonResponse(
-            createErrorResponse(
-              'INVALID_QUERY',
-              `Search query must be ${SEARCH_QUERY_MAX_LENGTH} characters or fewer.`
-            ),
-            400
-          ),
-          'MISS'
-        );
-      }
-
-      const cacheKey = createSearchCacheKey(request, query);
-      const cache = getLookupCache();
-      const cachedResponse = await cache.match(cacheKey);
-
-      if (cachedResponse) {
-        return withLookupCacheStatus(cachedResponse, 'HIT');
-      }
-
-      const { success } = await env.ISBN_LIMITER.limit({
-        key: getSearchRateLimitKey(request),
-      });
-
-      if (!success) {
-        return withLookupCacheStatus(
-          jsonResponse(
-            createErrorResponse('RATE_LIMITED', 'Too many searches. Try again shortly.'),
-            429,
-            'no-store',
-            {
-              'retry-after': String(LOOKUP_RETRY_AFTER_SECONDS),
-            }
-          ),
-          'MISS'
-        );
-      }
-
-      const lookupResponse = await searchBooksByTitle(query);
-
-      if (!shouldCacheLookupResponse(lookupResponse)) {
-        return withLookupCacheStatus(jsonResponse(lookupResponse), 'MISS');
-      }
-
-      const response = jsonResponse(lookupResponse, 200, LOOKUP_CACHE_CONTROL);
-      ctx.waitUntil(cache.put(cacheKey, response.clone()));
-
-      return withLookupCacheStatus(response, 'MISS');
+    if (pathname === '/book/by-title') {
+      return handleBookByTitleRoute(request, env, ctx, url);
     }
 
     return jsonResponse(createErrorResponse('NOT_FOUND', `No route matches ${url.pathname}.`), 404);

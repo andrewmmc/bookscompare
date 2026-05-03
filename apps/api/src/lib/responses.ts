@@ -1,37 +1,73 @@
 import {
   BOOK_SOURCES,
   type ApiErrorResponse,
-  type LookupQuery,
-  type LookupResponse,
+  type BookDetail,
+  type BookDetailResponse,
+  type BookSummary,
+  type ResponseMeta,
+  type SearchResponse,
   type SourceState,
 } from '@bookscompare/contracts';
 
 const disabledSourceMessage = 'This source does not yet have a live provider implementation.';
 
-interface CreateLookupResponseInput {
-  query: LookupQuery;
-  data: LookupResponse['data'];
+interface BuildMetaInput {
+  liveScraping: boolean;
+  message?: string;
+  requestedAt?: string;
+}
+
+export function buildMeta({ liveScraping, message, requestedAt }: BuildMetaInput): ResponseMeta {
+  return {
+    liveScraping,
+    requestedAt: requestedAt ?? new Date().toISOString(),
+    ...(message ? { message } : {}),
+  };
+}
+
+interface CreateSearchResponseInput {
+  query: SearchResponse['query'];
+  books: BookSummary[];
   sources: SourceState[];
   liveScraping: boolean;
   message?: string;
 }
 
-export function createLookupResponse({
+export function createSearchResponse({
   query,
-  data,
+  books,
   sources,
   liveScraping,
   message,
-}: CreateLookupResponseInput): LookupResponse {
+}: CreateSearchResponseInput): SearchResponse {
   return {
     query,
-    data,
+    books,
     sources,
-    meta: {
-      liveScraping,
-      requestedAt: new Date().toISOString(),
-      ...(message ? { message } : {}),
-    },
+    meta: buildMeta({ liveScraping, ...(message ? { message } : {}) }),
+  };
+}
+
+interface CreateBookDetailResponseInput {
+  query: BookDetailResponse['query'];
+  book: BookDetail | null;
+  sources: SourceState[];
+  liveScraping: boolean;
+  message?: string;
+}
+
+export function createBookDetailResponse({
+  query,
+  book,
+  sources,
+  liveScraping,
+  message,
+}: CreateBookDetailResponseInput): BookDetailResponse {
+  return {
+    query,
+    book,
+    sources,
+    meta: buildMeta({ liveScraping, ...(message ? { message } : {}) }),
   };
 }
 

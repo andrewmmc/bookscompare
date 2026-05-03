@@ -33,7 +33,7 @@ function createOffer(provider: BookProvider): BookOffer {
   };
 }
 
-test('searchBooksByIsbn runs provider lookups in parallel and preserves provider order', async (t) => {
+test('searchBooksByIsbn runs provider lookups in parallel and returns a clustered book detail', async (t) => {
   const bookProviders = getBookProviders();
   const originalSearchByIsbn = bookProviders.map((provider) => ({
     provider,
@@ -94,9 +94,16 @@ test('searchBooksByIsbn runs provider lookups in parallel and preserves provider
       status: 'ready',
     },
   ]);
+  assert.deepEqual(response.query, { isbn: '9786267569337' });
+  assert.equal(response.book?.id, '9786267569337');
+  assert.equal(response.book?.isbn, '9786267569337');
   assert.deepEqual(
-    response.data.map((offer) => offer.sourceId),
+    response.book?.offers.map((offer) => offer.sourceId),
     ['books-com-tw', 'eslite']
+  );
+  assert.equal(
+    response.book?.offers.every((offer) => offer.isbn === '9786267569337'),
+    true
   );
   assert.equal(response.meta.liveScraping, true);
   assert.equal(response.meta.message, 'One or more providers failed during ISBN search.');

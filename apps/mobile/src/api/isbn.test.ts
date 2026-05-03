@@ -11,7 +11,7 @@ describe('lookupIsbn', () => {
       ok: true,
       json: async () => ({
         query: { isbn: '9781402894626' },
-        data: [],
+        book: null,
         sources: [],
         meta: { liveScraping: false, requestedAt: 'now' },
       }),
@@ -22,7 +22,7 @@ describe('lookupIsbn', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       'https://bookscompare-api.andrewmmc.workers.dev/isbn/9781402894626'
     );
-    expect(response.query.isbn).toBe('9781402894626');
+    expect('isbn' in response.query && response.query.isbn).toBe('9781402894626');
   });
 
   it('throws ApiError on non-ok responses', async () => {

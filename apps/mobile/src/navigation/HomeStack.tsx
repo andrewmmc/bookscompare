@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { WebViewScreen } from '../screens/common/WebViewScreen';
 import { BarcodeScannerScreen } from '../screens/home/BarcodeScannerScreen';
+import { BookDetailScreen } from '../screens/home/BookDetailScreen';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { SearchResultScreen } from '../screens/home/SearchResultScreen';
 import { strings } from '../i18n/strings';
@@ -44,6 +45,11 @@ export function HomeStack() {
         name="SearchResult"
         component={SearchResultScreen}
         options={{ title: strings.navigation.searchResult }}
+      />
+      <Stack.Screen
+        name="BookDetail"
+        component={BookDetailScreen}
+        options={{ title: strings.navigation.bookDetail }}
       />
       <Stack.Screen name="SearchWebView" component={WebViewScreen} />
     </Stack.Navigator>

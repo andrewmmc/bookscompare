@@ -1,7 +1,7 @@
 import { apiGet } from './client';
 
-import type { LookupResponse } from '@bookscompare/contracts';
+import type { SearchResponse } from '@bookscompare/contracts';
 
-export function searchByTitle(title: string): Promise<LookupResponse> {
-  return apiGet<LookupResponse>(`/search?q=${encodeURIComponent(title)}`);
+export function searchByTitle(title: string): Promise<SearchResponse> {
+  return apiGet<SearchResponse>(`/search?q=${encodeURIComponent(title)}`);
 }

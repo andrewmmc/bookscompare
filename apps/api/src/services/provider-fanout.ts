@@ -1,18 +1,24 @@
 import { logProviderResult } from '../lib/logger';
-import { createDisabledSourceState, createLookupResponse } from '../lib/responses';
+import { createDisabledSourceState } from '../lib/responses';
 import { providers } from '../providers/registry';
 
-import type { LookupQuery, LookupResponse, SourceState } from '@bookscompare/contracts';
+import type { BookOffer, SourceState } from '@bookscompare/contracts';
 import type { BookProvider } from '../providers/types';
 
 type ProviderSearchMethod = 'searchByIsbn' | 'searchByTitle';
 
 interface RunProviderSearchInput {
-  query: LookupQuery;
   method: ProviderSearchMethod;
   value: string;
   failureMessage: string;
   emptyMessage: (providerName: string) => string;
+}
+
+export interface ProviderFanoutResult {
+  offers: BookOffer[];
+  sources: SourceState[];
+  liveScraping: boolean;
+  message?: string;
 }
 
 function isBookProvider(provider: (typeof providers)[number]): provider is BookProvider {
@@ -20,13 +26,12 @@ function isBookProvider(provider: (typeof providers)[number]): provider is BookP
 }
 
 export async function runProviderSearch({
-  query,
   method,
   value,
   failureMessage,
   emptyMessage,
-}: RunProviderSearchInput): Promise<LookupResponse> {
-  const data: LookupResponse['data'] = [];
+}: RunProviderSearchInput): Promise<ProviderFanoutResult> {
+  const offers: BookOffer[] = [];
   const sources: SourceState[] = [];
   let liveScraping = false;
   let message: string | undefined;
@@ -48,7 +53,7 @@ export async function runProviderSearch({
       const startedAt = Date.now();
 
       try {
-        const offers = await provider[method](value, {
+        const providerOffers = await provider[method](value, {
           timeoutMs: provider.timeoutMs,
         });
         const durationMs = Date.now() - startedAt;
@@ -57,13 +62,13 @@ export async function runProviderSearch({
           providerId: provider.id,
           status: 'ready',
           durationMs,
-          offerCount: offers.length,
+          offerCount: providerOffers.length,
         });
 
         return {
           provider,
           status: 'ready' as const,
-          offers,
+          offers: providerOffers,
         };
       } catch (error) {
         const durationMs = Date.now() - startedAt;
@@ -91,7 +96,7 @@ export async function runProviderSearch({
     }
 
     if (result.status === 'ready') {
-      data.push(...result.offers);
+      offers.push(...result.offers);
       sources.push({
         id: result.provider.id,
         name: result.provider.name,
@@ -114,11 +119,10 @@ export async function runProviderSearch({
     message = failureMessage;
   }
 
-  return createLookupResponse({
-    query,
-    data,
+  return {
+    offers,
     sources,
     liveScraping,
     ...(message ? { message } : {}),
-  });
+  };
 }

@@ -36,7 +36,7 @@ describe('BarcodeScannerScreen', () => {
 
     fireEvent.press(screen.getByTestId('camera-view'));
 
-    expect(navigation.replace).toHaveBeenCalledWith('SearchResult', {
+    expect(navigation.replace).toHaveBeenCalledWith('BookDetail', {
       isbn: '9781402894626',
     });
   });

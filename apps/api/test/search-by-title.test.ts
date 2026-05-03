@@ -13,7 +13,7 @@ function getBookProviders(): BookProvider[] {
   return providers.filter((provider): provider is BookProvider => 'searchByTitle' in provider);
 }
 
-function createOffer(provider: BookProvider, title: string): BookOffer {
+function createOffer(provider: BookProvider, title: string, price = 100): BookOffer {
   return {
     sourceId: provider.id,
     sourceName: provider.name,
@@ -24,16 +24,16 @@ function createOffer(provider: BookProvider, title: string): BookOffer {
     publisher: 'Test Publisher',
     publicationDate: '2025-01-01',
     summary: `${provider.name} summary`,
-    price: 100,
+    price,
     currency: 'TWD',
-    priceText: '100 元',
+    priceText: `${price} 元`,
     url: `https://example.com/${provider.id}`,
     imageUrl: `https://example.com/${provider.id}.jpg`,
     badges: [],
   };
 }
 
-test('searchBooksByTitle fans out to providers and returns title query metadata', async (t) => {
+test('searchBooksByTitle clusters offers across providers into BookSummary entries', async (t) => {
   const bookProviders = getBookProviders();
   const original = bookProviders.map((provider) => ({
     provider,
@@ -51,7 +51,7 @@ test('searchBooksByTitle fans out to providers and returns title query metadata'
       switch (provider.id) {
         case 'books-com-tw':
           await delay(20);
-          return [createOffer(provider, title)];
+          return [createOffer(provider, title, 250)];
         case 'kingstone':
           await delay(15);
           throw new Error('Kingstone failed.');
@@ -60,7 +60,7 @@ test('searchBooksByTitle fans out to providers and returns title query metadata'
           return [];
         case 'eslite':
           await delay(5);
-          return [createOffer(provider, title)];
+          return [createOffer(provider, title, 200)];
       }
     };
   }
@@ -81,8 +81,15 @@ test('searchBooksByTitle fans out to providers and returns title query metadata'
   );
   const citeSource = response.sources.find((source) => source.id === 'cite');
   assert.equal(citeSource?.message, 'No 城邦讀書花園 search results matched this title.');
-  assert.deepEqual(
-    response.data.map((offer) => offer.sourceId),
-    ['books-com-tw', 'eslite']
-  );
+
+  // Both provider offers share title + first author, so they cluster into one
+  // BookSummary with offerCount = 2 and lowestPrice = 200.
+  assert.equal(response.books.length, 1);
+  const [book] = response.books;
+  assert.equal(book?.title, '哈利波特');
+  assert.deepEqual(book?.authors, ['Test Author']);
+  assert.equal(book?.offerCount, 2);
+  assert.equal(book?.lowestPrice, 200);
+  assert.equal(book?.isbn, undefined);
+  assert.ok(book?.id.startsWith('t-'));
 });
