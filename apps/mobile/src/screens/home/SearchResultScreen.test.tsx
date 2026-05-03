@@ -4,12 +4,24 @@ import { SearchResultScreen } from './SearchResultScreen';
 import { renderWithProviders } from '../../test/test-utils';
 
 const mockUseIsbnLookup = jest.fn();
+const mockUseTitleSearch = jest.fn();
 
 jest.mock('../../api/queries', () => ({
   useIsbnLookup: (...args: unknown[]) => mockUseIsbnLookup(...args),
+  useTitleSearch: (...args: unknown[]) => mockUseTitleSearch(...args),
 }));
 
 describe('SearchResultScreen', () => {
+  beforeEach(() => {
+    mockUseTitleSearch.mockReturnValue({
+      data: undefined,
+      error: null,
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    });
+  });
+
   it('renders offers and opens the selected storefront page', () => {
     mockUseIsbnLookup.mockReturnValue({
       data: {

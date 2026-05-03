@@ -3,7 +3,7 @@ import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
 import { track } from '../../analytics';
-import { useIsbnLookup } from '../../api/queries';
+import { useIsbnLookup, useTitleSearch } from '../../api/queries';
 import { strings } from '../../i18n/strings';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
@@ -31,7 +31,11 @@ const sourceStatusStyles: Record<SourceState['status'], { bg: string; fg: string
 };
 
 export function SearchResultScreen({ navigation, route }: Props) {
-  const { data, error, isLoading, isRefetching, refetch } = useIsbnLookup(route.params.isbn);
+  const isbnParam = 'isbn' in route.params ? route.params.isbn : '';
+  const titleParam = 'title' in route.params ? route.params.title : '';
+  const isbnQuery = useIsbnLookup(isbnParam);
+  const titleQuery = useTitleSearch(titleParam);
+  const { data, error, isLoading, isRefetching, refetch } = isbnParam ? isbnQuery : titleQuery;
   const offers = useMemo(
     () => [...(data?.data ?? [])].sort((left, right) => left.price - right.price),
     [data?.data]
@@ -42,7 +46,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
 
   const openOffer = (item: BookOffer) => {
     track('search_result_open_offer', {
-      isbn: route.params.isbn,
+      ...(isbnParam ? { isbn: isbnParam } : { title: titleParam }),
       sourceId: item.sourceId,
     });
     navigation.navigate('SearchWebView', {

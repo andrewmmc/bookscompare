@@ -9,9 +9,7 @@ export interface WebViewScreenParams {
 export type HomeStackParamList = {
   Home: undefined;
   BarcodeScanner: undefined;
-  SearchResult: {
-    isbn: string;
-  };
+  SearchResult: { isbn: string; title?: never } | { title: string; isbn?: never };
   SearchWebView: WebViewScreenParams;
 };
 

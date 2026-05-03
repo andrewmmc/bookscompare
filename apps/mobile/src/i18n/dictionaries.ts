@@ -16,8 +16,10 @@ interface Dictionary {
   };
   home: {
     leadText: string;
-    inputLabel: string;
-    inputPlaceholder: string;
+    isbnTab: string;
+    titleTab: string;
+    isbnPlaceholder: string;
+    titlePlaceholder: string;
     scanAction: string;
     searchAction: string;
   };
@@ -87,9 +89,11 @@ const zhTW: Dictionary = {
     about: '關於我們',
   },
   home: {
-    leadText: '掃描或輸入書本的國際標準書號 (ISBN 碼)，讓您輕鬆以最心儀的價格買入！',
-    inputLabel: 'ISBN 碼',
-    inputPlaceholder: 'ISBN 碼',
+    leadText: '掃描或輸入書本的國際標準書號 (ISBN 碼)，或直接輸入書名，輕鬆找到最心儀的價格！',
+    isbnTab: 'ISBN 碼',
+    titleTab: '書名',
+    isbnPlaceholder: 'ISBN 碼',
+    titlePlaceholder: '輸入書名',
     scanAction: '掃描',
     searchAction: '搜尋好書價',
   },
@@ -166,9 +170,11 @@ const en: Dictionary = {
   },
   home: {
     leadText:
-      "Scan or type a book's ISBN to find the best price across Taiwan's online bookstores.",
-    inputLabel: 'ISBN',
-    inputPlaceholder: 'ISBN',
+      "Scan an ISBN, or type an ISBN or book title to find the best price across Taiwan's online bookstores.",
+    isbnTab: 'ISBN',
+    titleTab: 'Title',
+    isbnPlaceholder: 'ISBN',
+    titlePlaceholder: 'Book title',
     scanAction: 'Scan',
     searchAction: 'Compare prices',
   },

@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
-import { Button, Text, TextInput } from 'react-native-paper';
+import { Button, SegmentedButtons, Text, TextInput } from 'react-native-paper';
 
 import { track } from '../../analytics';
 import { normalizeIsbn, isValidIsbn } from '../../lib/isbn';
@@ -15,18 +15,35 @@ import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
+type SearchMode = 'isbn' | 'title';
+
+const TITLE_MAX_LENGTH = 100;
+
 export function HomeScreen({ navigation }: Props) {
+  const [mode, setMode] = useState<SearchMode>('isbn');
   const [isbn, setIsbn] = useState('');
+  const [title, setTitle] = useState('');
+
   const normalizedIsbn = normalizeIsbn(isbn);
-  const canSearch = isValidIsbn(normalizedIsbn);
+  const trimmedTitle = title.trim();
+  const canSearch =
+    mode === 'isbn'
+      ? isValidIsbn(normalizedIsbn)
+      : trimmedTitle.length > 0 && trimmedTitle.length <= TITLE_MAX_LENGTH;
 
   const handleSearch = () => {
     if (!canSearch) {
       return;
     }
 
-    track('home_click_search', { isbnLength: normalizedIsbn.length });
-    navigation.navigate('SearchResult', { isbn: normalizedIsbn });
+    if (mode === 'isbn') {
+      track('home_click_search', { isbnLength: normalizedIsbn.length });
+      navigation.navigate('SearchResult', { isbn: normalizedIsbn });
+      return;
+    }
+
+    track('home_click_search_title', { titleLength: trimmedTitle.length });
+    navigation.navigate('SearchResult', { title: trimmedTitle });
   };
 
   return (
@@ -40,32 +57,68 @@ export function HomeScreen({ navigation }: Props) {
           <Text style={styles.leadText}>{strings.home.leadText}</Text>
         </View>
 
+        <SegmentedButtons
+          density="medium"
+          onValueChange={(value) => {
+            const next = value as SearchMode;
+            track('home_change_mode', { mode: next });
+            setMode(next);
+          }}
+          style={styles.segments}
+          value={mode}
+          buttons={[
+            { value: 'isbn', label: strings.home.isbnTab },
+            { value: 'title', label: strings.home.titleTab },
+          ]}
+        />
+
         <View style={styles.inputRow}>
-          <TextInput
-            keyboardType="numeric"
-            maxLength={13}
-            mode="outlined"
-            onChangeText={(value) => {
-              track('home_type_isbn');
-              setIsbn(value);
-            }}
-            outlineColor={colors.border}
-            placeholder={strings.home.inputPlaceholder}
-            style={styles.input}
-            value={isbn}
-          />
-          <Pressable
-            accessibilityLabel={strings.home.scanAction}
-            accessibilityRole="button"
-            android_ripple={{ color: 'rgba(255,255,255,0.2)' }}
-            onPress={() => {
-              track('home_click_scan');
-              navigation.navigate('BarcodeScanner');
-            }}
-            style={({ pressed }) => [styles.scannerButton, pressed && styles.scannerPressed]}
-          >
-            <Ionicons color="#ffffff" name="camera" size={24} />
-          </Pressable>
+          {mode === 'isbn' ? (
+            <TextInput
+              keyboardType="numeric"
+              maxLength={13}
+              mode="outlined"
+              onChangeText={(value) => {
+                track('home_type_isbn');
+                setIsbn(value);
+              }}
+              outlineColor={colors.border}
+              placeholder={strings.home.isbnPlaceholder}
+              style={styles.input}
+              value={isbn}
+            />
+          ) : (
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              maxLength={TITLE_MAX_LENGTH}
+              mode="outlined"
+              onChangeText={(value) => {
+                track('home_type_title');
+                setTitle(value);
+              }}
+              onSubmitEditing={handleSearch}
+              outlineColor={colors.border}
+              placeholder={strings.home.titlePlaceholder}
+              returnKeyType="search"
+              style={styles.input}
+              value={title}
+            />
+          )}
+          {mode === 'isbn' ? (
+            <Pressable
+              accessibilityLabel={strings.home.scanAction}
+              accessibilityRole="button"
+              android_ripple={{ color: 'rgba(255,255,255,0.2)' }}
+              onPress={() => {
+                track('home_click_scan');
+                navigation.navigate('BarcodeScanner');
+              }}
+              style={({ pressed }) => [styles.scannerButton, pressed && styles.scannerPressed]}
+            >
+              <Ionicons color="#ffffff" name="camera" size={24} />
+            </Pressable>
+          ) : null}
         </View>
 
         <Button
@@ -94,7 +147,7 @@ const styles = StyleSheet.create({
   },
   intro: {
     paddingTop: spacing.xl,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.lg,
     alignItems: 'center',
   },
   icon: {
@@ -105,6 +158,9 @@ const styles = StyleSheet.create({
     color: colors.ink,
     paddingTop: spacing.md,
     textAlign: 'center',
+  },
+  segments: {
+    marginBottom: spacing.md,
   },
   inputRow: {
     flexDirection: 'row',
