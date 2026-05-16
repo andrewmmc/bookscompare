@@ -1,7 +1,7 @@
 name = "bookscompare-api"
 main = "src/index.ts"
 compatibility_date = "2026-04-26"
-workers_dev = true
+workers_dev = false
 
 # Must remain unique within the Cloudflare account.
 [[ratelimits]]
