@@ -2,6 +2,9 @@ name = "bookscompare-api"
 main = "src/index.ts"
 compatibility_date = "2026-04-26"
 workers_dev = false
+routes = [
+  { pattern = "bookscompare-api.mmc.dev", custom_domain = true }
+]
 
 # Must remain unique within the Cloudflare account.
 [[ratelimits]]
