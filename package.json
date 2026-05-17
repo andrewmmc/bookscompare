@@ -9,7 +9,7 @@
   "scripts": {
     "dev:api": "pnpm --filter @bookscompare/api dev",
     "dev:mobile": "pnpm --filter @bookscompare/mobile dev",
-    "deploy:api": "pnpm --filter @bookscompare/api deploy",
+    "deploy:api": "pnpm --filter @bookscompare/api run deploy",
     "check:api": "pnpm --filter @bookscompare/api check",
     "ios:mobile": "pnpm --filter @bookscompare/mobile ios",
     "android:mobile": "pnpm --filter @bookscompare/mobile android",
