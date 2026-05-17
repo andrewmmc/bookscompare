@@ -4,7 +4,7 @@ export type SupportedLocale = 'zh-TW' | 'en';
 
 export const DEFAULT_LOCALE: SupportedLocale = 'zh-TW';
 
-const SUPPORTED: readonly SupportedLocale[] = ['zh-TW', 'en'];
+const SUPPORTED: readonly SupportedLocale[] = ['zh-TW'];
 
 function normalizeTag(tag: string | null | undefined): SupportedLocale | null {
   if (!tag) {

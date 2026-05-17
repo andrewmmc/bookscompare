@@ -13,24 +13,12 @@ import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { PriceTag } from '../../components/PriceTag';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { BookOffer, SourceState } from '@bookscompare/contracts';
+import type { BookOffer } from '@bookscompare/contracts';
 import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'BookDetail'>;
 
 const SUMMARY_PREVIEW_CHARS = 180;
-
-const sourceStatusLabels: Record<SourceState['status'], string> = {
-  ready: strings.searchResult.sourceStatus.ready,
-  error: strings.searchResult.sourceStatus.error,
-  disabled: strings.searchResult.sourceStatus.disabled,
-};
-
-const sourceStatusStyles: Record<SourceState['status'], { bg: string; fg: string }> = {
-  ready: { bg: colors.highlightSoft, fg: colors.ink },
-  error: { bg: '#fde2dd', fg: colors.danger },
-  disabled: { bg: colors.border, fg: colors.inkMuted },
-};
 
 function isbnFromParams(params: BookDetailParams): string | undefined {
   return 'isbn' in params ? params.isbn : undefined;
@@ -61,34 +49,6 @@ export function BookDetailScreen({ navigation, route }: Props) {
     });
   };
 
-  const renderSourceChips = () => {
-    if (sources.length === 0) {
-      return null;
-    }
-
-    return (
-      <View
-        style={styles.chipsRow}
-        accessibilityLabel={strings.searchResult.sourceChipsAccessibilityLabel}
-      >
-        {sources.map((source) => {
-          const palette = sourceStatusStyles[source.status];
-          return (
-            <View
-              key={source.id}
-              style={[styles.chip, { backgroundColor: palette.bg }]}
-              accessibilityLabel={`${source.name} ${sourceStatusLabels[source.status]}`}
-            >
-              <Text style={[styles.chipText, { color: palette.fg }]} numberOfLines={1}>
-                {source.name} · {sourceStatusLabels[source.status]}
-              </Text>
-            </View>
-          );
-        })}
-      </View>
-    );
-  };
-
   if (error) {
     return (
       <EmptyState
@@ -106,7 +66,6 @@ export function BookDetailScreen({ navigation, route }: Props) {
     if (allSourcesErrored) {
       return (
         <View style={styles.container}>
-          {renderSourceChips()}
           <EmptyState
             icon="cloud-offline"
             title={strings.searchResult.allErroredTitle}
@@ -121,7 +80,6 @@ export function BookDetailScreen({ navigation, route }: Props) {
     if (!liveScraping) {
       return (
         <View style={styles.container}>
-          {renderSourceChips()}
           <EmptyState
             icon="construct"
             title={strings.searchResult.notLiveTitle}
@@ -135,7 +93,6 @@ export function BookDetailScreen({ navigation, route }: Props) {
 
     return (
       <View style={styles.container}>
-        {renderSourceChips()}
         <EmptyState
           icon="sad"
           title={strings.bookDetail.notFoundTitle}
@@ -179,8 +136,6 @@ export function BookDetailScreen({ navigation, route }: Props) {
             {book.isbn ? <Text style={styles.headerNote}>ISBN {book.isbn}</Text> : null}
           </View>
         </View>
-
-        {renderSourceChips()}
 
         {summary ? (
           <View style={styles.section}>
@@ -270,25 +225,6 @@ const styles = StyleSheet.create({
   headerNote: {
     ...typography.caption,
     color: colors.inkMuted,
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
-  },
-  chip: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xxs,
-    borderRadius: 999,
-  },
-  chipText: {
-    ...typography.caption,
-    fontSize: 12,
   },
   section: {
     backgroundColor: colors.surface,

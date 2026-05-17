@@ -10,7 +10,7 @@ The mobile app lives here as an Expo SDK 54 workspace app with an iOS-first rele
 - In-app bookstore browsing with `react-native-webview`
 - About page links routed through the shared web view screen
 - Friendly empty/error states when the API or marketing pages are unavailable
-- Bilingual UI (`zh-TW` primary, `en` secondary) driven by device locale
+- Traditional Chinese UI (`zh-TW`) with English strings kept in the codebase for future use
 - Optional PostHog analytics — disabled at build time when no key is provided
 
 ## Stack
@@ -108,10 +108,10 @@ Expo loads `apps/mobile/.env` automatically. See `.env.example` for the full lis
 
 Strings live in [`src/i18n/dictionaries.ts`](./src/i18n/dictionaries.ts). The active locale is resolved at startup by `src/i18n/locale.ts` from `expo-localization`:
 
-- `zh-TW` is the primary locale and the fallback for any unsupported device language.
-- `en` is offered as a secondary locale for English (`en-*`) devices.
+- `zh-TW` is currently the only enabled locale and the fallback for every device language.
+- `en` strings remain in the dictionary for future use, but English is not currently enabled.
 
-Re-export the resolved dictionary via `import { strings } from '../../i18n/strings'` from any screen or component. There is no runtime locale switcher — the app follows the device language.
+Re-export the resolved dictionary via `import { strings } from '../../i18n/strings'` from any screen or component. There is no runtime locale switcher.
 
 When adding a new user-facing string:
 

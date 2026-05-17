@@ -68,9 +68,9 @@ interface Dictionary {
   about: {
     title: string;
     version: (appVersion: string, buildNumber: string) => string;
+    disclaimer: string;
     items: {
       privacy: string;
-      declaration: string;
       feedback: string;
       copyright: string;
     };
@@ -164,9 +164,10 @@ const zhTW: Dictionary = {
     title: '好書價 BooksCompare',
     version: (appVersion, buildNumber) =>
       `版本 v${appVersion}${buildNumber ? ` (${buildNumber})` : ''}`,
+    disclaimer:
+      '好書價是獨立的開源專案，與博客來、金石堂、城邦讀書花園、誠品線上等網路書店均無任何隸屬、合作或贊助關係。所有商標屬於其原始持有者，引用僅為描述用途。售價以各書店官方網站為準，App 僅彙整公開資料供讀者參考。',
     items: {
       privacy: '使用條款及私隱政策',
-      declaration: '免責聲明',
       feedback: '提交意見',
       copyright: '(c) 2026 Andrew Mok',
     },
@@ -265,9 +266,10 @@ const en: Dictionary = {
     title: 'BooksCompare',
     version: (appVersion, buildNumber) =>
       `Version v${appVersion}${buildNumber ? ` (${buildNumber})` : ''}`,
+    disclaimer:
+      'BooksCompare is an independent open-source project and is not affiliated with, partnered with, or sponsored by Books.com.tw, KingStone, Cite Book Garden, eslite.com, or any other online bookstore. All trademarks belong to their original owners and are referenced for descriptive purposes only. Prices are based on each bookstore’s official website; the app only aggregates public information for readers’ reference.',
     items: {
       privacy: 'Terms & Privacy Policy',
-      declaration: 'Disclaimer',
       feedback: 'Send feedback',
       copyright: '(c) 2026 Andrew Mok',
     },

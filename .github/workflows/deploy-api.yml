@@ -26,7 +26,7 @@ jobs:
 
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
 
     steps:
       - name: Check out repository
@@ -54,7 +54,7 @@ jobs:
           done
 
           if [ "${#missing[@]}" -gt 0 ]; then
-            printf 'Missing required GitHub secrets: %s\n' "${missing[*]}" >&2
+            printf 'Missing required GitHub secrets/variables: %s\n' "${missing[*]}" >&2
             exit 1
           fi
 

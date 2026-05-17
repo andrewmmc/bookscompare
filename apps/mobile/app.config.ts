@@ -2,11 +2,11 @@ import type { ExpoConfig, ConfigContext } from 'expo/config';
 
 import pkg from './package.json';
 
-const defaultApiBaseUrl = 'https://bookscompare-api.andrewmmc.workers.dev';
-const expoOwner = process.env.EXPO_OWNER?.trim() || undefined;
-const easProjectId = process.env.EXPO_PROJECT_ID?.trim() || undefined;
-const iosBuildNumber = process.env.IOS_BUILD_NUMBER?.trim() || '1';
-const androidVersionCodeRaw = process.env.ANDROID_VERSION_CODE?.trim();
+const defaultApiBaseUrl = 'http://localhost:8787';
+const expoOwner = process.env.EXPO_OWNER || undefined;
+const easProjectId = process.env.EXPO_PROJECT_ID || undefined;
+const iosBuildNumber = process.env.IOS_BUILD_NUMBER || '1';
+const androidVersionCodeRaw = process.env.ANDROID_VERSION_CODE;
 const androidVersionCode = androidVersionCodeRaw ? Number(androidVersionCodeRaw) : 1;
 
 export default ({ config }: ConfigContext): ExpoConfig => ({

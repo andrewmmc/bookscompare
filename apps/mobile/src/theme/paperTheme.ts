@@ -12,6 +12,8 @@ export const paperTheme = {
     primaryContainer: colors.highlight,
     onPrimaryContainer: colors.accentDeep,
     secondary: colors.ink,
+    secondaryContainer: colors.highlight,
+    onSecondaryContainer: colors.accentDeep,
     background: colors.canvas,
     surface: colors.surface,
     surfaceVariant: colors.paper,

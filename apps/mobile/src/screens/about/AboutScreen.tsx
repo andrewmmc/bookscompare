@@ -29,18 +29,11 @@ const aboutItems = [
     inApp: true,
   },
   {
-    key: 'declaration',
-    title: strings.about.items.declaration,
-    icon: 'shield-checkmark',
-    url: 'https://bookscompare.mmc.dev/declaration',
-    inApp: true,
-  },
-  {
     key: 'feedback',
     title: strings.about.items.feedback,
     icon: 'star',
-    url: 'https://bookscompare.mmc.dev/feedback',
-    inApp: true,
+    url: 'https://github.com/andrewmmc/bookscompare/issues',
+    inApp: false,
   },
   {
     key: 'copyright',
@@ -58,6 +51,7 @@ export function AboutScreen({ navigation }: Props) {
         <Image source={logo} style={styles.logo} />
         <Text style={styles.title}>{strings.about.title}</Text>
         <Text style={styles.version}>{strings.about.version(appVersion, buildNumber)}</Text>
+        <Text style={styles.disclaimer}>{strings.about.disclaimer}</Text>
       </View>
 
       <View style={styles.list}>
@@ -110,6 +104,13 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.ink,
     marginTop: spacing.xs,
+  },
+  disclaimer: {
+    ...typography.caption,
+    color: colors.inkMuted,
+    marginTop: spacing.md,
+    maxWidth: 360,
+    textAlign: 'center',
   },
   list: {
     backgroundColor: colors.surface,
