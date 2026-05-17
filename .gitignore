@@ -80,6 +80,8 @@ typings/
 apps/mobile/.expo/
 apps/mobile/android/
 apps/mobile/ios/
+apps/mobile/credentials.json
+apps/mobile/credentials/
 
 # Build output
 dist
