@@ -85,6 +85,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ...(easProjectId ? { eas: { projectId: easProjectId } } : {}),
   },
   plugins: [
+    'expo-font',
     [
       'expo-build-properties',
       {

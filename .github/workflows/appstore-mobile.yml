@@ -116,6 +116,12 @@ jobs:
           const submitProduction = (submit.production ??= {});
           const ios = (submitProduction.ios ??= {});
 
+          if (process.env.EXPO_OWNER) {
+            buildEnv.EXPO_OWNER = process.env.EXPO_OWNER;
+          }
+          if (process.env.EXPO_PROJECT_ID) {
+            buildEnv.EXPO_PROJECT_ID = process.env.EXPO_PROJECT_ID;
+          }
           if (process.env.EXPO_PUBLIC_API_BASE_URL) {
             buildEnv.EXPO_PUBLIC_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
           }
