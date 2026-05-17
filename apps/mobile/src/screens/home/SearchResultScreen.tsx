@@ -182,6 +182,8 @@ export function SearchResultScreen({ navigation, route }: Props) {
     <View style={styles.container}>
       <FlatList
         data={books}
+        style={styles.list}
+        contentContainerStyle={styles.listContent}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
           <View>
@@ -209,6 +211,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.canvas,
+  },
+  list: {
+    flex: 1,
+    width: '100%',
+  },
+  listContent: {
+    paddingBottom: spacing.xl,
   },
   chipsRow: {
     flexDirection: 'row',
@@ -243,9 +252,10 @@ const styles = StyleSheet.create({
   separator: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: colors.divider,
-    marginLeft: spacing.md,
+    marginLeft: spacing.md + 64 + spacing.sm,
   },
   row: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingHorizontal: spacing.md,
