@@ -151,7 +151,7 @@ const zhTW: Dictionary = {
     showMore: '顯示更多',
     showLess: '收起',
     notFoundTitle: '未能找到此書',
-    notFoundDescription: '抱歉，目前找不到這本書在合作書店的資料。',
+    notFoundDescription: '抱歉，目前找不到這本書的價格資料。',
     networkErrorTitle: '未能載入內容',
     networkErrorDescription: '請檢查您的網絡連接。\n如持續遇到此問題，請聯絡我們以取得協助。',
     retryAction: '重新載入',
