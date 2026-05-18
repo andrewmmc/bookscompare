@@ -14,6 +14,9 @@ describe('HomeScreen', () => {
     );
 
     expect(screen.queryByText('書名')).toBeNull();
+    expect(
+      screen.getByText('掃描或輸入書本的國際標準書號 (ISBN 碼)，輕鬆找到最心儀的價格！')
+    ).toBeOnTheScreen();
   });
 
   it('navigates to results with a normalized isbn', () => {

@@ -17,6 +17,7 @@ interface Dictionary {
   };
   home: {
     leadText: string;
+    leadTextWithTitleSearch: string;
     isbnTab: string;
     titleTab: string;
     isbnPlaceholder: string;
@@ -106,7 +107,9 @@ const zhTW: Dictionary = {
     about: '關於我們',
   },
   home: {
-    leadText: '掃描或輸入書本的國際標準書號 (ISBN 碼)，或直接輸入書名，輕鬆找到最心儀的價格！',
+    leadText: '掃描或輸入書本的國際標準書號 (ISBN 碼)，輕鬆找到最心儀的價格！',
+    leadTextWithTitleSearch:
+      '掃描或輸入書本的國際標準書號 (ISBN 碼)，或直接輸入書名，輕鬆找到最心儀的價格！',
     isbnTab: 'ISBN 碼',
     titleTab: '書名',
     isbnPlaceholder: 'ISBN 碼',
@@ -203,7 +206,8 @@ const en: Dictionary = {
     about: 'About',
   },
   home: {
-    leadText:
+    leadText: "Scan or type an ISBN to find the best price across Taiwan's online bookstores.",
+    leadTextWithTitleSearch:
       "Scan an ISBN, or type an ISBN or book title to find the best price across Taiwan's online bookstores.",
     isbnTab: 'ISBN',
     titleTab: 'Title',

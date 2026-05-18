@@ -67,7 +67,9 @@ export function HomeScreen({ navigation }: Props) {
         <View style={styles.content}>
           <View style={styles.intro}>
             <Ionicons color={colors.ink} name="search" size={72} style={styles.icon} />
-            <Text style={styles.leadText}>{strings.home.leadText}</Text>
+            <Text style={styles.leadText}>
+              {titleSearchEnabled ? strings.home.leadTextWithTitleSearch : strings.home.leadText}
+            </Text>
           </View>
 
           {titleSearchEnabled ? (
