@@ -1,8 +1,11 @@
+import { useMemo } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
 import { track } from '../../analytics';
-import { useTitleSearch } from '../../api/queries';
+import { useIsbnLookup, useTitleSearch } from '../../api/queries';
+import { PriceTag } from '../../components/PriceTag';
+import { featureFlags } from '../../config/featureFlags';
 import { strings } from '../../i18n/strings';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
@@ -11,31 +14,46 @@ import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { BookSummary, SourceState } from '@bookscompare/contracts';
+import type { BookOffer, BookSummary } from '@bookscompare/contracts';
 import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
 
-const sourceStatusLabels: Record<SourceState['status'], string> = {
-  ready: strings.searchResult.sourceStatus.ready,
-  error: strings.searchResult.sourceStatus.error,
-  disabled: strings.searchResult.sourceStatus.disabled,
-};
-
-const sourceStatusStyles: Record<SourceState['status'], { bg: string; fg: string }> = {
-  ready: { bg: colors.highlightSoft, fg: colors.ink },
-  error: { bg: '#fde2dd', fg: colors.danger },
-  disabled: { bg: colors.border, fg: colors.inkMuted },
-};
-
 export function SearchResultScreen({ navigation, route }: Props) {
-  const titleParam = route.params.title;
-  const { data, error, isLoading, isRefetching, refetch } = useTitleSearch(titleParam);
-  const books = data?.books ?? [];
+  const isbnParam = 'isbn' in route.params ? route.params.isbn : '';
+  const titleParam = 'title' in route.params ? route.params.title : '';
+  const isbnQuery = useIsbnLookup(isbnParam);
+  const titleQuery = useTitleSearch(titleParam);
+  const data = isbnParam ? isbnQuery.data : titleQuery.data;
+  const error = isbnParam ? isbnQuery.error : titleQuery.error;
+  const isLoading = isbnParam ? isbnQuery.isLoading : titleQuery.isLoading;
+  const isRefetching = isbnParam ? isbnQuery.isRefetching : titleQuery.isRefetching;
+  const refetch = isbnParam ? isbnQuery.refetch : titleQuery.refetch;
+  const offers = useMemo(
+    () =>
+      isbnParam && data && 'book' in data
+        ? [...(data.book?.offers ?? [])].sort((left, right) => left.price - right.price)
+        : [],
+    [data, isbnParam]
+  );
+  const books = !isbnParam && data && 'books' in data ? data.books : [];
   const sources = data?.sources ?? [];
   const liveScraping = data?.meta.liveScraping ?? false;
+  const resultCount = isbnParam ? offers.length : books.length;
   const allSourcesErrored =
     sources.length > 0 && sources.every((source) => source.status === 'error');
+
+  const openOffer = (item: BookOffer) => {
+    track('search_result_open_offer', {
+      isbn: isbnParam,
+      sourceId: item.sourceId,
+    });
+    navigation.navigate('SearchWebView', {
+      title: `${item.sourceName} - ${item.title}`,
+      url: item.url,
+      showOptions: true,
+    });
+  };
 
   const openBook = (item: BookSummary) => {
     track('search_result_open_book', {
@@ -45,7 +63,9 @@ export function SearchResultScreen({ navigation, route }: Props) {
     });
 
     if (item.isbn) {
-      navigation.navigate('BookDetail', { isbn: item.isbn });
+      navigation.navigate(featureFlags.enableBookDetailScreen ? 'BookDetail' : 'SearchResult', {
+        isbn: item.isbn,
+      });
       return;
     }
 
@@ -53,34 +73,6 @@ export function SearchResultScreen({ navigation, route }: Props) {
       title: item.title,
       ...(item.authors[0] ? { author: item.authors[0] } : {}),
     });
-  };
-
-  const renderSourceChips = () => {
-    if (sources.length === 0) {
-      return null;
-    }
-
-    return (
-      <View
-        style={styles.chipsRow}
-        accessibilityLabel={strings.searchResult.sourceChipsAccessibilityLabel}
-      >
-        {sources.map((source) => {
-          const palette = sourceStatusStyles[source.status];
-          return (
-            <View
-              key={source.id}
-              style={[styles.chip, { backgroundColor: palette.bg }]}
-              accessibilityLabel={`${source.name} ${sourceStatusLabels[source.status]}`}
-            >
-              <Text style={[styles.chipText, { color: palette.fg }]} numberOfLines={1}>
-                {source.name} · {sourceStatusLabels[source.status]}
-              </Text>
-            </View>
-          );
-        })}
-      </View>
-    );
   };
 
   const renderBook = ({ item }: { item: BookSummary }) => (
@@ -122,6 +114,45 @@ export function SearchResultScreen({ navigation, route }: Props) {
     </Pressable>
   );
 
+  const renderOffer = ({ item }: { item: BookOffer }) => (
+    <Pressable
+      android_ripple={{ color: colors.highlightSoft }}
+      onPress={() => openOffer(item)}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+    >
+      <Image
+        source={item.imageUrl ? { uri: item.imageUrl } : undefined}
+        style={styles.thumbnail}
+        resizeMode="cover"
+      />
+      <View style={styles.body}>
+        {item.productType === '電子書' ? (
+          <View style={styles.ebookBadge}>
+            <Text style={styles.ebookBadgeText}>{strings.searchResult.ebookBadge}</Text>
+          </View>
+        ) : null}
+        <Text style={styles.title} numberOfLines={2}>
+          {item.sourceName}: {item.title}
+        </Text>
+        {item.authors.length > 0 ? (
+          <Text style={styles.note} numberOfLines={1}>
+            {item.authors.join('、')}
+          </Text>
+        ) : null}
+        {item.publisher ? (
+          <Text style={styles.note} numberOfLines={1}>
+            {item.publisher}
+          </Text>
+        ) : null}
+      </View>
+      <PriceTag
+        currency={item.currency}
+        price={item.price}
+        {...(item.discountRate ? { discountRate: item.discountRate } : {})}
+      />
+    </Pressable>
+  );
+
   if (error) {
     return (
       <EmptyState
@@ -135,11 +166,10 @@ export function SearchResultScreen({ navigation, route }: Props) {
     );
   }
 
-  if (!isLoading && books.length === 0) {
+  if (!isLoading && resultCount === 0) {
     if (allSourcesErrored) {
       return (
         <View style={styles.container}>
-          {renderSourceChips()}
           <EmptyState
             icon="cloud-offline"
             title={strings.searchResult.allErroredTitle}
@@ -154,7 +184,6 @@ export function SearchResultScreen({ navigation, route }: Props) {
     if (!liveScraping) {
       return (
         <View style={styles.container}>
-          {renderSourceChips()}
           <EmptyState
             icon="construct"
             title={strings.searchResult.notLiveTitle}
@@ -168,12 +197,40 @@ export function SearchResultScreen({ navigation, route }: Props) {
 
     return (
       <View style={styles.container}>
-        {renderSourceChips()}
         <EmptyState
           icon="sad"
           title={strings.searchResult.notFoundTitle}
           description={strings.searchResult.notFoundDescription}
         />
+      </View>
+    );
+  }
+
+  const listHeader = (
+    <View>
+      {resultCount > 0 ? (
+        <View style={styles.divider}>
+          <Text style={styles.dividerText}>{strings.searchResult.resultsCount(resultCount)}</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+
+  if (isbnParam) {
+    return (
+      <View style={styles.container}>
+        <FlatList
+          data={offers}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
+          keyExtractor={(item) => `${item.sourceId}:${item.sourceProductId}`}
+          ListHeaderComponent={listHeader}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          onRefresh={() => void refetch()}
+          refreshing={isRefetching}
+          renderItem={renderOffer}
+        />
+        {isLoading ? <LoadingOverlay label={strings.searchResult.loadingLabel} /> : null}
       </View>
     );
   }
@@ -185,18 +242,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
         style={styles.list}
         contentContainerStyle={styles.listContent}
         keyExtractor={(item) => item.id}
-        ListHeaderComponent={
-          <View>
-            {renderSourceChips()}
-            {books.length > 0 ? (
-              <View style={styles.divider}>
-                <Text style={styles.dividerText}>
-                  {strings.searchResult.resultsCount(books.length)}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        }
+        ListHeaderComponent={listHeader}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         onRefresh={() => void refetch()}
         refreshing={isRefetching}
@@ -218,25 +264,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: spacing.xl,
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
-  },
-  chip: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xxs,
-    borderRadius: 999,
-  },
-  chipText: {
-    ...typography.caption,
-    fontSize: 12,
   },
   divider: {
     backgroundColor: colors.highlightSoft,
@@ -274,6 +301,19 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     gap: spacing.xxs,
+  },
+  ebookBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 1,
+    borderRadius: 3,
+    backgroundColor: colors.inkMuted,
+  },
+  ebookBadgeText: {
+    ...typography.caption,
+    color: '#ffffff',
+    fontSize: 11,
+    lineHeight: 14,
   },
   title: {
     ...typography.body,

@@ -11,7 +11,7 @@ export type BookDetailParams = { isbn: string } | { title: string; author?: stri
 export type HomeStackParamList = {
   Home: undefined;
   BarcodeScanner: undefined;
-  SearchResult: { title: string };
+  SearchResult: { isbn: string } | { title: string };
   BookDetail: BookDetailParams;
   SearchWebView: WebViewScreenParams;
 };

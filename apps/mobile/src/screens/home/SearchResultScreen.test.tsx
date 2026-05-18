@@ -4,17 +4,95 @@ import { SearchResultScreen } from './SearchResultScreen';
 import { renderWithProviders } from '../../test/test-utils';
 
 const mockUseTitleSearch = jest.fn();
+const mockUseIsbnLookup = jest.fn();
 
 jest.mock('../../api/queries', () => ({
+  useIsbnLookup: (...args: unknown[]) => mockUseIsbnLookup(...args),
   useTitleSearch: (...args: unknown[]) => mockUseTitleSearch(...args),
 }));
 
 describe('SearchResultScreen', () => {
   beforeEach(() => {
+    mockUseIsbnLookup.mockReset();
     mockUseTitleSearch.mockReset();
+    mockUseIsbnLookup.mockReturnValue({
+      data: undefined,
+      error: null,
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    });
+    mockUseTitleSearch.mockReturnValue({
+      data: undefined,
+      error: null,
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    });
   });
 
-  it('renders book summaries and navigates to BookDetail by ISBN when available', () => {
+  it('renders ISBN offers and opens the selected store', () => {
+    mockUseIsbnLookup.mockReturnValue({
+      data: {
+        query: { isbn: '9781402894626' },
+        book: {
+          id: '9781402894626',
+          isbn: '9781402894626',
+          title: '設計中的書',
+          authors: ['作者甲'],
+          publisher: '測試出版社',
+          imageUrl: 'https://example.com/book.jpg',
+          summary: '內容簡介',
+          offers: [
+            {
+              sourceId: 'books-com-tw',
+              sourceName: '博客來',
+              sourceProductId: 'item-1',
+              title: '設計中的書',
+              productType: '紙本書',
+              authors: ['作者甲'],
+              publisher: '測試出版社',
+              summary: '內容簡介',
+              imageUrl: 'https://example.com/book.jpg',
+              price: 280,
+              currency: 'TWD',
+              priceText: '280',
+              url: 'https://example.com/store/book',
+              badges: [],
+            },
+          ],
+        },
+        sources: [{ id: 'books-com-tw', name: '博客來', status: 'ready' }],
+        meta: { liveScraping: true, requestedAt: 'now' },
+      },
+      error: null,
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    });
+
+    const navigation = { navigate: jest.fn() };
+
+    const screen = renderWithProviders(
+      <SearchResultScreen
+        navigation={navigation as never}
+        route={
+          { key: 'SearchResult', name: 'SearchResult', params: { isbn: '9781402894626' } } as never
+        }
+      />
+    );
+
+    fireEvent.press(screen.getByText('博客來: 設計中的書'));
+
+    expect(mockUseIsbnLookup).toHaveBeenCalledWith('9781402894626');
+    expect(navigation.navigate).toHaveBeenCalledWith('SearchWebView', {
+      title: '博客來 - 設計中的書',
+      url: 'https://example.com/store/book',
+      showOptions: true,
+    });
+  });
+
+  it('renders book summaries and navigates to ISBN results when available', () => {
     mockUseTitleSearch.mockReturnValue({
       data: {
         query: { title: '設計' },
@@ -51,7 +129,7 @@ describe('SearchResultScreen', () => {
 
     fireEvent.press(screen.getByText('設計中的書'));
 
-    expect(navigation.navigate).toHaveBeenCalledWith('BookDetail', { isbn: '9781402894626' });
+    expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', { isbn: '9781402894626' });
   });
 
   it('falls back to title + author navigation when ISBN is unavailable', () => {

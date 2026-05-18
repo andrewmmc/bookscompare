@@ -12,6 +12,7 @@ import {
 import { Button, SegmentedButtons, Text, TextInput } from 'react-native-paper';
 
 import { track } from '../../analytics';
+import { featureFlags } from '../../config/featureFlags';
 import { normalizeIsbn, isValidIsbn } from '../../lib/isbn';
 import { strings } from '../../i18n/strings';
 import { colors } from '../../theme/colors';
@@ -46,7 +47,9 @@ export function HomeScreen({ navigation }: Props) {
 
     if (mode === 'isbn') {
       track('home_click_search', { isbnLength: normalizedIsbn.length });
-      navigation.navigate('BookDetail', { isbn: normalizedIsbn });
+      navigation.navigate(featureFlags.enableBookDetailScreen ? 'BookDetail' : 'SearchResult', {
+        isbn: normalizedIsbn,
+      });
       return;
     }
 

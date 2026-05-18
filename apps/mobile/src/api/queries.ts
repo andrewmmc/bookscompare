@@ -6,6 +6,14 @@ import { searchByTitle } from './title';
 
 export type BookDetailParams = { isbn: string } | { title: string; author?: string };
 
+export function useIsbnLookup(isbn: string) {
+  return useQuery({
+    queryKey: ['isbn-lookup', isbn],
+    queryFn: () => lookupIsbn(isbn),
+    enabled: isbn.length > 0,
+  });
+}
+
 export function useTitleSearch(title: string) {
   return useQuery({
     queryKey: ['title-search', title],
