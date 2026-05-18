@@ -33,12 +33,13 @@ export function HomeScreen({ navigation }: Props) {
   const [isbn, setIsbn] = useState('');
   const [title, setTitle] = useState('');
 
+  const titleSearchEnabled = featureFlags.enableTitleSearch;
   const normalizedIsbn = normalizeIsbn(isbn);
   const trimmedTitle = title.trim();
   const canSearch =
     mode === 'isbn'
       ? isValidIsbn(normalizedIsbn)
-      : trimmedTitle.length > 0 && trimmedTitle.length <= TITLE_MAX_LENGTH;
+      : titleSearchEnabled && trimmedTitle.length > 0 && trimmedTitle.length <= TITLE_MAX_LENGTH;
 
   const handleSearch = () => {
     if (!canSearch) {
@@ -69,20 +70,22 @@ export function HomeScreen({ navigation }: Props) {
             <Text style={styles.leadText}>{strings.home.leadText}</Text>
           </View>
 
-          <SegmentedButtons
-            density="medium"
-            onValueChange={(value) => {
-              const next = value as SearchMode;
-              track('home_change_mode', { mode: next });
-              setMode(next);
-            }}
-            style={styles.segments}
-            value={mode}
-            buttons={[
-              { value: 'isbn', label: strings.home.isbnTab },
-              { value: 'title', label: strings.home.titleTab },
-            ]}
-          />
+          {titleSearchEnabled ? (
+            <SegmentedButtons
+              density="medium"
+              onValueChange={(value) => {
+                const next = value as SearchMode;
+                track('home_change_mode', { mode: next });
+                setMode(next);
+              }}
+              style={styles.segments}
+              value={mode}
+              buttons={[
+                { value: 'isbn', label: strings.home.isbnTab },
+                { value: 'title', label: strings.home.titleTab },
+              ]}
+            />
+          ) : null}
 
           <View style={styles.inputRow}>
             {mode === 'isbn' ? (
