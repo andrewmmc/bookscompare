@@ -171,6 +171,12 @@ for src in "$INPUT_DIR"/screenshot-*.png; do
       "$out"
   fi
 
+  # Step 7: Flatten to remove alpha channel — App Store rejects RGBA PNGs.
+  magick "$out" \
+    -background "$BG_COLOR" -alpha remove -alpha off \
+    -define png:color-type=2 \
+    "$out"
+
   rm -f "$tmp_resized" "$tmp_mask" "$tmp_rounded" "$tmp_shadowed"
 
   dims="$(magick identify -format '%wx%h' "$out")"
