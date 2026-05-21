@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  掃描 ISBN 條碼或輸入書名，一次比較博客來、金石堂、城邦讀書花園、誠品線上的售價、折扣與電子書版本，挑出最划算的購書選擇。
+  掃描 ISBN 條碼，一次比較博客來、金石堂、城邦讀書花園、誠品線上的售價、折扣與電子書版本，挑出最划算的購書選擇。
 </p>
 
 <p align="center">
@@ -39,10 +39,10 @@
 <table>
   <tr>
     <td width="33%" valign="top">
-      <img src="./assets/screenshot-1.png" alt="好書價首頁：輸入或掃描 ISBN 條碼" />
+      <img src="./assets/screenshot-1.png" alt="好書價首頁：掃描 ISBN 條碼" />
       <p>
-        <strong>掃條碼或輸入書名</strong><br />
-        首頁直接輸入 ISBN，或開啟相機掃描書本條碼。
+        <strong>掃條碼即時比價</strong><br />
+        開啟相機掃描書本 ISBN 條碼，立即取得各通路售價。
       </p>
     </td>
     <td width="33%" valign="top">
@@ -64,11 +64,11 @@
 
 ## 下載
 
-**[在 App Store 下載好書價](https://bookscompare.mmc.dev)**（即將上架，敬請期待）
+**[在 App Store 下載好書價](https://apps.apple.com/tw/app/%E5%A5%BD%E6%9B%B8%E5%83%B9-bookscompare/id1398410339)**
 
 - 支援 iOS 17 以上的 iPhone
-- iPad 與 Android 版本規劃中
-- 一次性付費，下載即可使用全部功能，終身享有後續更新
+- iPad 版本規劃中
+- 限時免費，下載即可使用全部功能，終身享有後續更新
 
 更多介紹與常見問題請參考 **[bookscompare.mmc.dev](https://bookscompare.mmc.dev)**。
 
@@ -76,7 +76,6 @@
 
 - **四大書店比價** — 同步搜尋博客來、金石堂、城邦讀書花園、誠品線上。
 - **ISBN 條碼掃描** — 內建相機掃描，免去手動輸入長串數字。
-- **書名快速搜尋** — 記不住 ISBN 也沒關係，輸入關鍵字即可比價。
 - **電子書版本顯示** — 同時呈現實體書與電子書，並標註「電子書」徽章。
 - **原生跳轉購買** — 看到中意的價格，可直接在 App 內跳到該書店原始頁面下單。
 - **繁體中文介面** — 依系統語言自動切換繁體中文與英文。
@@ -197,7 +196,7 @@ pnpm deploy:api       # 部署 API 到 Cloudflare Workers
 - 共用的 API 回應型別一律放在 `packages/contracts`，避免在 app 之間重複定義。
 - 來源 ID 必須對齊 `BOOK_SOURCES`（`books-com-tw`、`kingstone`、`cite`、`eslite`）。
 - API 僅支援 `GET`，其他方法一律回傳 `METHOD_NOT_ALLOWED`。
-- 行動 App 以 iOS 為優先，Android 設定保留以利後續推進。
+- 行動 App 以 iOS 為優先。
 
 更多架構與貢獻細節請參考 [CLAUDE.md](./CLAUDE.md)。
 
