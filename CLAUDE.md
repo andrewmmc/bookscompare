@@ -137,7 +137,6 @@ pnpm validate:appstore-images
   - `GET /health` — health check
   - `GET /isbn/:id` and `GET /book/isbn/:id` — ISBN lookup (validates ISBN-10 / ISBN-13)
   - `GET /search?q=<title>` — title search (max 100 chars)
-- Rate limit: `ISBN_LIMITER` binding (10 req / 10s) keyed per IP (`cf-connecting-ip`); separate keys for `isbn:` and `search:`
 - Caching: successful lookups are stored in the Workers default cache with `cache-control: public, max-age=0, s-maxage=1800`; responses set `x-bookscompare-cache: HIT|MISS`. Responses with any source `status === 'error'` are not cached.
 - Source adapters live in `src/sources/` and per-source providers in `src/providers/` with a `registry.ts`. Service-level fan-out lives in `src/services/`.
 - Supported sources: 博客來 (`books-com-tw`), 金石堂 (`kingstone`), 城邦讀書花園 (`cite`), 誠品線上 (`eslite`).
@@ -160,7 +159,7 @@ pnpm validate:appstore-images
 
 - Pure TypeScript types shared between API and mobile (no runtime deps)
 - Key exports: `BOOK_SOURCES`, `BookSourceId`, `BookOffer`, `SourceState`, `LookupQuery`, `LookupResponse`, `ApiErrorResponse`
-- Error codes: `INVALID_ISBN | INVALID_QUERY | METHOD_NOT_ALLOWED | NOT_FOUND | RATE_LIMITED`
+- Error codes: `INVALID_ISBN | INVALID_QUERY | METHOD_NOT_ALLOWED | NOT_FOUND`
 
 ## Key Conventions
 

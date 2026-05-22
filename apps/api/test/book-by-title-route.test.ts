@@ -64,20 +64,9 @@ function createFakeCache() {
   };
 }
 
-function createTestEnv(rateLimitSuccess = true) {
-  const keys: string[] = [];
-
+function createTestEnv() {
   return {
-    env: {
-      ISBN_LIMITER: {
-        async limit({ key }: { key: string }): Promise<{ success: boolean }> {
-          keys.push(key);
-
-          return { success: rateLimitSuccess };
-        },
-      },
-    },
-    keys,
+    env: {} as Record<string, never>,
   };
 }
 
@@ -247,34 +236,4 @@ test('worker /book/by-title returns 400 when the title parameter is missing', as
 
   assert.equal(response.status, 400);
   assert.equal(body.error.code, 'INVALID_QUERY');
-});
-
-test('worker /book/by-title returns 429 before provider fanout when the rate limit is exceeded', async (t) => {
-  const { store } = installFakeCaches(t);
-  const { env, keys } = createTestEnv(false);
-  let providerCalls = 0;
-
-  stubSearchByTitle(t, (provider) => async (title: string) => {
-    providerCalls += 1;
-    return [createOffer(provider, title, 320)];
-  });
-
-  const response = await worker.fetch(
-    new Request(
-      'https://bookscompare-api.andrewmmc.workers.dev/book/by-title?title=%E5%8E%9F%E5%AD%90%E7%BF%92%E6%85%A3',
-      {
-        headers: { 'cf-connecting-ip': '203.0.113.30' },
-      }
-    ),
-    env,
-    createExecutionContext()
-  );
-  const body = (await response.json()) as { error: { code: string } };
-
-  assert.equal(response.status, 429);
-  assert.equal(response.headers.get('retry-after'), '10');
-  assert.equal(providerCalls, 0);
-  assert.equal(store.size, 0);
-  assert.deepEqual(keys, ['search:203.0.113.30']);
-  assert.equal(body.error.code, 'RATE_LIMITED');
 });

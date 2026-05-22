@@ -117,7 +117,6 @@ packages/
   - `GET /health` — 健康檢查
   - `GET /isbn/:id`、`GET /book/isbn/:id` — ISBN 查詢
   - `GET /search?q=<title>` — 書名搜尋（最多 100 字）
-- **流量限制**：`ISBN_LIMITER` 綁定，每個 IP 每 10 秒最多 10 次請求；`isbn:` 與 `search:` 各自獨立計數。
 - **快取**：成功的查詢結果會寫入 Workers 預設快取（`s-maxage=1800`），回應透過 `x-bookscompare-cache: HIT|MISS` 表示來源；任一來源 `status === 'error'` 時不會快取。
 - **測試**：使用 Node.js 內建 test runner 搭配 `tsx` 執行。
 
@@ -138,7 +137,7 @@ packages/
 
 - 純 TypeScript 型別套件，沒有任何 runtime 相依。
 - 主要匯出：`BOOK_SOURCES`、`BookSourceId`、`BookOffer`、`SourceState`、`LookupQuery`、`LookupResponse`、`ApiErrorResponse`。
-- 錯誤代碼：`INVALID_ISBN | INVALID_QUERY | METHOD_NOT_ALLOWED | NOT_FOUND | RATE_LIMITED`。
+- 錯誤代碼：`INVALID_ISBN | INVALID_QUERY | METHOD_NOT_ALLOWED | NOT_FOUND`。
 
 ## 開發
 

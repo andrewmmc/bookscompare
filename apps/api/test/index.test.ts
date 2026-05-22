@@ -64,20 +64,9 @@ function createFakeCache() {
   };
 }
 
-function createTestEnv(rateLimitSuccess = true) {
-  const keys: string[] = [];
-
+function createTestEnv() {
   return {
-    env: {
-      ISBN_LIMITER: {
-        async limit({ key }: { key: string }): Promise<{ success: boolean }> {
-          keys.push(key);
-
-          return { success: rateLimitSuccess };
-        },
-      },
-    },
-    keys,
+    env: {} as Record<string, never>,
   };
 }
 
@@ -89,7 +78,7 @@ test('worker caches successful ISBN lookups under a canonical key', async (t) =>
   }));
   const callCounts = new Map<BookProvider['id'], number>();
   const { cache, store } = createFakeCache();
-  const { env, keys: rateLimitKeys } = createTestEnv();
+  const { env } = createTestEnv();
   const originalCaches = globalThis.caches;
 
   t.after(() => {
@@ -164,7 +153,6 @@ test('worker caches successful ISBN lookups under a canonical key', async (t) =>
     cite: 1,
     eslite: 1,
   });
-  assert.deepEqual(rateLimitKeys, ['isbn:anonymous']);
   assert.equal(secondContext.pending.length, 0);
   assert.equal(secondBody.meta.requestedAt, firstBody.meta.requestedAt);
 });
@@ -176,7 +164,7 @@ test('worker does not cache ISBN lookups when any provider fails', async (t) => 
     searchByIsbn: provider.searchByIsbn,
   }));
   const { cache, store } = createFakeCache();
-  const { env, keys: rateLimitKeys } = createTestEnv();
+  const { env } = createTestEnv();
   const originalCaches = globalThis.caches;
 
   t.after(() => {
@@ -225,72 +213,5 @@ test('worker does not cache ISBN lookups when any provider fails', async (t) => 
   assert.equal(response.headers.get('cache-control'), 'no-store');
   assert.equal(response.headers.get('x-bookscompare-cache'), 'MISS');
   assert.equal(store.size, 0);
-  assert.deepEqual(rateLimitKeys, ['isbn:anonymous']);
   assert.equal(body.meta.message, 'One or more providers failed during ISBN search.');
-});
-
-test('worker returns 429 before provider fanout when the ISBN rate limit is exceeded', async (t) => {
-  const bookProviders = getBookProviders();
-  const originalSearchByIsbn = bookProviders.map((provider) => ({
-    provider,
-    searchByIsbn: provider.searchByIsbn,
-  }));
-  const { cache, store } = createFakeCache();
-  const { env, keys: rateLimitKeys } = createTestEnv(false);
-  const originalCaches = globalThis.caches;
-  let providerCallCount = 0;
-
-  t.after(() => {
-    for (const entry of originalSearchByIsbn) {
-      entry.provider.searchByIsbn = entry.searchByIsbn;
-    }
-
-    if (originalCaches) {
-      Object.defineProperty(globalThis, 'caches', {
-        value: originalCaches,
-        configurable: true,
-        writable: true,
-      });
-      return;
-    }
-
-    Reflect.deleteProperty(globalThis, 'caches');
-  });
-
-  Object.defineProperty(globalThis, 'caches', {
-    value: { default: cache },
-    configurable: true,
-    writable: true,
-  });
-
-  for (const provider of bookProviders) {
-    provider.searchByIsbn = async () => {
-      providerCallCount += 1;
-
-      return [createOffer(provider)];
-    };
-  }
-
-  const context = createExecutionContext();
-  const response = await worker.fetch(
-    new Request('https://bookscompare-api.andrewmmc.workers.dev/isbn/9786267569337', {
-      headers: {
-        'cf-connecting-ip': '203.0.113.10',
-      },
-    }),
-    env,
-    context
-  );
-  const body = (await response.json()) as { error: { code: string; message: string } };
-
-  assert.equal(response.status, 429);
-  assert.equal(response.headers.get('cache-control'), 'no-store');
-  assert.equal(response.headers.get('retry-after'), '10');
-  assert.equal(response.headers.get('x-bookscompare-cache'), 'MISS');
-  assert.equal(store.size, 0);
-  assert.equal(providerCallCount, 0);
-  assert.equal(context.pending.length, 0);
-  assert.deepEqual(rateLimitKeys, ['isbn:203.0.113.10']);
-  assert.equal(body.error.code, 'RATE_LIMITED');
-  assert.equal(body.error.message, 'Too many ISBN lookups. Try again shortly.');
 });

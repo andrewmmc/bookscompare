@@ -6,15 +6,10 @@ import { lookupBookByTitleAuthor } from './services/book-by-title';
 import { searchBooksByIsbn } from './services/search-by-isbn';
 import { searchBooksByTitle } from './services/search-by-title';
 
-interface Env {
-  ISBN_LIMITER: {
-    limit(input: { key: string }): Promise<{ success: boolean }>;
-  };
-}
+type Env = Record<string, never>;
 
 const LOOKUP_CACHE_CONTROL = 'public, max-age=0, s-maxage=1800';
 const LOOKUP_CACHE_HEADER = 'x-bookscompare-cache';
-const LOOKUP_RETRY_AFTER_SECONDS = 10;
 const SEARCH_QUERY_MAX_LENGTH = 100;
 const AUTHOR_QUERY_MAX_LENGTH = 100;
 
@@ -73,14 +68,6 @@ function getLookupCache(): Cache {
   return (caches as CacheStorage & { default: Cache }).default;
 }
 
-function getLookupRateLimitKey(request: Request): string {
-  return `isbn:${request.headers.get('cf-connecting-ip') ?? 'anonymous'}`;
-}
-
-function getSearchRateLimitKey(request: Request): string {
-  return `search:${request.headers.get('cf-connecting-ip') ?? 'anonymous'}`;
-}
-
 function normalizeFreeTextQuery(input: string | null): string {
   return (input ?? '').trim().replace(/\s+/g, ' ');
 }
@@ -102,7 +89,6 @@ function withLookupCacheStatus(response: Response, status: 'HIT' | 'MISS'): Resp
 
 async function handleIsbnRoute(
   request: Request,
-  env: Env,
   ctx: ExecutionContext,
   rawIsbn: string
 ): Promise<Response> {
@@ -126,22 +112,6 @@ async function handleIsbnRoute(
     return withLookupCacheStatus(cachedResponse, 'HIT');
   }
 
-  const { success } = await env.ISBN_LIMITER.limit({
-    key: getLookupRateLimitKey(request),
-  });
-
-  if (!success) {
-    return withLookupCacheStatus(
-      jsonResponse(
-        createErrorResponse('RATE_LIMITED', 'Too many ISBN lookups. Try again shortly.'),
-        429,
-        'no-store',
-        { 'retry-after': String(LOOKUP_RETRY_AFTER_SECONDS) }
-      ),
-      'MISS'
-    );
-  }
-
   const lookupResponse = await searchBooksByIsbn(isbn);
 
   if (!shouldCacheLookupResponse(lookupResponse)) {
@@ -156,7 +126,6 @@ async function handleIsbnRoute(
 
 async function handleSearchRoute(
   request: Request,
-  env: Env,
   ctx: ExecutionContext,
   url: URL
 ): Promise<Response> {
@@ -193,22 +162,6 @@ async function handleSearchRoute(
     return withLookupCacheStatus(cachedResponse, 'HIT');
   }
 
-  const { success } = await env.ISBN_LIMITER.limit({
-    key: getSearchRateLimitKey(request),
-  });
-
-  if (!success) {
-    return withLookupCacheStatus(
-      jsonResponse(
-        createErrorResponse('RATE_LIMITED', 'Too many searches. Try again shortly.'),
-        429,
-        'no-store',
-        { 'retry-after': String(LOOKUP_RETRY_AFTER_SECONDS) }
-      ),
-      'MISS'
-    );
-  }
-
   const lookupResponse = await searchBooksByTitle(query);
 
   if (!shouldCacheLookupResponse(lookupResponse)) {
@@ -223,7 +176,6 @@ async function handleSearchRoute(
 
 async function handleBookByTitleRoute(
   request: Request,
-  env: Env,
   ctx: ExecutionContext,
   url: URL
 ): Promise<Response> {
@@ -274,22 +226,6 @@ async function handleBookByTitleRoute(
     return withLookupCacheStatus(cachedResponse, 'HIT');
   }
 
-  const { success } = await env.ISBN_LIMITER.limit({
-    key: getSearchRateLimitKey(request),
-  });
-
-  if (!success) {
-    return withLookupCacheStatus(
-      jsonResponse(
-        createErrorResponse('RATE_LIMITED', 'Too many searches. Try again shortly.'),
-        429,
-        'no-store',
-        { 'retry-after': String(LOOKUP_RETRY_AFTER_SECONDS) }
-      ),
-      'MISS'
-    );
-  }
-
   const lookupResponse = await lookupBookByTitleAuthor({
     title,
     ...(author ? { author } : {}),
@@ -306,7 +242,7 @@ async function handleBookByTitleRoute(
 }
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, _env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const { method } = request;
     const { pathname } = url;
@@ -337,15 +273,15 @@ export default {
     const isbnParam = matchIsbnPath(pathname);
 
     if (isbnParam) {
-      return handleIsbnRoute(request, env, ctx, isbnParam);
+      return handleIsbnRoute(request, ctx, isbnParam);
     }
 
     if (pathname === '/search') {
-      return handleSearchRoute(request, env, ctx, url);
+      return handleSearchRoute(request, ctx, url);
     }
 
     if (pathname === '/book/by-title') {
-      return handleBookByTitleRoute(request, env, ctx, url);
+      return handleBookByTitleRoute(request, ctx, url);
     }
 
     return jsonResponse(createErrorResponse('NOT_FOUND', `No route matches ${url.pathname}.`), 404);
