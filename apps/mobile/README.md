@@ -128,9 +128,43 @@ Analytics goes through `src/analytics`. The provider is selected at module load 
 
 The PostHog SDK is `require()`d lazily so unit tests (which never call `initAnalytics`) do not need to mock the native module.
 
-## TestFlight rollout
+## Release flow
 
-iOS releases are produced by the [`App Store Mobile Release`](../../.github/workflows/appstore-mobile.yml) workflow. It runs `eas build --platform ios --profile production --auto-submit`, so a successful run uploads the build to App Store Connect and triggers TestFlight processing automatically (typically 10–30 minutes).
+A full iOS release runs through two GitHub Actions workflows. Stage 1 ships the binary to TestFlight; stage 2 publishes the App Store version with localized release notes. Stage 2 never submits for review automatically — flip the switch in App Store Connect (or pass `submit_for_review=true`) when you're ready.
+
+```diagram
+╭────────────────────────────╮   ╭────────────────────────────╮   ╭──────────────────────╮
+│ 1. Bump version + notes    │──▶│ 2. App Store Mobile Release│──▶│ TestFlight processing│
+│    (PR merged to main)     │   │    (EAS build + submit)    │   │   (~10–30 min)       │
+╰────────────────────────────╯   ╰────────────────────────────╯   ╰──────────┬───────────╯
+                                                                              │
+                                                                              ▼
+                                 ╭────────────────────────────╮   ╭──────────────────────╮
+                                 │ 4. Submit for Review       │◀──│ 3. App Store Release │
+                                 │    (manual button in ASC)  │   │    Metadata          │
+                                 ╰────────────────────────────╯   │    (Fastlane deliver)│
+                                                                  ╰──────────────────────╯
+```
+
+### End-to-end usage flow
+
+1. **Open a PR that bumps the release** —
+   - bump `version` in [`apps/mobile/package.json`](./package.json)
+   - update **every** locale under [`apps/mobile/fastlane/metadata/<locale>/release_notes.txt`](./fastlane/metadata) (currently `en-US` and `zh-Hant`)
+   - CI runs [`scripts/validate-release-notes.sh`](../../scripts/validate-release-notes.sh) and fails if any locale is missing, empty, or > 4000 bytes
+   - merge to `main`
+2. **Run the TestFlight workflow** — **Actions → [App Store Mobile Release](../../.github/workflows/appstore-mobile.yml) → Run workflow**. Optionally fill `what_to_test`. Wait for EAS to build, submit, and for Apple to finish TestFlight processing (typically 10–30 min). You can confirm the build is ready in App Store Connect → TestFlight.
+3. **Run the App Store metadata workflow** — **Actions → [App Store Release Metadata](../../.github/workflows/appstore-release.yml) → Run workflow**:
+   - `version` — leave blank to use `package.json` version
+   - `build_number` — leave blank to attach the latest processed build for that version
+   - `release_type` — `manual` (default), `automatic`, or `phased`
+   - `submit_for_review` — keep `false` unless you want to submit straight from CI
+4. **Submit for review** — open App Store Connect, sanity-check the version, screenshots, and release notes, then hit _Add for Review_ / _Submit_. Re-run the metadata workflow with different inputs if you need to swap the build or update notes.
+
+### Workflows at a glance
+
+- [`App Store Mobile Release`](../../.github/workflows/appstore-mobile.yml) — builds the binary with EAS and uploads it to TestFlight (`eas build --platform ios --profile production --auto-submit`).
+- [`App Store Release Metadata`](../../.github/workflows/appstore-release.yml) — once the build is processed, creates the App Store version, attaches the build, and uploads localized release notes via Fastlane `deliver`. Re-runnable; never submits for review unless explicitly asked.
 
 ### Required GitHub configuration
 
@@ -154,13 +188,12 @@ Set these in **Settings → Secrets and variables → Actions**:
 
 The workflow validates that the required values are present before invoking EAS.
 
-### Triggering a release
+### What the TestFlight workflow does
 
-1. Bump `version` in `apps/mobile/package.json` (the build number is auto-incremented by EAS thanks to `production.autoIncrement: true`).
-2. Open **Actions → App Store Mobile Release → Run workflow**.
-3. Optionally fill **TestFlight "What to Test" notes** — they are forwarded to `eas build --auto-submit --what-to-test`.
-4. EAS queues an iOS build, signs it with the credentials managed in EAS, and submits the resulting `.ipa` to App Store Connect.
-5. TestFlight processing takes ~10–30 minutes. Once Apple finishes processing, distribute the build to internal/external groups from App Store Connect.
+1. Reads `version` from `apps/mobile/package.json`. The iOS build number is auto-incremented by EAS thanks to `production.autoIncrement: true`.
+2. Optionally accepts **TestFlight "What to Test" notes**, forwarded as `eas build --auto-submit --what-to-test`.
+3. EAS queues an iOS build, signs it with the credentials managed in EAS, and submits the resulting `.ipa` to App Store Connect.
+4. TestFlight processing takes ~10–30 minutes. Once processed, the build is available to TestFlight groups and to the App Store Release Metadata workflow.
 
 ### Local fallback
 
@@ -176,3 +209,17 @@ pnpm exec eas submit --platform ios --latest
 ```
 
 The same env vars listed above must be available locally (export them from your shell) for the submit step to find App Store Connect credentials.
+
+### Local fallback for App Store metadata
+
+```bash
+cd apps/mobile
+bundle install
+export EXPO_ASC_API_KEY_PATH=/abs/path/to/AuthKey.p8
+export EXPO_ASC_KEY_ID=...
+export EXPO_ASC_ISSUER_ID=...
+bundle exec fastlane ios release_appstore_dry_run   # validate metadata only
+bundle exec fastlane ios release_appstore           # actually push to App Store Connect
+```
+
+See [`fastlane/README.md`](./fastlane/README.md) for the full lane reference.

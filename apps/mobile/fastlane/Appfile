@@ -1,0 +1,4 @@
+app_identifier(ENV['APP_IDENTIFIER'] || 'com.andrewmmc.BookPriceApp')
+apple_id(ENV['EXPO_APPLE_ID']) if ENV['EXPO_APPLE_ID']
+team_id(ENV['EXPO_APPLE_TEAM_ID']) if ENV['EXPO_APPLE_TEAM_ID']
+itc_team_id(ENV['EXPO_ASC_TEAM_ID']) if ENV['EXPO_ASC_TEAM_ID']

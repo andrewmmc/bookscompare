@@ -1,0 +1,104 @@
+name: App Store Release Metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: App Store version to release (defaults to apps/mobile/package.json version)
+        required: false
+        type: string
+      build_number:
+        description: TestFlight build number to attach (defaults to latest processed build for the version)
+        required: false
+        type: string
+      release_type:
+        description: How the version is released once approved
+        required: false
+        type: choice
+        default: manual
+        options:
+          - manual
+          - automatic
+          - phased
+      submit_for_review:
+        description: Submit for App Review after metadata upload
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: macos-latest
+    env:
+      EXPO_ASC_APP_ID: ${{ vars.EXPO_ASC_APP_ID }}
+      EXPO_ASC_KEY_ID: ${{ vars.EXPO_ASC_KEY_ID }}
+      EXPO_ASC_ISSUER_ID: ${{ vars.EXPO_ASC_ISSUER_ID }}
+      EXPO_APPLE_TEAM_ID: ${{ vars.EXPO_APPLE_TEAM_ID }}
+      EXPO_APPLE_ID: ${{ vars.EXPO_APPLE_ID }}
+      APP_IDENTIFIER: com.andrewmmc.BookPriceApp
+      FASTLANE_SKIP_UPDATE_CHECK: '1'
+      FASTLANE_HIDE_CHANGELOG: '1'
+      LC_ALL: en_US.UTF-8
+      LANG: en_US.UTF-8
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate release configuration
+        env:
+          EXPO_ASC_API_KEY_BASE64: ${{ secrets.EXPO_ASC_API_KEY_BASE64 }}
+        run: |
+          missing=()
+          for var in EXPO_ASC_APP_ID EXPO_ASC_KEY_ID EXPO_ASC_ISSUER_ID EXPO_ASC_API_KEY_BASE64; do
+            if [ -z "${!var}" ]; then
+              missing+=("$var")
+            fi
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            printf 'Missing required GitHub configuration: %s\n' "${missing[*]}" >&2
+            exit 1
+          fi
+
+      - name: Validate release notes
+        run: ./scripts/validate-release-notes.sh
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: apps/mobile
+
+      - name: Write App Store Connect API key
+        env:
+          EXPO_ASC_API_KEY_BASE64: ${{ secrets.EXPO_ASC_API_KEY_BASE64 }}
+        run: |
+          mkdir -p apps/mobile/.tmp
+          echo "$EXPO_ASC_API_KEY_BASE64" | base64 --decode > apps/mobile/.tmp/AuthKey.p8
+          echo "EXPO_ASC_API_KEY_PATH=${{ github.workspace }}/apps/mobile/.tmp/AuthKey.p8" >> "$GITHUB_ENV"
+
+      - name: Resolve release version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            echo "value=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            v="$(node -p "require('./apps/mobile/package.json').version")"
+            echo "value=$v" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push App Store metadata
+        working-directory: apps/mobile
+        run: |
+          args=(ios release_appstore)
+          args+=(version:"${{ steps.version.outputs.value }}")
+          if [ -n "${{ inputs.build_number }}" ]; then
+            args+=(build_number:"${{ inputs.build_number }}")
+          fi
+          args+=(release_type:"${{ inputs.release_type }}")
+          args+=(submit_for_review:"${{ inputs.submit_for_review }}")
+          bundle exec fastlane "${args[@]}"

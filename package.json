@@ -19,6 +19,7 @@
     "verify": "pnpm typecheck && pnpm lint && pnpm test && pnpm test:mobile && pnpm check:api",
     "audit:privacy": "./scripts/audit-privacy.sh",
     "validate:appstore-images": "./scripts/validate-appstore-images.sh",
+    "validate:release-notes": "./scripts/validate-release-notes.sh",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",

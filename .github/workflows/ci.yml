@@ -43,3 +43,6 @@ jobs:
 
       - name: API deploy dry-run
         run: pnpm check:api
+
+      - name: Validate App Store release notes
+        run: ./scripts/validate-release-notes.sh

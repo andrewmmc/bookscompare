@@ -85,3 +85,11 @@ apps/mobile/credentials/
 
 # Build output
 dist
+
+# Fastlane
+apps/mobile/.tmp/
+apps/mobile/fastlane/report.xml
+apps/mobile/fastlane/Preview.html
+apps/mobile/fastlane/test_output
+apps/mobile/vendor/bundle
+apps/mobile/.bundle
