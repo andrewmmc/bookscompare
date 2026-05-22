@@ -4,19 +4,25 @@
 
 ### Overview
 
-BooksCompare is a pnpm monorepo with three packages. See `CLAUDE.md` and `README.md` for full command reference. Key commands: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:mobile`, `pnpm dev:api`.
+BooksCompare is a pnpm monorepo with three packages (`apps/api`, `apps/mobile`, `packages/contracts`). See `CLAUDE.md` and `README.md` for full command reference. Key commands: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:mobile`, `pnpm dev:api`, `pnpm verify` (runs typecheck + lint + tests + `check:api`).
 
 ### Project map
 
-- Mobile home/search flow: `apps/mobile/src/screens/home/`
+- Mobile screens: `apps/mobile/src/screens/` (`home/`, `about/`, `common/`)
 - Mobile navigation: `apps/mobile/src/navigation/`
 - Mobile feature flags: `apps/mobile/src/config/featureFlags.ts`
 - Mobile localization: `apps/mobile/src/i18n/`
+- Mobile analytics: `apps/mobile/src/analytics/`
+- Mobile theming: `apps/mobile/src/theme/`
+- Mobile API client: `apps/mobile/src/api/`
 - API worker/router: `apps/api/src/index.ts`
 - API providers/scrapers: `apps/api/src/providers/`, `apps/api/src/sources/`
 - API fan-out services: `apps/api/src/services/`
+- API shared lib: `apps/api/src/lib/`
 - Shared API contracts: `packages/contracts/src/index.ts`
 - App Store previews: `scripts/generate-appstore-previews.sh`, `assets/screenshot-*.png`, `appstore-previews/preview-*.png`
+- Release notes validation: `scripts/validate-release-notes.sh`
+- Privacy audit: `scripts/audit-privacy.sh`
 
 ### Verification tiers
 
