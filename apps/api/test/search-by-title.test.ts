@@ -33,7 +33,7 @@ function createOffer(provider: BookProvider, title: string, price = 100): BookOf
   };
 }
 
-test('searchBooksByTitle clusters offers across providers into BookSummary entries', async (t) => {
+test('searchBooksByTitle clusters offers across providers into full book entries', async (t) => {
   const bookProviders = getBookProviders();
   const original = bookProviders.map((provider) => ({
     provider,
@@ -83,13 +83,15 @@ test('searchBooksByTitle clusters offers across providers into BookSummary entri
   assert.equal(citeSource?.message, 'No 城邦讀書花園 search results matched this title.');
 
   // Both provider offers share title + first author, so they cluster into one
-  // BookSummary with offerCount = 2 and lowestPrice = 200.
+  // full book entry with two price-sorted offers.
   assert.equal(response.books.length, 1);
   const [book] = response.books;
   assert.equal(book?.title, '哈利波特');
   assert.deepEqual(book?.authors, ['Test Author']);
-  assert.equal(book?.offerCount, 2);
-  assert.equal(book?.lowestPrice, 200);
+  assert.equal(book?.offers.length, 2);
+  assert.equal(book?.offers[0]?.price, 200);
+  assert.equal(book?.offers[0]?.url, 'https://example.com/eslite');
+  assert.equal(book?.offers[1]?.price, 250);
   assert.equal(book?.isbn, undefined);
   assert.ok(book?.id.startsWith('t-'));
 });

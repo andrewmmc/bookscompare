@@ -38,6 +38,20 @@ test('parseEsliteSearchResults returns normalized offers from API payload', asyn
   ]);
 });
 
+test('parseEsliteSearchResults strips ebook title markers and keeps ebook type', async () => {
+  const payload = await readFixture('found.json');
+  const hit = (payload.hits as { hit: Array<{ fields: { name: string } }> }).hit[0];
+
+  assert.ok(hit);
+
+  hit.fields.name = '別送 (新版) (電子書)';
+
+  const [offer] = parseEsliteSearchResults(payload);
+
+  assert.equal(offer?.title, '別送 (新版)');
+  assert.equal(offer?.productType, '電子書');
+});
+
 test('parseEsliteSearchResults returns empty array for empty payload', async () => {
   assert.deepEqual(parseEsliteSearchResults(await readFixture('not-found.json')), []);
 });

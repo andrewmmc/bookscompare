@@ -3,7 +3,6 @@ import {
   type ApiErrorResponse,
   type BookDetail,
   type BookDetailResponse,
-  type BookSummary,
   type ResponseMeta,
   type SearchResponse,
   type SourceState,
@@ -27,7 +26,7 @@ export function buildMeta({ liveScraping, message, requestedAt }: BuildMetaInput
 
 interface CreateSearchResponseInput {
   query: SearchResponse['query'];
-  books: BookSummary[];
+  books: BookDetail[];
   sources: SourceState[];
   liveScraping: boolean;
   message?: string;

@@ -1,8 +1,12 @@
-import { clusterOffersIntoBooks, clusterToBookSummary } from '../lib/cluster';
+import { clusterOffersIntoBooks, clusterToBookDetail } from '../lib/cluster';
 import { createSearchResponse } from '../lib/responses';
 import { runProviderSearch } from './provider-fanout';
 
 import type { SearchResponse } from '@bookscompare/contracts';
+
+function lowestOfferPrice(book: ReturnType<typeof clusterToBookDetail>): number {
+  return book.offers[0]?.price ?? Number.POSITIVE_INFINITY;
+}
 
 export async function searchBooksByTitle(title: string): Promise<SearchResponse> {
   const fanout = await runProviderSearch({
@@ -13,15 +17,15 @@ export async function searchBooksByTitle(title: string): Promise<SearchResponse>
   });
 
   const clusters = clusterOffersIntoBooks(fanout.offers);
-  const books = clusters.map(clusterToBookSummary).sort((left, right) => {
-    const leftPrice = left.lowestPrice ?? Number.POSITIVE_INFINITY;
-    const rightPrice = right.lowestPrice ?? Number.POSITIVE_INFINITY;
+  const books = clusters.map(clusterToBookDetail).sort((left, right) => {
+    const leftPrice = lowestOfferPrice(left);
+    const rightPrice = lowestOfferPrice(right);
 
     if (leftPrice !== rightPrice) {
       return leftPrice - rightPrice;
     }
 
-    return right.offerCount - left.offerCount;
+    return right.offers.length - left.offers.length;
   });
 
   return createSearchResponse({

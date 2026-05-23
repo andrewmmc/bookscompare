@@ -92,7 +92,7 @@ describe('SearchResultScreen', () => {
     });
   });
 
-  it('renders book summaries and navigates to ISBN results when available', () => {
+  it('renders title-search offers and opens the selected store', () => {
     mockUseTitleSearch.mockReturnValue({
       data: {
         query: { title: '設計' },
@@ -104,9 +104,41 @@ describe('SearchResultScreen', () => {
             authors: ['作者甲'],
             publisher: '測試出版社',
             imageUrl: 'https://example.com/book.jpg',
-            lowestPrice: 280,
-            currency: 'TWD',
-            offerCount: 2,
+            summary: '內容簡介',
+            offers: [
+              {
+                sourceId: 'books-com-tw',
+                sourceName: '博客來',
+                sourceProductId: 'item-1',
+                title: '設計中的書',
+                productType: '紙本書',
+                authors: ['作者甲'],
+                publisher: '測試出版社',
+                summary: '內容簡介',
+                imageUrl: 'https://example.com/book.jpg',
+                price: 280,
+                currency: 'TWD',
+                priceText: '280',
+                url: 'https://example.com/store/book',
+                badges: [],
+              },
+              {
+                sourceId: 'eslite',
+                sourceName: '誠品線上',
+                sourceProductId: 'item-2',
+                title: '設計中的書',
+                productType: '中文電子書',
+                authors: ['作者甲'],
+                publisher: '測試出版社',
+                summary: '內容簡介',
+                imageUrl: 'https://example.com/book.jpg',
+                price: 320,
+                currency: 'TWD',
+                priceText: '320',
+                url: 'https://example.com/store/book-eslite',
+                badges: [],
+              },
+            ],
           },
         ],
         sources: [{ id: 'books-com-tw', name: '博客來', status: 'ready' }],
@@ -127,12 +159,20 @@ describe('SearchResultScreen', () => {
       />
     );
 
-    fireEvent.press(screen.getByText('設計中的書'));
+    expect(screen.getByText('博客來: 設計中的書')).toBeOnTheScreen();
+    expect(screen.getByText('誠品線上: 設計中的書')).toBeOnTheScreen();
+    expect(screen.getByText('電子書')).toBeOnTheScreen();
 
-    expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', { isbn: '9781402894626' });
+    fireEvent.press(screen.getByText('誠品線上: 設計中的書'));
+
+    expect(navigation.navigate).toHaveBeenCalledWith('SearchWebView', {
+      title: '誠品線上 - 設計中的書',
+      url: 'https://example.com/store/book-eslite',
+      showOptions: true,
+    });
   });
 
-  it('does not navigate away from title results when ISBN is unavailable', () => {
+  it('renders an empty state when title results have no offers', () => {
     mockUseTitleSearch.mockReturnValue({
       data: {
         query: { title: '設計' },
@@ -142,8 +182,8 @@ describe('SearchResultScreen', () => {
             title: '設計中的書',
             authors: ['作者甲'],
             imageUrl: 'https://example.com/book.jpg',
-            currency: 'TWD',
-            offerCount: 1,
+            summary: '內容簡介',
+            offers: [],
           },
         ],
         sources: [{ id: 'books-com-tw', name: '博客來', status: 'ready' }],
@@ -164,8 +204,7 @@ describe('SearchResultScreen', () => {
       />
     );
 
-    fireEvent.press(screen.getByText('設計中的書'));
-
+    expect(screen.getByText('未能找到結果')).toBeOnTheScreen();
     expect(navigation.navigate).not.toHaveBeenCalled();
   });
 });

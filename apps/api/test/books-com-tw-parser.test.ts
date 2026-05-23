@@ -40,7 +40,7 @@ test('parseBooksComTwSearchResults returns one normalized offer for found fixtur
     sourceId: 'books-com-tw',
     sourceName: '博客來',
     sourceProductId: 'E050329458',
-    title: '別送(新版) (電子書)',
+    title: '別送(新版)',
     productType: '中文電子書',
     authors: ['鍾文音'],
     publisher: '麥田',

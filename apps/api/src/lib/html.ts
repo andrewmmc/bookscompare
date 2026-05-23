@@ -24,6 +24,13 @@ export function normalizeWhitespace(input: string): string {
   return input.replace(/\s+/g, ' ').trim();
 }
 
+export function normalizeBookTitle(input: string): string {
+  return normalizeWhitespace(input)
+    .replace(/^\s*(?:【|\[)\s*電子書\s*(?:】|\])\s*/u, '')
+    .replace(/\s*[（(]\s*電子書\s*[）)]\s*$/u, '')
+    .trim();
+}
+
 export function toAbsoluteUrl(url: string): string {
   if (url.startsWith('//')) {
     return `https:${url}`;

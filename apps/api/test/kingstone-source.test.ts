@@ -40,7 +40,7 @@ test('parseKingstoneSearchResults returns search candidates for every matching r
       },
       {
         sourceProductId: '2800000134381',
-        title: '【電子書】機器學習：最強入門邁向AI高手．王者歸來',
+        title: '機器學習：最強入門邁向AI高手．王者歸來',
         productType: '電子書',
         authors: ['洪錦魁'],
         publisher: '深智數位',
@@ -128,7 +128,7 @@ test('fetchKingstoneOffersByIsbn returns every normalized offer', async (t) => {
         sourceId: 'kingstone',
         sourceName: '金石堂',
         sourceProductId: '2800000134381',
-        title: '【電子書】機器學習：最強入門邁向AI高手．王者歸來',
+        title: '機器學習：最強入門邁向AI高手．王者歸來',
         productType: '電子書',
         authors: ['洪錦魁'],
         publisher: '深智數位',

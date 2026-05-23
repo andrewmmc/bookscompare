@@ -4,19 +4,23 @@ import { Text } from 'react-native-paper';
 
 import { track } from '../../analytics';
 import { useIsbnLookup, useTitleSearch } from '../../api/queries';
+import { EmptyState } from '../../components/EmptyState';
+import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { PriceTag } from '../../components/PriceTag';
 import { strings } from '../../i18n/strings';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
-import { EmptyState } from '../../components/EmptyState';
-import { LoadingOverlay } from '../../components/LoadingOverlay';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { BookOffer, BookSummary } from '@bookscompare/contracts';
+import type { BookOffer } from '@bookscompare/contracts';
 import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
+
+function isEbookOffer(item: BookOffer): boolean {
+  return item.productType.includes('電子書') || item.title.includes('電子書');
+}
 
 export function SearchResultScreen({ navigation, route }: Props) {
   const isbnParam = 'isbn' in route.params ? route.params.isbn : '';
@@ -28,17 +32,20 @@ export function SearchResultScreen({ navigation, route }: Props) {
   const isLoading = isbnParam ? isbnQuery.isLoading : titleQuery.isLoading;
   const isRefetching = isbnParam ? isbnQuery.isRefetching : titleQuery.isRefetching;
   const refetch = isbnParam ? isbnQuery.refetch : titleQuery.refetch;
-  const offers = useMemo(
-    () =>
-      isbnParam && data && 'book' in data
-        ? [...(data.book?.offers ?? [])].sort((left, right) => left.price - right.price)
-        : [],
-    [data, isbnParam]
-  );
-  const books = !isbnParam && data && 'books' in data ? data.books : [];
+  const offers = useMemo(() => {
+    if (!data) {
+      return [];
+    }
+
+    if ('book' in data) {
+      return data.book ? data.book.offers : [];
+    }
+
+    return data.books.flatMap((book) => book.offers);
+  }, [data]);
   const sources = data?.sources ?? [];
   const liveScraping = data?.meta.liveScraping ?? false;
-  const resultCount = isbnParam ? offers.length : books.length;
+  const resultCount = offers.length;
   const allSourcesErrored =
     sources.length > 0 && sources.every((source) => source.status === 'error');
 
@@ -54,59 +61,6 @@ export function SearchResultScreen({ navigation, route }: Props) {
     });
   };
 
-  const openBook = (item: BookSummary) => {
-    track('search_result_open_book', {
-      title: titleParam,
-      bookId: item.id,
-      hasIsbn: Boolean(item.isbn),
-    });
-
-    if (item.isbn) {
-      navigation.navigate('SearchResult', {
-        isbn: item.isbn,
-      });
-    }
-  };
-
-  const renderBook = ({ item }: { item: BookSummary }) => (
-    <Pressable
-      android_ripple={{ color: colors.highlightSoft }}
-      onPress={() => openBook(item)}
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-    >
-      <Image
-        source={item.imageUrl ? { uri: item.imageUrl } : undefined}
-        style={styles.thumbnail}
-        resizeMode="cover"
-      />
-      <View style={styles.body}>
-        <Text style={styles.title} numberOfLines={2}>
-          {item.title}
-        </Text>
-        {item.authors.length > 0 ? (
-          <Text style={styles.note} numberOfLines={1}>
-            {item.authors.join('、')}
-          </Text>
-        ) : null}
-        {item.publisher ? (
-          <Text style={styles.note} numberOfLines={1}>
-            {item.publisher}
-          </Text>
-        ) : null}
-        <View style={styles.meta}>
-          {typeof item.lowestPrice === 'number' ? (
-            <Text style={styles.price}>
-              {strings.searchResult.fromPrice(
-                `${item.currency} ${item.lowestPrice.toLocaleString('en-US')}`
-              )}
-            </Text>
-          ) : null}
-          <Text style={styles.note}>{strings.searchResult.storeCount(item.offerCount)}</Text>
-        </View>
-      </View>
-    </Pressable>
-  );
-
   const renderOffer = ({ item }: { item: BookOffer }) => (
     <Pressable
       android_ripple={{ color: colors.highlightSoft }}
@@ -119,7 +73,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
         resizeMode="cover"
       />
       <View style={styles.body}>
-        {item.productType === '電子書' ? (
+        {isEbookOffer(item) ? (
           <View style={styles.ebookBadge}>
             <Text style={styles.ebookBadgeText}>{strings.searchResult.ebookBadge}</Text>
           </View>
@@ -209,37 +163,18 @@ export function SearchResultScreen({ navigation, route }: Props) {
     </View>
   );
 
-  if (isbnParam) {
-    return (
-      <View style={styles.container}>
-        <FlatList
-          data={offers}
-          style={styles.list}
-          contentContainerStyle={styles.listContent}
-          keyExtractor={(item) => `${item.sourceId}:${item.sourceProductId}`}
-          ListHeaderComponent={listHeader}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          onRefresh={() => void refetch()}
-          refreshing={isRefetching}
-          renderItem={renderOffer}
-        />
-        {isLoading ? <LoadingOverlay label={strings.searchResult.loadingLabel} /> : null}
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <FlatList
-        data={books}
+        data={offers}
         style={styles.list}
         contentContainerStyle={styles.listContent}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => `${item.sourceId}:${item.sourceProductId}:${item.url}`}
         ListHeaderComponent={listHeader}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         onRefresh={() => void refetch()}
         refreshing={isRefetching}
-        renderItem={renderBook}
+        renderItem={renderOffer}
       />
       {isLoading ? <LoadingOverlay label={strings.searchResult.loadingLabel} /> : null}
     </View>
@@ -315,16 +250,5 @@ const styles = StyleSheet.create({
   note: {
     ...typography.caption,
     color: colors.inkMuted,
-  },
-  meta: {
-    marginTop: spacing.xxs,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  price: {
-    ...typography.caption,
-    color: colors.accent,
-    fontWeight: '600',
   },
 });

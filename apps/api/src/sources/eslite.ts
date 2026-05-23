@@ -1,6 +1,7 @@
 import type { BookOffer } from '@bookscompare/contracts';
 
 import { fetchWithTimeout } from '../lib/fetch-with-timeout';
+import { normalizeBookTitle } from '../lib/html';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
@@ -43,6 +44,10 @@ interface EsliteSearchResponse {
 
 function normalizeWhitespace(input: string): string {
   return input.replace(/\s+/g, ' ').trim();
+}
+
+function hasEbookTitleMarker(input: string): boolean {
+  return /(^\s*(?:【|\[)\s*電子書\s*(?:】|\]))|([（(]\s*電子書\s*[）)]\s*$)/u.test(input);
 }
 
 function toEsliteAbsoluteUrl(url: string): string {
@@ -128,13 +133,15 @@ function parseEsliteOffer(hit: EsliteSearchHit): BookOffer {
   }
 
   const badges = fields.status === 'coming_soon_book' ? ['新書尚未入庫'] : [];
+  const title = normalizeBookTitle(fields.name);
+  const productType = hasEbookTitleMarker(fields.name) ? '電子書' : '中文書';
 
   return {
     sourceId: ESLITE_SOURCE_ID,
     sourceName: ESLITE_SOURCE_NAME,
     sourceProductId,
-    title: fields.name,
-    productType: '中文書',
+    title,
+    productType,
     authors: fields.author ?? [],
     publisher,
     publicationDate: parseEsliteDate(fields.manufacturer_date),

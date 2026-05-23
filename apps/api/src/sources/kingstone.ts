@@ -1,7 +1,12 @@
 import type { BookOffer } from '@bookscompare/contracts';
 
 import { fetchHtml } from '../lib/fetch-html';
-import { decodeHtmlEntities, normalizeWhitespace, stripTags } from '../lib/html';
+import {
+  decodeHtmlEntities,
+  normalizeBookTitle,
+  normalizeWhitespace,
+  stripTags,
+} from '../lib/html';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
@@ -75,7 +80,7 @@ function parseKingstoneTitleAndUrl(
 
   return {
     sourceProductId,
-    title: stripTags(rawTitle),
+    title: normalizeBookTitle(stripTags(rawTitle)),
     url,
   };
 }

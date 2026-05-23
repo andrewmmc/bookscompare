@@ -80,7 +80,7 @@ export interface ResponseMeta {
 
 export interface SearchResponse {
   query: { title: string };
-  books: BookSummary[];
+  books: BookDetail[];
   sources: SourceState[];
   meta: ResponseMeta;
 }

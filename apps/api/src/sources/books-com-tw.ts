@@ -1,7 +1,13 @@
 import type { BookOffer } from '@bookscompare/contracts';
 
 import { fetchHtml } from '../lib/fetch-html';
-import { decodeHtmlEntities, normalizeWhitespace, stripTags, toAbsoluteUrl } from '../lib/html';
+import {
+  decodeHtmlEntities,
+  normalizeBookTitle,
+  normalizeWhitespace,
+  stripTags,
+  toAbsoluteUrl,
+} from '../lib/html';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
@@ -94,7 +100,7 @@ function parseTitleAndUrl(block: string): Pick<BookOffer, 'title' | 'url'> {
   }
 
   return {
-    title: decodeHtmlEntities(rawTitle),
+    title: normalizeBookTitle(decodeHtmlEntities(rawTitle)),
     url: toAbsoluteUrl(rawUrl),
   };
 }
