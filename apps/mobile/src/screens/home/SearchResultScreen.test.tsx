@@ -132,7 +132,7 @@ describe('SearchResultScreen', () => {
     expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', { isbn: '9781402894626' });
   });
 
-  it('falls back to title + author navigation when ISBN is unavailable', () => {
+  it('does not navigate away from title results when ISBN is unavailable', () => {
     mockUseTitleSearch.mockReturnValue({
       data: {
         query: { title: '設計' },
@@ -166,9 +166,6 @@ describe('SearchResultScreen', () => {
 
     fireEvent.press(screen.getByText('設計中的書'));
 
-    expect(navigation.navigate).toHaveBeenCalledWith('BookDetail', {
-      title: '設計中的書',
-      author: '作者甲',
-    });
+    expect(navigation.navigate).not.toHaveBeenCalled();
   });
 });

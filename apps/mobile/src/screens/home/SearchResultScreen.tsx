@@ -5,7 +5,6 @@ import { Text } from 'react-native-paper';
 import { track } from '../../analytics';
 import { useIsbnLookup, useTitleSearch } from '../../api/queries';
 import { PriceTag } from '../../components/PriceTag';
-import { featureFlags } from '../../config/featureFlags';
 import { strings } from '../../i18n/strings';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
@@ -63,16 +62,10 @@ export function SearchResultScreen({ navigation, route }: Props) {
     });
 
     if (item.isbn) {
-      navigation.navigate(featureFlags.enableBookDetailScreen ? 'BookDetail' : 'SearchResult', {
+      navigation.navigate('SearchResult', {
         isbn: item.isbn,
       });
-      return;
     }
-
-    navigation.navigate('BookDetail', {
-      title: item.title,
-      ...(item.authors[0] ? { author: item.authors[0] } : {}),
-    });
   };
 
   const renderBook = ({ item }: { item: BookSummary }) => (

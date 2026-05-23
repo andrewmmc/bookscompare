@@ -1,4 +1,3 @@
 export const featureFlags = {
-  enableBookDetailScreen: false,
-  enableTitleSearch: false,
+  enableTitleSearch: true,
 } as const;

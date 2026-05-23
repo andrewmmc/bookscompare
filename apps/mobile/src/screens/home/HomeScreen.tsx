@@ -48,7 +48,7 @@ export function HomeScreen({ navigation }: Props) {
 
     if (mode === 'isbn') {
       track('home_click_search', { isbnLength: normalizedIsbn.length });
-      navigation.navigate(featureFlags.enableBookDetailScreen ? 'BookDetail' : 'SearchResult', {
+      navigation.navigate('SearchResult', {
         isbn: normalizedIsbn,
       });
       return;

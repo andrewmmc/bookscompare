@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
 import { track } from '../../analytics';
-import { featureFlags } from '../../config/featureFlags';
 import { strings } from '../../i18n/strings';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
@@ -58,12 +57,9 @@ export function BarcodeScannerScreen({ navigation }: Props) {
 
                 setHasScanned(true);
                 track('barcode_scanner_valid_barcode', { isbnLength: isbn.length });
-                navigation.replace(
-                  featureFlags.enableBookDetailScreen ? 'BookDetail' : 'SearchResult',
-                  {
-                    isbn,
-                  }
-                );
+                navigation.replace('SearchResult', {
+                  isbn,
+                });
               }
         }
         style={StyleSheet.absoluteFillObject}

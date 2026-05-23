@@ -12,7 +12,6 @@ interface Dictionary {
     home: string;
     barcodeScanner: string;
     searchResult: string;
-    bookDetail: string;
     about: string;
   };
   home: {
@@ -49,19 +48,6 @@ interface Dictionary {
     notLiveDescription: string;
     notFoundTitle: string;
     notFoundDescription: string;
-  };
-  bookDetail: {
-    loadingLabel: string;
-    descriptionTitle: string;
-    pricesTitle: string;
-    showMore: string;
-    showLess: string;
-    notFoundTitle: string;
-    notFoundDescription: string;
-    networkErrorTitle: string;
-    networkErrorDescription: string;
-    retryAction: string;
-    ebookBadge: string;
   };
   priceTag: {
     discountTag: (discountRate: number) => string;
@@ -103,7 +89,6 @@ const zhTW: Dictionary = {
     home: '好書價 BooksCompare',
     barcodeScanner: '國際標準書號掃描',
     searchResult: '搜尋結果',
-    bookDetail: '書本詳情',
     about: '關於我們',
   },
   home: {
@@ -147,19 +132,6 @@ const zhTW: Dictionary = {
     notFoundDescription:
       '抱歉，找不到所搜尋書本的價格資料。\n您慣用的網絡書店不在名單上？\n歡迎提交意見給我們！',
   },
-  bookDetail: {
-    loadingLabel: '正在載入書本詳情…',
-    descriptionTitle: '內容簡介',
-    pricesTitle: '書店比價',
-    showMore: '顯示更多',
-    showLess: '收起',
-    notFoundTitle: '未能找到此書',
-    notFoundDescription: '抱歉，目前找不到這本書的價格資料。',
-    networkErrorTitle: '未能載入內容',
-    networkErrorDescription: '請檢查您的網絡連接。\n如持續遇到此問題，請聯絡我們以取得協助。',
-    retryAction: '重新載入',
-    ebookBadge: '電子書',
-  },
   priceTag: {
     discountTag: (discountRate) => `${discountRate}折`,
   },
@@ -202,7 +174,6 @@ const en: Dictionary = {
     home: 'BooksCompare',
     barcodeScanner: 'Scan ISBN',
     searchResult: 'Results',
-    bookDetail: 'Book details',
     about: 'About',
   },
   home: {
@@ -248,20 +219,6 @@ const en: Dictionary = {
     notFoundTitle: 'No results found',
     notFoundDescription:
       "Sorry, we couldn't find pricing for that book.\nIs your favourite bookstore missing?\nLet us know!",
-  },
-  bookDetail: {
-    loadingLabel: 'Loading book details…',
-    descriptionTitle: 'Description',
-    pricesTitle: 'Compare prices',
-    showMore: 'Show more',
-    showLess: 'Show less',
-    notFoundTitle: 'Book not found',
-    notFoundDescription: "Sorry, we couldn't find this book at any of our partner stores.",
-    networkErrorTitle: 'Could not load content',
-    networkErrorDescription:
-      'Please check your internet connection.\nIf the issue persists, contact us for help.',
-    retryAction: 'Retry',
-    ebookBadge: 'eBook',
   },
   priceTag: {
     discountTag: (discountRate) => `${discountRate}% list`,
