@@ -180,6 +180,7 @@ pnpm validate:appstore-images
 - Source IDs must match `BOOK_SOURCES` in the contracts package.
 - `EXPO_PUBLIC_API_BASE_URL` points the mobile app at a local or deployed API.
 - Only `GET` is supported by the API; non-GET requests return `METHOD_NOT_ALLOWED`.
+- API changes must remain backward-compatible with previously released mobile versions whenever possible. Do not remove fields, rename fields, or change response shapes/semantics in a way that could break older mobile clients. If a breaking API change is truly needed, warn the user and get explicit confirmation before continuing.
 
 ## Verification Tiers
 

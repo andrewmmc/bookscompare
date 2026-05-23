@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: 64,
     height: 80,
-    backgroundColor: colors.border,
+    backgroundColor: 'transparent',
   },
   body: {
     flex: 1,
