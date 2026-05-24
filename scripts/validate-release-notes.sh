@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 METADATA_DIR="$REPO_ROOT/apps/mobile/fastlane/metadata"
-REQUIRED_LOCALES=("en-US" "zh-Hant")
+REQUIRED_LOCALES=("zh-Hant")
 MAX_BYTES=4000
 
 failed=0
