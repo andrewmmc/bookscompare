@@ -6,12 +6,14 @@ interface Dictionary {
   };
   tabs: {
     home: string;
+    favourites: string;
     about: string;
   };
   navigation: {
     home: string;
     barcodeScanner: string;
     searchResult: string;
+    favourites: string;
     about: string;
   };
   home: {
@@ -52,6 +54,15 @@ interface Dictionary {
   priceTag: {
     discountTag: (discountRate: number) => string;
   };
+  favourites: {
+    title: string;
+    emptyTitle: string;
+    emptyDescription: string;
+    addedOn: (dateText: string) => string;
+    removeAction: string;
+    addAccessibilityLabel: string;
+    removeAccessibilityLabel: string;
+  };
   about: {
     title: string;
     version: (appVersion: string, buildNumber: string) => string;
@@ -83,12 +94,14 @@ const zhTW: Dictionary = {
   },
   tabs: {
     home: '書本搜尋',
+    favourites: '我的收藏',
     about: '關於我們',
   },
   navigation: {
     home: '好書價 BooksCompare',
     barcodeScanner: '國際標準書號掃描',
     searchResult: '搜尋結果',
+    favourites: '我的收藏',
     about: '關於我們',
   },
   home: {
@@ -135,6 +148,15 @@ const zhTW: Dictionary = {
   priceTag: {
     discountTag: (discountRate) => `${discountRate}折`,
   },
+  favourites: {
+    title: '我的收藏',
+    emptyTitle: '還沒有收藏任何書',
+    emptyDescription: '在搜尋結果中點擊愛心，將書本加入您的收藏。',
+    addedOn: (dateText) => `${dateText} 加入收藏`,
+    removeAction: '移除',
+    addAccessibilityLabel: '加入收藏',
+    removeAccessibilityLabel: '從收藏中移除',
+  },
   about: {
     title: '好書價 BooksCompare',
     version: (appVersion, buildNumber) =>
@@ -168,12 +190,14 @@ const en: Dictionary = {
   },
   tabs: {
     home: 'Search',
+    favourites: 'Favourites',
     about: 'About',
   },
   navigation: {
     home: 'BooksCompare',
     barcodeScanner: 'Scan ISBN',
     searchResult: 'Results',
+    favourites: 'Favourites',
     about: 'About',
   },
   home: {
@@ -222,6 +246,15 @@ const en: Dictionary = {
   },
   priceTag: {
     discountTag: (discountRate) => `${discountRate}% list`,
+  },
+  favourites: {
+    title: 'Favourites',
+    emptyTitle: 'No favourites yet',
+    emptyDescription: 'Tap the heart on a search result to save it here.',
+    addedOn: (dateText) => `Added on ${dateText}`,
+    removeAction: 'Remove',
+    addAccessibilityLabel: 'Add to favourites',
+    removeAccessibilityLabel: 'Remove from favourites',
   },
   about: {
     title: 'BooksCompare',

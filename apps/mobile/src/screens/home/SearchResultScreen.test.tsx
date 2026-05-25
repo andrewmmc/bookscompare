@@ -71,7 +71,7 @@ describe('SearchResultScreen', () => {
       refetch: jest.fn(),
     });
 
-    const navigation = { navigate: jest.fn() };
+    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
 
     const screen = renderWithProviders(
       <SearchResultScreen
@@ -150,7 +150,7 @@ describe('SearchResultScreen', () => {
       refetch: jest.fn(),
     });
 
-    const navigation = { navigate: jest.fn() };
+    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
 
     const screen = renderWithProviders(
       <SearchResultScreen
@@ -195,7 +195,7 @@ describe('SearchResultScreen', () => {
       refetch: jest.fn(),
     });
 
-    const navigation = { navigate: jest.fn() };
+    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
 
     const screen = renderWithProviders(
       <SearchResultScreen

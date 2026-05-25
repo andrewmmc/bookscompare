@@ -1,8 +1,15 @@
-import { useMemo } from 'react';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useLayoutEffect, useMemo } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
 import { track } from '../../analytics';
+import {
+  useAddFavourite,
+  useFavourites,
+  useIsFavourite,
+  useRemoveFavourite,
+} from '../../api/favourites';
 import { useIsbnLookup, useTitleSearch } from '../../api/queries';
 import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
@@ -14,9 +21,9 @@ import { typography } from '../../theme/typography';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BookOffer } from '@bookscompare/contracts';
-import type { HomeStackParamList } from '../../navigation/types';
+import type { SearchResultRoutes } from '../../navigation/types';
 
-type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
+type Props = NativeStackScreenProps<SearchResultRoutes, 'SearchResult'>;
 
 function isEbookOffer(item: BookOffer): boolean {
   return item.productType.includes('電子書') || item.title.includes('電子書');
@@ -49,6 +56,73 @@ export function SearchResultScreen({ navigation, route }: Props) {
   const allSourcesErrored =
     sources.length > 0 && sources.every((source) => source.status === 'error');
 
+  const isbnBookTitle = useMemo(() => {
+    if (!isbnParam || !data || !('book' in data) || !data.book) {
+      return '';
+    }
+    return data.book.title || data.book.offers[0]?.title || '';
+  }, [isbnParam, data]);
+
+  const { data: favourites } = useFavourites();
+  const addFavourite = useAddFavourite();
+  const removeFavourite = useRemoveFavourite();
+  const isbnIsFavourite = useIsFavourite(isbnParam);
+
+  useLayoutEffect(() => {
+    if (!isbnParam || !isbnBookTitle) {
+      navigation.setOptions({ headerRight: () => null });
+      return;
+    }
+
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          accessibilityLabel={
+            isbnIsFavourite
+              ? strings.favourites.removeAccessibilityLabel
+              : strings.favourites.addAccessibilityLabel
+          }
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={() => {
+            if (isbnIsFavourite) {
+              track('favourite_remove', { isbn: isbnParam, source: 'search_result_header' });
+              removeFavourite.mutate(isbnParam);
+            } else {
+              track('favourite_add', { isbn: isbnParam, source: 'search_result_header' });
+              addFavourite.mutate({ isbn: isbnParam, title: isbnBookTitle });
+            }
+          }}
+          style={styles.headerFavouriteButton}
+        >
+          <Ionicons
+            color={isbnIsFavourite ? colors.accent : colors.ink}
+            name={isbnIsFavourite ? 'heart' : 'heart-outline'}
+            size={24}
+          />
+        </Pressable>
+      ),
+    });
+  }, [navigation, isbnParam, isbnBookTitle, isbnIsFavourite, addFavourite, removeFavourite]);
+
+  const favouriteIsbnSet = useMemo(
+    () => new Set((favourites ?? []).map((fav) => fav.isbn)),
+    [favourites]
+  );
+
+  const toggleOfferFavourite = (item: BookOffer) => {
+    if (!item.isbn) {
+      return;
+    }
+    if (favouriteIsbnSet.has(item.isbn)) {
+      track('favourite_remove', { isbn: item.isbn, source: 'search_result_row' });
+      removeFavourite.mutate(item.isbn);
+    } else {
+      track('favourite_add', { isbn: item.isbn, source: 'search_result_row' });
+      addFavourite.mutate({ isbn: item.isbn, title: item.title });
+    }
+  };
+
   const openOffer = (item: BookOffer) => {
     track('search_result_open_offer', {
       isbn: isbnParam,
@@ -61,44 +135,69 @@ export function SearchResultScreen({ navigation, route }: Props) {
     });
   };
 
-  const renderOffer = ({ item }: { item: BookOffer }) => (
-    <Pressable
-      android_ripple={{ color: colors.highlightSoft }}
-      onPress={() => openOffer(item)}
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-    >
-      <Image
-        source={item.imageUrl ? { uri: item.imageUrl } : undefined}
-        style={styles.thumbnail}
-        resizeMode="cover"
-      />
-      <View style={styles.body}>
-        {isEbookOffer(item) ? (
-          <View style={styles.ebookBadge}>
-            <Text style={styles.ebookBadgeText}>{strings.searchResult.ebookBadge}</Text>
-          </View>
-        ) : null}
-        <Text style={styles.title} numberOfLines={2}>
-          {item.sourceName}: {item.title}
-        </Text>
-        {item.authors.length > 0 ? (
-          <Text style={styles.note} numberOfLines={1}>
-            {item.authors.join('、')}
+  const renderOffer = ({ item }: { item: BookOffer }) => {
+    const showRowFavourite = !isbnParam && Boolean(item.isbn);
+    const rowIsFavourite = showRowFavourite && item.isbn ? favouriteIsbnSet.has(item.isbn) : false;
+    return (
+      <Pressable
+        android_ripple={{ color: colors.highlightSoft }}
+        onPress={() => openOffer(item)}
+        style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+      >
+        <Image
+          source={item.imageUrl ? { uri: item.imageUrl } : undefined}
+          style={styles.thumbnail}
+          resizeMode="cover"
+        />
+        <View style={styles.body}>
+          {isEbookOffer(item) ? (
+            <View style={styles.ebookBadge}>
+              <Text style={styles.ebookBadgeText}>{strings.searchResult.ebookBadge}</Text>
+            </View>
+          ) : null}
+          <Text style={styles.title} numberOfLines={2}>
+            {item.sourceName}: {item.title}
           </Text>
-        ) : null}
-        {item.publisher ? (
-          <Text style={styles.note} numberOfLines={1}>
-            {item.publisher}
-          </Text>
-        ) : null}
-      </View>
-      <PriceTag
-        currency={item.currency}
-        price={item.price}
-        {...(item.discountRate ? { discountRate: item.discountRate } : {})}
-      />
-    </Pressable>
-  );
+          {item.authors.length > 0 ? (
+            <Text style={styles.note} numberOfLines={1}>
+              {item.authors.join('、')}
+            </Text>
+          ) : null}
+          {item.publisher ? (
+            <Text style={styles.note} numberOfLines={1}>
+              {item.publisher}
+            </Text>
+          ) : null}
+        </View>
+        <View style={styles.rowTrailing}>
+          {showRowFavourite ? (
+            <Pressable
+              accessibilityLabel={
+                rowIsFavourite
+                  ? strings.favourites.removeAccessibilityLabel
+                  : strings.favourites.addAccessibilityLabel
+              }
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => toggleOfferFavourite(item)}
+              style={styles.rowFavouriteButton}
+            >
+              <Ionicons
+                color={rowIsFavourite ? colors.accent : colors.inkMuted}
+                name={rowIsFavourite ? 'heart' : 'heart-outline'}
+                size={20}
+              />
+            </Pressable>
+          ) : null}
+          <PriceTag
+            currency={item.currency}
+            price={item.price}
+            {...(item.discountRate ? { discountRate: item.discountRate } : {})}
+          />
+        </View>
+      </Pressable>
+    );
+  };
 
   if (error) {
     return (
@@ -186,6 +285,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.canvas,
   },
+  headerFavouriteButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 32,
+    width: 32,
+  },
   list: {
     flex: 1,
     width: '100%',
@@ -229,6 +334,13 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     gap: spacing.xxs,
+  },
+  rowTrailing: {
+    alignItems: 'flex-end',
+    gap: spacing.xs,
+  },
+  rowFavouriteButton: {
+    padding: spacing.xxs,
   },
   ebookBadge: {
     alignSelf: 'flex-start',

@@ -6,11 +6,18 @@ export interface WebViewScreenParams {
   showOptions?: boolean;
 }
 
-export type HomeStackParamList = {
-  Home: undefined;
-  BarcodeScanner: undefined;
+export type SearchResultRoutes = {
   SearchResult: { isbn: string } | { title: string };
   SearchWebView: WebViewScreenParams;
+};
+
+export type HomeStackParamList = SearchResultRoutes & {
+  Home: undefined;
+  BarcodeScanner: undefined;
+};
+
+export type FavouritesStackParamList = SearchResultRoutes & {
+  Favourites: undefined;
 };
 
 export type AboutStackParamList = {
@@ -20,5 +27,6 @@ export type AboutStackParamList = {
 
 export type RootTabParamList = {
   HomeTab: NavigatorScreenParams<HomeStackParamList>;
+  FavouritesTab: NavigatorScreenParams<FavouritesStackParamList>;
   AboutTab: NavigatorScreenParams<AboutStackParamList>;
 };

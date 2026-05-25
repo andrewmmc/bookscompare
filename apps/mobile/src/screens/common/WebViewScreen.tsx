@@ -12,10 +12,15 @@ import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { HomeStackParamList, AboutStackParamList } from '../../navigation/types';
+import type {
+  AboutStackParamList,
+  FavouritesStackParamList,
+  HomeStackParamList,
+} from '../../navigation/types';
 
 type Props =
   | NativeStackScreenProps<HomeStackParamList, 'SearchWebView'>
+  | NativeStackScreenProps<FavouritesStackParamList, 'SearchWebView'>
   | NativeStackScreenProps<AboutStackParamList, 'AboutWebView'>;
 
 type LoadState = 'loading' | 'ready' | 'not-found' | 'error';
