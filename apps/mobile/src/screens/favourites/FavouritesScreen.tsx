@@ -1,11 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRef } from 'react';
-import { Animated, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { useLayoutEffect, useRef } from 'react';
+import { Alert, Animated, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Text } from 'react-native-paper';
 
 import { track } from '../../analytics';
-import { useFavourites, useRemoveFavourite } from '../../api/favourites';
+import { useClearFavourites, useFavourites, useRemoveFavourite } from '../../api/favourites';
 import { EmptyState } from '../../components/EmptyState';
 import { activeLocale, strings } from '../../i18n/strings';
 import { colors } from '../../theme/colors';
@@ -35,7 +35,10 @@ function formatAddedOn(addedAt: number): string {
 export function FavouritesScreen({ navigation }: Props) {
   const { data, isLoading } = useFavourites();
   const removeFavourite = useRemoveFavourite();
+  const clearFavourites = useClearFavourites();
   const swipeableRefs = useRef(new Map<string, Swipeable | null>());
+
+  const hasFavourites = (data?.length ?? 0) > 0;
 
   const openBook = (item: Favourite) => {
     track('favourites_open_book', { isbn: item.isbn });
@@ -46,6 +49,43 @@ export function FavouritesScreen({ navigation }: Props) {
     track('favourite_remove', { isbn: item.isbn, source: 'favourites_swipe' });
     removeFavourite.mutate(item.isbn);
   };
+
+  const handleClearAll = () => {
+    track('favourites_click_clear_all');
+    Alert.alert(
+      strings.favourites.clearAllConfirmTitle,
+      strings.favourites.clearAllConfirmMessage,
+      [
+        { text: strings.favourites.cancelAction, style: 'cancel' },
+        {
+          text: strings.favourites.clearAllConfirmAction,
+          style: 'destructive',
+          onPress: () => {
+            track('favourites_clear_all_confirm');
+            clearFavourites.mutate();
+          },
+        },
+      ]
+    );
+  };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () =>
+        hasFavourites ? (
+          <Pressable
+            accessibilityLabel={strings.favourites.clearAllAction}
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={handleClearAll}
+            style={({ pressed }) => [styles.headerAction, pressed && styles.headerActionPressed]}
+          >
+            <Text style={styles.headerActionText}>{strings.favourites.clearAllAction}</Text>
+          </Pressable>
+        ) : null,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigation, hasFavourites]);
 
   const renderRightActions = (
     progress: Animated.AnimatedInterpolation<number>,
@@ -89,6 +129,8 @@ export function FavouritesScreen({ navigation }: Props) {
       <FlatList
         data={data ?? []}
         keyExtractor={(item) => item.isbn}
+        ListHeaderComponent={<View style={styles.listEdge} />}
+        ListFooterComponent={<View style={styles.listEdge} />}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         renderItem={({ item }) => (
           <Swipeable
@@ -108,7 +150,7 @@ export function FavouritesScreen({ navigation }: Props) {
           >
             <Pressable
               accessibilityRole="button"
-              android_ripple={{ color: colors.highlightSoft }}
+              android_ripple={{ color: colors.rowPressed }}
               onPress={() => openBook(item)}
               style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
             >
@@ -143,6 +185,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.divider,
     marginLeft: spacing.md + 32 + spacing.sm,
   },
+  listEdge: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.divider,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -152,7 +198,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   rowPressed: {
-    backgroundColor: colors.highlightSoft,
+    backgroundColor: colors.rowPressed,
   },
   iconWrap: {
     width: 32,
@@ -186,6 +232,18 @@ const styles = StyleSheet.create({
   removeText: {
     ...typography.caption,
     color: '#ffffff',
+    fontWeight: '600',
+  },
+  headerAction: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xxs,
+  },
+  headerActionPressed: {
+    opacity: 0.6,
+  },
+  headerActionText: {
+    ...typography.body,
+    color: colors.accent,
     fontWeight: '600',
   },
 });

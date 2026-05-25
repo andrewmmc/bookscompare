@@ -72,3 +72,8 @@ export async function removeFavourite(isbn: string): Promise<Favourite[]> {
   await saveFavourites(next);
   return next;
 }
+
+export async function clearFavourites(): Promise<Favourite[]> {
+  await saveFavourites([]);
+  return [];
+}

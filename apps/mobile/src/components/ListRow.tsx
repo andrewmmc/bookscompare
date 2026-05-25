@@ -16,7 +16,7 @@ export function ListRow({ icon, title, onPress }: ListRowProps) {
   return (
     <Pressable
       accessibilityRole="button"
-      android_ripple={{ color: colors.highlightSoft }}
+      android_ripple={{ color: colors.rowPressed }}
       onPress={onPress}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
     >
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   rowPressed: {
-    backgroundColor: colors.highlightSoft,
+    backgroundColor: colors.rowPressed,
   },
   leftIconWrap: {
     width: 32,

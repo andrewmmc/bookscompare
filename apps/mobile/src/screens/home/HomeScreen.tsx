@@ -101,6 +101,15 @@ export function HomeScreen({ navigation }: Props) {
                 }}
                 outlineColor={colors.border}
                 placeholder={strings.home.isbnPlaceholder}
+                right={
+                  isbn.length > 0 ? (
+                    <TextInput.Icon
+                      accessibilityLabel={strings.home.clearAction}
+                      icon="close-circle"
+                      onPress={() => setIsbn('')}
+                    />
+                  ) : undefined
+                }
                 style={styles.input}
                 value={isbn}
               />
@@ -118,6 +127,15 @@ export function HomeScreen({ navigation }: Props) {
                 outlineColor={colors.border}
                 placeholder={strings.home.titlePlaceholder}
                 returnKeyType="search"
+                right={
+                  title.length > 0 ? (
+                    <TextInput.Icon
+                      accessibilityLabel={strings.home.clearAction}
+                      icon="close-circle"
+                      onPress={() => setTitle('')}
+                    />
+                  ) : undefined
+                }
                 style={styles.input}
                 value={title}
               />

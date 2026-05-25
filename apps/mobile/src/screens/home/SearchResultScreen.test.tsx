@@ -11,6 +11,13 @@ jest.mock('../../api/queries', () => ({
   useTitleSearch: (...args: unknown[]) => mockUseTitleSearch(...args),
 }));
 
+jest.mock('../../api/favourites', () => ({
+  useFavourites: () => ({ data: [], isLoading: false }),
+  useIsFavourite: () => false,
+  useAddFavourite: () => ({ mutate: jest.fn() }),
+  useRemoveFavourite: () => ({ mutate: jest.fn() }),
+}));
+
 describe('SearchResultScreen', () => {
   beforeEach(() => {
     mockUseIsbnLookup.mockReset();

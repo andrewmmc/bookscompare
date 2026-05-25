@@ -1,6 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { addFavourite, loadFavourites, removeFavourite, type Favourite } from '../lib/favourites';
+import {
+  addFavourite,
+  clearFavourites,
+  loadFavourites,
+  removeFavourite,
+  type Favourite,
+} from '../lib/favourites';
 import { normalizeIsbn } from '../lib/isbn';
 
 export const FAVOURITES_QUERY_KEY = ['favourites'] as const;
@@ -37,6 +43,16 @@ export function useRemoveFavourite() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (isbn: string) => removeFavourite(isbn),
+    onSuccess: (next) => {
+      queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, next);
+    },
+  });
+}
+
+export function useClearFavourites() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => clearFavourites(),
     onSuccess: (next) => {
       queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, next);
     },

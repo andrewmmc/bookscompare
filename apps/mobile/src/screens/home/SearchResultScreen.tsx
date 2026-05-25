@@ -140,7 +140,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
     const rowIsFavourite = showRowFavourite && item.isbn ? favouriteIsbnSet.has(item.isbn) : false;
     return (
       <Pressable
-        android_ripple={{ color: colors.highlightSoft }}
+        android_ripple={{ color: colors.rowPressed }}
         onPress={() => openOffer(item)}
         style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       >
@@ -299,15 +299,18 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   divider: {
-    backgroundColor: colors.highlightSoft,
+    backgroundColor: colors.groupedBackground,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xs,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.divider,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.divider,
   },
   dividerText: {
     ...typography.caption,
-    color: colors.ink,
+    color: colors.inkMuted,
   },
   separator: {
     height: StyleSheet.hairlineWidth,
@@ -324,7 +327,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   rowPressed: {
-    backgroundColor: colors.highlightSoft,
+    backgroundColor: colors.rowPressed,
   },
   thumbnail: {
     width: 64,

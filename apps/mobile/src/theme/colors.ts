@@ -11,6 +11,8 @@ export const colors = {
   divider: '#d5d5d5',
   highlight: '#f5d8c7',
   highlightSoft: '#f5efe5',
+  rowPressed: '#e5e5ea',
+  groupedBackground: '#f2f2f7',
   success: '#5e7f5d',
   danger: '#ad4c3f',
   shadow: '#000000',

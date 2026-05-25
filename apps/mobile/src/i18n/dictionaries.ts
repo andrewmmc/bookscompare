@@ -24,6 +24,7 @@ interface Dictionary {
     isbnPlaceholder: string;
     titlePlaceholder: string;
     scanAction: string;
+    clearAction: string;
     searchAction: string;
   };
   scanner: {
@@ -62,6 +63,11 @@ interface Dictionary {
     removeAction: string;
     addAccessibilityLabel: string;
     removeAccessibilityLabel: string;
+    clearAllAction: string;
+    clearAllConfirmTitle: string;
+    clearAllConfirmMessage: string;
+    clearAllConfirmAction: string;
+    cancelAction: string;
   };
   about: {
     title: string;
@@ -113,6 +119,7 @@ const zhTW: Dictionary = {
     isbnPlaceholder: 'ISBN 碼',
     titlePlaceholder: '輸入書名',
     scanAction: '掃描',
+    clearAction: '清除',
     searchAction: '搜尋好書價',
   },
   scanner: {
@@ -156,6 +163,11 @@ const zhTW: Dictionary = {
     removeAction: '移除',
     addAccessibilityLabel: '加入收藏',
     removeAccessibilityLabel: '從收藏中移除',
+    clearAllAction: '全部清除',
+    clearAllConfirmTitle: '清除所有收藏？',
+    clearAllConfirmMessage: '此動作無法復原，所有已收藏的書本都會被移除。',
+    clearAllConfirmAction: '全部清除',
+    cancelAction: '取消',
   },
   about: {
     title: '好書價 BooksCompare',
@@ -166,7 +178,7 @@ const zhTW: Dictionary = {
     items: {
       privacy: '使用條款及私隱政策',
       feedback: '提交意見',
-      copyright: '(c) 2026 Andrew Mok',
+      copyright: '© 2026 Andrew Mok',
     },
   },
   webview: {
@@ -209,6 +221,7 @@ const en: Dictionary = {
     isbnPlaceholder: 'ISBN',
     titlePlaceholder: 'Book title',
     scanAction: 'Scan',
+    clearAction: 'Clear',
     searchAction: 'Compare prices',
   },
   scanner: {
@@ -255,6 +268,11 @@ const en: Dictionary = {
     removeAction: 'Remove',
     addAccessibilityLabel: 'Add to favourites',
     removeAccessibilityLabel: 'Remove from favourites',
+    clearAllAction: 'Clear all',
+    clearAllConfirmTitle: 'Clear all favourites?',
+    clearAllConfirmMessage: 'This cannot be undone. All saved books will be removed.',
+    clearAllConfirmAction: 'Clear all',
+    cancelAction: 'Cancel',
   },
   about: {
     title: 'BooksCompare',
@@ -265,7 +283,7 @@ const en: Dictionary = {
     items: {
       privacy: 'Terms & Privacy Policy',
       feedback: 'Send feedback',
-      copyright: '(c) 2026 Andrew Mok',
+      copyright: '© 2026 Andrew Mok',
     },
   },
   webview: {
