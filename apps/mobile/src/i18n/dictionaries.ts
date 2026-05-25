@@ -15,6 +15,7 @@ interface Dictionary {
     searchResult: string;
     favourites: string;
     about: string;
+    history: string;
   };
   home: {
     leadText: string;
@@ -26,6 +27,18 @@ interface Dictionary {
     scanAction: string;
     clearAction: string;
     searchAction: string;
+    historyAction: string;
+  };
+  history: {
+    title: string;
+    emptyTitle: string;
+    emptyDescription: string;
+    viewedOn: (dateText: string) => string;
+    clearAllAction: string;
+    clearAllConfirmTitle: string;
+    clearAllConfirmMessage: string;
+    clearAllConfirmAction: string;
+    cancelAction: string;
   };
   scanner: {
     permissionCheckingLabel: string;
@@ -109,6 +122,7 @@ const zhTW: Dictionary = {
     searchResult: '搜尋結果',
     favourites: '我的收藏',
     about: '關於我們',
+    history: '搜尋記錄',
   },
   home: {
     leadText: '掃描或輸入書本的國際標準書號 (ISBN 碼)，輕鬆找到最心儀的價格！',
@@ -121,6 +135,18 @@ const zhTW: Dictionary = {
     scanAction: '掃描',
     clearAction: '清除',
     searchAction: '搜尋好書價',
+    historyAction: '搜尋記錄',
+  },
+  history: {
+    title: '搜尋記錄',
+    emptyTitle: '還沒有任何搜尋記錄',
+    emptyDescription: '搜尋或掃描過的書本會出現在這裡，方便您再次查看。',
+    viewedOn: (dateText) => `${dateText} 查看`,
+    clearAllAction: '全部清除',
+    clearAllConfirmTitle: '清除所有搜尋記錄？',
+    clearAllConfirmMessage: '此動作無法復原，所有搜尋記錄都會被移除。',
+    clearAllConfirmAction: '全部清除',
+    cancelAction: '取消',
   },
   scanner: {
     permissionCheckingLabel: '正在檢查相機權限…',
@@ -211,6 +237,7 @@ const en: Dictionary = {
     searchResult: 'Results',
     favourites: 'Favourites',
     about: 'About',
+    history: 'History',
   },
   home: {
     leadText: "Scan or type an ISBN to find the best price across Taiwan's online bookstores.",
@@ -223,6 +250,18 @@ const en: Dictionary = {
     scanAction: 'Scan',
     clearAction: 'Clear',
     searchAction: 'Compare prices',
+    historyAction: 'History',
+  },
+  history: {
+    title: 'History',
+    emptyTitle: 'No history yet',
+    emptyDescription: 'Books you search or scan will appear here for quick access.',
+    viewedOn: (dateText) => `Viewed on ${dateText}`,
+    clearAllAction: 'Clear all',
+    clearAllConfirmTitle: 'Clear all history?',
+    clearAllConfirmMessage: 'This cannot be undone. All search and scan history will be removed.',
+    clearAllConfirmAction: 'Clear all',
+    cancelAction: 'Cancel',
   },
   scanner: {
     permissionCheckingLabel: 'Checking camera permission…',

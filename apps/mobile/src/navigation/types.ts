@@ -14,6 +14,7 @@ export type SearchResultRoutes = {
 export type HomeStackParamList = SearchResultRoutes & {
   Home: undefined;
   BarcodeScanner: undefined;
+  History: undefined;
 };
 
 export type FavouritesStackParamList = SearchResultRoutes & {

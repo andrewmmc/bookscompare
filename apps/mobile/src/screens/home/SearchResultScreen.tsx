@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLayoutEffect, useMemo } from 'react';
+import { useEffect, useLayoutEffect, useMemo } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
@@ -10,6 +10,7 @@ import {
   useIsFavourite,
   useRemoveFavourite,
 } from '../../api/favourites';
+import { useAddHistoryEntry } from '../../api/history';
 import { useIsbnLookup, useTitleSearch } from '../../api/queries';
 import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
@@ -67,6 +68,26 @@ export function SearchResultScreen({ navigation, route }: Props) {
   const addFavourite = useAddFavourite();
   const removeFavourite = useRemoveFavourite();
   const isbnIsFavourite = useIsFavourite(isbnParam);
+  const addHistoryEntry = useAddHistoryEntry();
+
+  useEffect(() => {
+    if (titleParam) {
+      addHistoryEntry.mutate({ type: 'title', title: titleParam });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [titleParam]);
+
+  useEffect(() => {
+    if (!isbnParam || isLoading) {
+      return;
+    }
+    addHistoryEntry.mutate({
+      type: 'isbn',
+      isbn: isbnParam,
+      ...(isbnBookTitle ? { title: isbnBookTitle } : {}),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isbnParam, isbnBookTitle, isLoading]);
 
   useLayoutEffect(() => {
     if (!isbnParam || !isbnBookTitle) {
