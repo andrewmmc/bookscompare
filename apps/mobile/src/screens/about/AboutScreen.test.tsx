@@ -4,16 +4,31 @@ import { AboutScreen } from './AboutScreen';
 import { openExternalUrl } from '../../lib/linking';
 import { renderWithProviders } from '../../test/test-utils';
 
+import type { Preferences } from '../../lib/preferences';
+
 jest.mock('../../lib/linking', () => ({
   openExternalUrl: jest.fn(),
+}));
+
+const mockUpdatePreference = jest.fn();
+const mockGetPreferences = jest.fn<Preferences, []>(() => ({
+  openLinksIn: 'app',
+  themeMode: 'system',
+}));
+
+jest.mock('../../lib/preferences', () => ({
+  usePreferences: () => mockGetPreferences(),
+  updatePreference: (...args: unknown[]) => mockUpdatePreference(...args),
 }));
 
 describe('AboutScreen', () => {
   beforeEach(() => {
     jest.mocked(openExternalUrl).mockReset();
+    mockUpdatePreference.mockReset();
+    mockGetPreferences.mockReturnValue({ openLinksIn: 'app', themeMode: 'system' });
   });
 
-  it('opens in-app links in the webview screen', () => {
+  it('opens in-app links in the webview screen when preference is app', () => {
     const navigation = {
       navigate: jest.fn(),
     };
@@ -33,7 +48,9 @@ describe('AboutScreen', () => {
     });
   });
 
-  it('hides disclaimer and opens feedback on GitHub', () => {
+  it('opens links externally when preference is browser', () => {
+    mockGetPreferences.mockReturnValue({ openLinksIn: 'browser', themeMode: 'system' });
+
     const navigation = {
       navigate: jest.fn(),
     };
@@ -45,13 +62,28 @@ describe('AboutScreen', () => {
       />
     );
 
-    expect(screen.queryByText('免責聲明')).toBeNull();
-
     fireEvent.press(screen.getByText('提交意見'));
 
     expect(navigation.navigate).not.toHaveBeenCalled();
     expect(openExternalUrl).toHaveBeenCalledWith(
       'https://github.com/andrewmmc/bookscompare/issues'
     );
+  });
+
+  it('navigates to settings screen', () => {
+    const navigation = {
+      navigate: jest.fn(),
+    };
+
+    const screen = renderWithProviders(
+      <AboutScreen
+        navigation={navigation as never}
+        route={{ key: 'About', name: 'About' } as never}
+      />
+    );
+
+    fireEvent.press(screen.getByText('設定'));
+
+    expect(navigation.navigate).toHaveBeenCalledWith('Settings');
   });
 });

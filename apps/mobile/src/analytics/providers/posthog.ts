@@ -4,6 +4,7 @@ const DEFAULT_HOST = 'https://us.i.posthog.com';
 
 interface PostHogClient {
   capture(event: string, props?: Record<string, unknown>): void;
+  register(props: Record<string, unknown>): void;
   identify(userId: string): void;
   reset(): void;
 }
@@ -43,6 +44,9 @@ export function createPostHogProvider(
     },
     track(event: string, props?: AnalyticsProps): void {
       client?.capture(event, props);
+    },
+    register(props: AnalyticsProps): void {
+      client?.register(props);
     },
     identify(userId?: string): void {
       if (!client) {

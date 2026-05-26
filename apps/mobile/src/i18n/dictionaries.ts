@@ -8,6 +8,7 @@ interface Dictionary {
     home: string;
     favourites: string;
     about: string;
+    settings: string;
   };
   navigation: {
     home: string;
@@ -16,6 +17,7 @@ interface Dictionary {
     favourites: string;
     about: string;
     history: string;
+    settings: string;
   };
   home: {
     leadText: string;
@@ -92,6 +94,17 @@ interface Dictionary {
       copyright: string;
     };
   };
+  settings: {
+    title: string;
+    openLinksIn: string;
+    openLinksInApp: string;
+    openLinksInBrowser: string;
+    appearance: string;
+    appearanceSystem: string;
+    appearanceLight: string;
+    appearanceDark: string;
+    cancelAction: string;
+  };
   webview: {
     shareAccessibility: string;
     loadingLabel: string;
@@ -115,6 +128,7 @@ const zhTW: Dictionary = {
     home: '書本搜尋',
     favourites: '我的收藏',
     about: '關於我們',
+    settings: '設定',
   },
   navigation: {
     home: '好書價 BooksCompare',
@@ -123,6 +137,7 @@ const zhTW: Dictionary = {
     favourites: '我的收藏',
     about: '關於我們',
     history: '搜尋記錄',
+    settings: '設定',
   },
   home: {
     leadText: '掃描或輸入書本的國際標準書號 (ISBN 碼)，輕鬆找到最心儀的價格！',
@@ -207,6 +222,17 @@ const zhTW: Dictionary = {
       copyright: '© 2026 Andrew Mok',
     },
   },
+  settings: {
+    title: '設定',
+    openLinksIn: '開啟連結',
+    openLinksInApp: '在 App 內開啟',
+    openLinksInBrowser: '在瀏覽器開啟',
+    appearance: '外觀',
+    appearanceSystem: '跟隨系統',
+    appearanceLight: '淺色',
+    appearanceDark: '深色',
+    cancelAction: '取消',
+  },
   webview: {
     shareAccessibility: '分享',
     loadingLabel: '正在打開書店頁面…',
@@ -230,6 +256,7 @@ const en: Dictionary = {
     home: 'Search',
     favourites: 'Favourites',
     about: 'About',
+    settings: 'Settings',
   },
   navigation: {
     home: 'BooksCompare',
@@ -238,6 +265,7 @@ const en: Dictionary = {
     favourites: 'Favourites',
     about: 'About',
     history: 'History',
+    settings: 'Settings',
   },
   home: {
     leadText: "Scan or type an ISBN to find the best price across Taiwan's online bookstores.",
@@ -324,6 +352,17 @@ const en: Dictionary = {
       feedback: 'Send feedback',
       copyright: '© 2026 Andrew Mok',
     },
+  },
+  settings: {
+    title: 'Settings',
+    openLinksIn: 'Open links',
+    openLinksInApp: 'In app',
+    openLinksInBrowser: 'Browser',
+    appearance: 'Appearance',
+    appearanceSystem: 'System',
+    appearanceLight: 'Light',
+    appearanceDark: 'Dark',
+    cancelAction: 'Cancel',
   },
   webview: {
     shareAccessibility: 'Share',

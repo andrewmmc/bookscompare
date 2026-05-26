@@ -4,13 +4,15 @@ import { WebViewScreen } from '../screens/common/WebViewScreen';
 import { FavouritesScreen } from '../screens/favourites/FavouritesScreen';
 import { SearchResultScreen } from '../screens/home/SearchResultScreen';
 import { strings } from '../i18n/strings';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeProvider';
 
 import type { FavouritesStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<FavouritesStackParamList>();
 
 export function FavouritesStack() {
+  const { colors } = useTheme();
+
   return (
     <Stack.Navigator
       screenOptions={{

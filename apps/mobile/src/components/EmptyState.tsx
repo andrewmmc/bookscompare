@@ -1,10 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 
-import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
+import { useTheme } from '../theme/ThemeProvider';
 import { typography } from '../theme/typography';
+
+import type { ThemeColors } from '../theme/colors';
 
 interface EmptyStateProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -23,6 +26,9 @@ export function EmptyState({
   onAction,
   containerStyle,
 }: EmptyStateProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={[styles.container, containerStyle]}>
       <Ionicons color={colors.ink} name={icon} size={72} style={styles.icon} />
@@ -37,32 +43,33 @@ export function EmptyState({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xxl,
-    gap: spacing.sm,
-    backgroundColor: colors.canvas,
-  },
-  icon: {
-    textAlign: 'center',
-    marginBottom: spacing.sm,
-  },
-  title: {
-    ...typography.hero,
-    color: colors.ink,
-    textAlign: 'center',
-  },
-  description: {
-    ...typography.body,
-    color: colors.ink,
-    textAlign: 'center',
-    maxWidth: 340,
-  },
-  actionButton: {
-    marginTop: spacing.md,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.xxl,
+      gap: spacing.sm,
+      backgroundColor: colors.canvas,
+    },
+    icon: {
+      textAlign: 'center',
+      marginBottom: spacing.sm,
+    },
+    title: {
+      ...typography.hero,
+      color: colors.ink,
+      textAlign: 'center',
+    },
+    description: {
+      ...typography.body,
+      color: colors.ink,
+      textAlign: 'center',
+      maxWidth: 340,
+    },
+    actionButton: {
+      marginTop: spacing.md,
+    },
+  });

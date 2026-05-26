@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import { Pressable, Share, StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
@@ -8,10 +8,11 @@ import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { strings } from '../../i18n/strings';
 import { openExternalUrl } from '../../lib/linking';
-import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
+import { useTheme } from '../../theme/ThemeProvider';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { ThemeColors } from '../../theme/colors';
 import type {
   AboutStackParamList,
   FavouritesStackParamList,
@@ -26,7 +27,13 @@ type Props =
 type LoadState = 'loading' | 'ready' | 'not-found' | 'error';
 
 export function WebViewScreen({ navigation, route }: Props) {
+  const { colors, scheme } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [loadState, setLoadState] = useState<LoadState>('loading');
+  const injectedJavaScript = useMemo(
+    () => `document.documentElement.style.colorScheme = '${scheme}'; true;`,
+    [scheme]
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -56,7 +63,7 @@ export function WebViewScreen({ navigation, route }: Props) {
           }
         : {}),
     });
-  }, [navigation, route.params.showOptions, route.params.title, route.params.url]);
+  }, [navigation, route.params.showOptions, route.params.title, route.params.url, colors, styles]);
 
   if (loadState === 'not-found') {
     return (
@@ -94,6 +101,7 @@ export function WebViewScreen({ navigation, route }: Props) {
         onLoadEnd={() => {
           setLoadState((currentState) => (currentState === 'loading' ? 'ready' : currentState));
         }}
+        injectedJavaScript={injectedJavaScript}
         source={{ uri: route.params.url }}
         style={styles.webview}
       />
@@ -102,16 +110,17 @@ export function WebViewScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.canvas,
-  },
-  webview: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
-  headerButton: {
-    paddingHorizontal: spacing.xs,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.canvas,
+    },
+    webview: {
+      flex: 1,
+      backgroundColor: colors.surface,
+    },
+    headerButton: {
+      paddingHorizontal: spacing.xs,
+    },
+  });

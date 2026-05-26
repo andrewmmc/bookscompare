@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useMemo } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 
@@ -7,12 +7,13 @@ import { track } from '../../analytics';
 import { useClearHistory, useHistory } from '../../api/history';
 import { EmptyState } from '../../components/EmptyState';
 import { activeLocale, strings } from '../../i18n/strings';
-import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
+import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HistoryEntry } from '../../lib/history';
+import type { ThemeColors } from '../../theme/colors';
 import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'History'>;
@@ -38,6 +39,8 @@ function getEntryId(entry: HistoryEntry): string {
 }
 
 export function HistoryScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data, isLoading } = useHistory();
   const clearHistory = useClearHistory();
 
@@ -138,57 +141,58 @@ export function HistoryScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.canvas,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.divider,
-    marginLeft: spacing.md + 32 + spacing.sm,
-  },
-  listEdge: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.divider,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface,
-    gap: spacing.sm,
-  },
-  rowPressed: {
-    backgroundColor: colors.rowPressed,
-  },
-  iconWrap: {
-    width: 32,
-    alignItems: 'center',
-  },
-  body: {
-    flex: 1,
-    gap: spacing.xxs,
-  },
-  title: {
-    ...typography.body,
-    color: colors.ink,
-  },
-  meta: {
-    ...typography.caption,
-    color: colors.inkMuted,
-  },
-  headerAction: {
-    paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.xxs,
-  },
-  headerActionPressed: {
-    opacity: 0.6,
-  },
-  headerActionText: {
-    ...typography.body,
-    color: colors.accent,
-    fontWeight: '600',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.canvas,
+    },
+    separator: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.divider,
+      marginLeft: spacing.md + 32 + spacing.sm,
+    },
+    listEdge: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.divider,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+      backgroundColor: colors.surface,
+      gap: spacing.sm,
+    },
+    rowPressed: {
+      backgroundColor: colors.rowPressed,
+    },
+    iconWrap: {
+      width: 32,
+      alignItems: 'center',
+    },
+    body: {
+      flex: 1,
+      gap: spacing.xxs,
+    },
+    title: {
+      ...typography.body,
+      color: colors.ink,
+    },
+    meta: {
+      ...typography.caption,
+      color: colors.inkMuted,
+    },
+    headerAction: {
+      paddingHorizontal: spacing.xs,
+      paddingVertical: spacing.xxs,
+    },
+    headerActionPressed: {
+      opacity: 0.6,
+    },
+    headerActionText: {
+      ...typography.body,
+      color: colors.accent,
+      fontWeight: '600',
+    },
+  });

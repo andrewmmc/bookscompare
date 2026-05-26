@@ -1,5 +1,5 @@
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
-import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo } from 'react';
@@ -7,22 +7,27 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { initAnalytics } from './analytics';
+import { initAnalytics, registerAnalyticsProperties } from './analytics';
 import { RootNavigator } from './navigation/RootNavigator';
-import { paperTheme } from './theme/paperTheme';
+import { paperThemeDark, paperThemeLight } from './theme/paperTheme';
+import { ThemeProvider, useTheme } from './theme/ThemeProvider';
 
 const queryClient = new QueryClient();
 
-export default function App() {
+function AppContent() {
+  const { scheme } = useTheme();
+  const paperTheme = scheme === 'dark' ? paperThemeDark : paperThemeLight;
+
   useEffect(() => {
     initAnalytics();
-  }, []);
+    registerAnalyticsProperties({ themeScheme: scheme });
+  }, [scheme]);
 
   const navigationTheme = useMemo(
     () => ({
-      ...DefaultTheme,
+      ...(scheme === 'dark' ? DarkTheme : DefaultTheme),
       colors: {
-        ...DefaultTheme.colors,
+        ...(scheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
         background: paperTheme.colors.background,
         card: paperTheme.colors.elevation.level2,
         border: paperTheme.colors.outlineVariant,
@@ -31,21 +36,29 @@ export default function App() {
         notification: paperTheme.colors.secondary,
       },
     }),
-    []
+    [paperTheme, scheme]
   );
 
+  return (
+    <PaperProvider theme={paperTheme}>
+      <ActionSheetProvider>
+        <NavigationContainer theme={navigationTheme}>
+          <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+          <RootNavigator />
+        </NavigationContainer>
+      </ActionSheetProvider>
+    </PaperProvider>
+  );
+}
+
+export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <PaperProvider theme={paperTheme}>
-            <ActionSheetProvider>
-              <NavigationContainer theme={navigationTheme}>
-                <StatusBar style="dark" />
-                <RootNavigator />
-              </NavigationContainer>
-            </ActionSheetProvider>
-          </PaperProvider>
+          <ThemeProvider>
+            <AppContent />
+          </ThemeProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

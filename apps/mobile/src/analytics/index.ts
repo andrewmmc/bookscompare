@@ -38,6 +38,10 @@ export function track(event: string, props?: AnalyticsProps): void {
   provider.track(event, props);
 }
 
+export function registerAnalyticsProperties(props: AnalyticsProps): void {
+  provider.register(props);
+}
+
 export function identify(userId?: string): void {
   provider.identify(userId);
 }

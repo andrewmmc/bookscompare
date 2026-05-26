@@ -16,12 +16,13 @@ import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { PriceTag } from '../../components/PriceTag';
 import { strings } from '../../i18n/strings';
-import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
+import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BookOffer } from '@bookscompare/contracts';
+import type { ThemeColors } from '../../theme/colors';
 import type { SearchResultRoutes } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<SearchResultRoutes, 'SearchResult'>;
@@ -31,6 +32,8 @@ function isEbookOffer(item: BookOffer): boolean {
 }
 
 export function SearchResultScreen({ navigation, route }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const isbnParam = 'isbn' in route.params ? route.params.isbn : '';
   const titleParam = 'title' in route.params ? route.params.title : '';
   const isbnQuery = useIsbnLookup(isbnParam);
@@ -124,7 +127,16 @@ export function SearchResultScreen({ navigation, route }: Props) {
         </Pressable>
       ),
     });
-  }, [navigation, isbnParam, isbnBookTitle, isbnIsFavourite, addFavourite, removeFavourite]);
+  }, [
+    navigation,
+    isbnParam,
+    isbnBookTitle,
+    isbnIsFavourite,
+    addFavourite,
+    removeFavourite,
+    colors,
+    styles,
+  ]);
 
   const favouriteIsbnSet = useMemo(
     () => new Set((favourites ?? []).map((fav) => fav.isbn)),
@@ -301,90 +313,91 @@ export function SearchResultScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.canvas,
-  },
-  headerFavouriteButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 32,
-    width: 32,
-  },
-  list: {
-    flex: 1,
-    width: '100%',
-  },
-  listContent: {
-    paddingBottom: spacing.xl,
-  },
-  divider: {
-    backgroundColor: colors.groupedBackground,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xs,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
-  },
-  dividerText: {
-    ...typography.caption,
-    color: colors.inkMuted,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.divider,
-    marginLeft: spacing.md + 64 + spacing.sm,
-  },
-  row: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
-    gap: spacing.sm,
-  },
-  rowPressed: {
-    backgroundColor: colors.rowPressed,
-  },
-  thumbnail: {
-    width: 64,
-    height: 80,
-    backgroundColor: 'transparent',
-  },
-  body: {
-    flex: 1,
-    gap: spacing.xxs,
-  },
-  rowTrailing: {
-    alignItems: 'flex-end',
-    gap: spacing.xs,
-  },
-  rowFavouriteButton: {
-    padding: spacing.xxs,
-  },
-  ebookBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 1,
-    borderRadius: 3,
-    backgroundColor: colors.inkMuted,
-  },
-  ebookBadgeText: {
-    ...typography.caption,
-    color: '#ffffff',
-    fontSize: 11,
-    lineHeight: 14,
-  },
-  title: {
-    ...typography.body,
-    color: colors.ink,
-  },
-  note: {
-    ...typography.caption,
-    color: colors.inkMuted,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.canvas,
+    },
+    headerFavouriteButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 32,
+      width: 32,
+    },
+    list: {
+      flex: 1,
+      width: '100%',
+    },
+    listContent: {
+      paddingBottom: spacing.xl,
+    },
+    divider: {
+      backgroundColor: colors.groupedBackground,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.xs,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.divider,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.divider,
+    },
+    dividerText: {
+      ...typography.caption,
+      color: colors.inkMuted,
+    },
+    separator: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.divider,
+      marginLeft: spacing.md + 64 + spacing.sm,
+    },
+    row: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      backgroundColor: colors.surface,
+      gap: spacing.sm,
+    },
+    rowPressed: {
+      backgroundColor: colors.rowPressed,
+    },
+    thumbnail: {
+      width: 64,
+      height: 80,
+      backgroundColor: 'transparent',
+    },
+    body: {
+      flex: 1,
+      gap: spacing.xxs,
+    },
+    rowTrailing: {
+      alignItems: 'flex-end',
+      gap: spacing.xs,
+    },
+    rowFavouriteButton: {
+      padding: spacing.xxs,
+    },
+    ebookBadge: {
+      alignSelf: 'flex-start',
+      paddingHorizontal: spacing.xs,
+      paddingVertical: 1,
+      borderRadius: 3,
+      backgroundColor: colors.inkMuted,
+    },
+    ebookBadgeText: {
+      ...typography.caption,
+      color: '#ffffff',
+      fontSize: 11,
+      lineHeight: 14,
+    },
+    title: {
+      ...typography.body,
+      color: colors.ink,
+    },
+    note: {
+      ...typography.caption,
+      color: colors.inkMuted,
+    },
+  });

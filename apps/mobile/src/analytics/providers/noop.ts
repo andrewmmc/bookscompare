@@ -7,6 +7,9 @@ export const noopAnalyticsProvider: AnalyticsProvider = {
   track(_event: string, _props?: AnalyticsProps): void {
     // No-op
   },
+  register(_props: AnalyticsProps): void {
+    // No-op
+  },
   identify(_userId?: string): void {
     // No-op
   },

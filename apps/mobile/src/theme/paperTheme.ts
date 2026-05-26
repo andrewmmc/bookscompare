@@ -1,12 +1,12 @@
-import { MD3LightTheme } from 'react-native-paper';
+import { MD3DarkTheme, MD3LightTheme } from 'react-native-paper';
 
-import { colors } from './colors';
+import { darkColors, lightColors } from './colors';
 
-export const paperTheme = {
-  ...MD3LightTheme,
-  roundness: 4,
-  colors: {
-    ...MD3LightTheme.colors,
+import type { ThemeColors } from './colors';
+
+function buildPaperColors(colors: ThemeColors, baseColors: typeof MD3LightTheme.colors) {
+  return {
+    ...baseColors,
     primary: colors.accent,
     onPrimary: '#ffffff',
     primaryContainer: colors.highlight,
@@ -23,12 +23,26 @@ export const paperTheme = {
     outlineVariant: colors.border,
     error: colors.danger,
     elevation: {
-      ...MD3LightTheme.colors.elevation,
-      level1: '#ffffff',
-      level2: '#ffffff',
-      level3: '#ffffff',
-      level4: '#ffffff',
-      level5: '#ffffff',
+      ...baseColors.elevation,
+      level1: colors.surface,
+      level2: colors.surface,
+      level3: colors.paper,
+      level4: colors.paper,
+      level5: colors.paper,
     },
-  },
+  };
+}
+
+export const paperThemeLight = {
+  ...MD3LightTheme,
+  roundness: 4,
+  colors: buildPaperColors(lightColors, MD3LightTheme.colors),
 };
+
+export const paperThemeDark = {
+  ...MD3DarkTheme,
+  roundness: 4,
+  colors: buildPaperColors(darkColors, MD3DarkTheme.colors),
+};
+
+export const paperTheme = paperThemeLight;

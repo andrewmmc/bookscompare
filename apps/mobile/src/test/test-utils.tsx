@@ -3,11 +3,17 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react-native';
 import { PaperProvider } from 'react-native-paper';
 
-import { paperTheme } from '../theme/paperTheme';
+import { paperThemeDark, paperThemeLight } from '../theme/paperTheme';
+import { ThemeProvider } from '../theme/ThemeProvider';
 
 import type { ReactElement } from 'react';
+import type { ThemeScheme } from '../theme/ThemeProvider';
 
-export function renderWithProviders(element: ReactElement) {
+interface RenderOptions {
+  scheme?: ThemeScheme;
+}
+
+export function renderWithProviders(element: ReactElement, options: RenderOptions = {}) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -15,12 +21,20 @@ export function renderWithProviders(element: ReactElement) {
       },
     },
   });
+  const scheme = options.scheme ?? 'light';
+  const paperTheme = scheme === 'dark' ? paperThemeDark : paperThemeLight;
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <PaperProvider theme={paperTheme}>
-        <ActionSheetProvider>{element}</ActionSheetProvider>
-      </PaperProvider>
+      <ThemeProvider schemeOverride={scheme}>
+        <PaperProvider theme={paperTheme}>
+          <ActionSheetProvider>{element}</ActionSheetProvider>
+        </PaperProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
+}
+
+export function renderWithTheme(element: ReactElement, options: RenderOptions = {}) {
+  return renderWithProviders(element, options);
 }

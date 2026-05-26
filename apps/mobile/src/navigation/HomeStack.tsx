@@ -9,7 +9,7 @@ import { HistoryScreen } from '../screens/home/HistoryScreen';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { SearchResultScreen } from '../screens/home/SearchResultScreen';
 import { strings } from '../i18n/strings';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeProvider';
 import { spacing } from '../theme/spacing';
 
 import type { HomeStackParamList } from './types';
@@ -17,6 +17,8 @@ import type { HomeStackParamList } from './types';
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
 export function HomeStack() {
+  const { colors } = useTheme();
+
   return (
     <Stack.Navigator
       screenOptions={{

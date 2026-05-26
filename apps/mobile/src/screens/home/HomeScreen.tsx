@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -15,11 +15,12 @@ import { track } from '../../analytics';
 import { featureFlags } from '../../config/featureFlags';
 import { normalizeIsbn, isValidIsbn } from '../../lib/isbn';
 import { strings } from '../../i18n/strings';
-import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
+import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { ThemeColors } from '../../theme/colors';
 import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
@@ -29,6 +30,8 @@ type SearchMode = 'isbn' | 'title';
 const TITLE_MAX_LENGTH = 100;
 
 export function HomeScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [mode, setMode] = useState<SearchMode>('isbn');
   const [isbn, setIsbn] = useState('');
   const [title, setTitle] = useState('');
@@ -171,60 +174,61 @@ export function HomeScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.canvas,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-  },
-  intro: {
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.lg,
-    alignItems: 'center',
-  },
-  icon: {
-    textAlign: 'center',
-  },
-  leadText: {
-    ...typography.body,
-    color: colors.ink,
-    paddingTop: spacing.md,
-    textAlign: 'center',
-  },
-  segments: {
-    marginBottom: spacing.md,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
-  scannerButton: {
-    height: 56,
-    width: 56,
-    borderRadius: 4,
-    backgroundColor: colors.ink,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scannerPressed: {
-    opacity: 0.85,
-  },
-  searchButton: {
-    marginTop: spacing.lg,
-    alignSelf: 'center',
-    borderRadius: 4,
-  },
-  searchButtonContent: {
-    paddingHorizontal: spacing.xl,
-    height: 44,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.canvas,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.xl,
+    },
+    intro: {
+      paddingTop: spacing.xl,
+      paddingBottom: spacing.lg,
+      alignItems: 'center',
+    },
+    icon: {
+      textAlign: 'center',
+    },
+    leadText: {
+      ...typography.body,
+      color: colors.ink,
+      paddingTop: spacing.md,
+      textAlign: 'center',
+    },
+    segments: {
+      marginBottom: spacing.md,
+    },
+    inputRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    input: {
+      flex: 1,
+      backgroundColor: colors.surface,
+    },
+    scannerButton: {
+      height: 56,
+      width: 56,
+      borderRadius: 4,
+      backgroundColor: colors.ink,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    scannerPressed: {
+      opacity: 0.85,
+    },
+    searchButton: {
+      marginTop: spacing.lg,
+      alignSelf: 'center',
+      borderRadius: 4,
+    },
+    searchButtonContent: {
+      paddingHorizontal: spacing.xl,
+      height: 44,
+    },
+  });

@@ -6,7 +6,7 @@ import { FavouritesStack } from './FavouritesStack';
 import { HomeStack } from './HomeStack';
 
 import { strings } from '../i18n/strings';
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeProvider';
 import { typography } from '../theme/typography';
 
 import type { RootTabParamList } from './types';
@@ -29,6 +29,8 @@ function tabIconName(
 }
 
 export function RootNavigator() {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({

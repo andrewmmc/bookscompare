@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import { Alert, Animated, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Text } from 'react-native-paper';
@@ -8,12 +8,13 @@ import { track } from '../../analytics';
 import { useClearFavourites, useFavourites, useRemoveFavourite } from '../../api/favourites';
 import { EmptyState } from '../../components/EmptyState';
 import { activeLocale, strings } from '../../i18n/strings';
-import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
+import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { Favourite } from '../../lib/favourites';
+import type { ThemeColors } from '../../theme/colors';
 import type { FavouritesStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<FavouritesStackParamList, 'Favourites'>;
@@ -33,6 +34,8 @@ function formatAddedOn(addedAt: number): string {
 }
 
 export function FavouritesScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { data, isLoading } = useFavourites();
   const removeFavourite = useRemoveFavourite();
   const clearFavourites = useClearFavourites();
@@ -175,75 +178,76 @@ export function FavouritesScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.canvas,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.divider,
-    marginLeft: spacing.md + 32 + spacing.sm,
-  },
-  listEdge: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.divider,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface,
-    gap: spacing.sm,
-  },
-  rowPressed: {
-    backgroundColor: colors.rowPressed,
-  },
-  iconWrap: {
-    width: 32,
-    alignItems: 'center',
-  },
-  body: {
-    flex: 1,
-    gap: spacing.xxs,
-  },
-  title: {
-    ...typography.body,
-    color: colors.ink,
-  },
-  meta: {
-    ...typography.caption,
-    color: colors.inkMuted,
-  },
-  removeContainer: {
-    width: 96,
-  },
-  removeButton: {
-    flex: 1,
-    backgroundColor: colors.danger,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xxs,
-  },
-  removeButtonPressed: {
-    opacity: 0.85,
-  },
-  removeText: {
-    ...typography.caption,
-    color: '#ffffff',
-    fontWeight: '600',
-  },
-  headerAction: {
-    paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.xxs,
-  },
-  headerActionPressed: {
-    opacity: 0.6,
-  },
-  headerActionText: {
-    ...typography.body,
-    color: colors.accent,
-    fontWeight: '600',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.canvas,
+    },
+    separator: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.divider,
+      marginLeft: spacing.md + 32 + spacing.sm,
+    },
+    listEdge: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.divider,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+      backgroundColor: colors.surface,
+      gap: spacing.sm,
+    },
+    rowPressed: {
+      backgroundColor: colors.rowPressed,
+    },
+    iconWrap: {
+      width: 32,
+      alignItems: 'center',
+    },
+    body: {
+      flex: 1,
+      gap: spacing.xxs,
+    },
+    title: {
+      ...typography.body,
+      color: colors.ink,
+    },
+    meta: {
+      ...typography.caption,
+      color: colors.inkMuted,
+    },
+    removeContainer: {
+      width: 96,
+    },
+    removeButton: {
+      flex: 1,
+      backgroundColor: colors.danger,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.xxs,
+    },
+    removeButtonPressed: {
+      opacity: 0.85,
+    },
+    removeText: {
+      ...typography.caption,
+      color: '#ffffff',
+      fontWeight: '600',
+    },
+    headerAction: {
+      paddingHorizontal: spacing.xs,
+      paddingVertical: spacing.xxs,
+    },
+    headerActionPressed: {
+      opacity: 0.6,
+    },
+    headerActionText: {
+      ...typography.body,
+      color: colors.accent,
+      fontWeight: '600',
+    },
+  });
