@@ -16,6 +16,8 @@ import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { PriceTag } from '../../components/PriceTag';
 import { strings } from '../../i18n/strings';
+import { openExternalUrl } from '../../lib/linking';
+import { usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
@@ -35,6 +37,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const tabBarHeight = useBottomTabBarHeight();
+  const { openLinksIn } = usePreferences();
   const isbnParam = 'isbn' in route.params ? route.params.isbn : '';
   const titleParam = 'title' in route.params ? route.params.title : '';
   const isbnQuery = useIsbnLookup(isbnParam);
@@ -162,6 +165,10 @@ export function SearchResultScreen({ navigation, route }: Props) {
       isbn: isbnParam,
       sourceId: item.sourceId,
     });
+    if (openLinksIn === 'browser') {
+      void openExternalUrl(item.url);
+      return;
+    }
     navigation.navigate('SearchWebView', {
       title: `${item.sourceName} - ${item.title}`,
       url: item.url,

@@ -43,7 +43,7 @@ export function WebViewScreen({ navigation, route }: Props) {
               <Pressable
                 accessibilityLabel={strings.webview.shareAccessibility}
                 accessibilityRole="button"
-                hitSlop={8}
+                hitSlop={12}
                 onPress={() => {
                   track('webview_share', { title: route.params.title });
                   void Share.share({
@@ -60,7 +60,7 @@ export function WebViewScreen({ navigation, route }: Props) {
                   pressed && styles.headerButtonPressed,
                 ]}
               >
-                <Ionicons color={colors.accent} name="share-outline" size={18} />
+                <Ionicons color={colors.accent} name="share-outline" size={22} />
               </Pressable>
             ),
           }
@@ -124,14 +124,14 @@ const createStyles = (colors: ThemeColors) =>
       backgroundColor: colors.surface,
     },
     headerButton: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
+      minWidth: 30,
+      minHeight: 30,
+      paddingHorizontal: 4,
+      paddingVertical: 4,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.accentSoft,
     },
     headerButtonPressed: {
-      opacity: 0.6,
+      opacity: 0.4,
     },
   });
