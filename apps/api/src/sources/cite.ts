@@ -2,6 +2,7 @@ import type { BookOffer } from '@bookscompare/contracts';
 
 import { fetchHtml } from '../lib/fetch-html';
 import { decodeHtmlEntities, normalizeWhitespace, stripTags } from '../lib/html';
+import { logParseFailure } from '../lib/logger';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
@@ -188,18 +189,32 @@ export function parseCiteSearchResults(html: string): BookOffer[] {
     throw new Error('Cite parser could not find the main search result list.');
   }
 
-  const results = Array.from(resultContainer.matchAll(RESULT_BLOCK_PATTERN), (match) => {
+  const rows = Array.from(resultContainer.matchAll(RESULT_BLOCK_PATTERN));
+  const results: BookOffer[] = [];
+
+  for (const match of rows) {
     const block = match[1];
 
     if (!block) {
-      throw new Error('Cite parser found an incomplete result row.');
+      logParseFailure({
+        providerId: CITE_SOURCE_ID,
+        reason: 'Cite parser found an incomplete result row.',
+      });
+      continue;
     }
 
-    return parseCiteOffer(block);
-  });
+    try {
+      results.push(parseCiteOffer(block));
+    } catch (error) {
+      logParseFailure({
+        providerId: CITE_SOURCE_ID,
+        reason: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
 
   if (results.length === 0) {
-    throw new Error('Cite parser could not find any search result rows.');
+    throw new Error('Cite parser could not parse any search result rows.');
   }
 
   return results;

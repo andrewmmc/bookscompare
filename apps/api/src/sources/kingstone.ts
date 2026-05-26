@@ -7,6 +7,7 @@ import {
   normalizeWhitespace,
   stripTags,
 } from '../lib/html';
+import { logParseFailure } from '../lib/logger';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
@@ -176,22 +177,36 @@ export function parseKingstoneSearchResults(html: string): BookOffer[] {
     throw new Error('Kingstone parser could not find the main search result list.');
   }
 
-  const results = Array.from(resultList.matchAll(RESULT_BLOCK_PATTERN), (match) => {
+  const rows = Array.from(resultList.matchAll(RESULT_BLOCK_PATTERN));
+  const results: BookOffer[] = [];
+
+  for (const match of rows) {
     const block = match[1];
 
     if (!block) {
-      throw new Error('Kingstone parser found an incomplete result row.');
+      logParseFailure({
+        providerId: KINGSTONE_SOURCE_ID,
+        reason: 'Kingstone parser found an incomplete result row.',
+      });
+      continue;
     }
 
-    return parseKingstoneSearchOffer(block);
-  });
+    try {
+      results.push(parseKingstoneSearchOffer(block));
+    } catch (error) {
+      logParseFailure({
+        providerId: KINGSTONE_SOURCE_ID,
+        reason: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
 
   if (results.length === 0 && resultCount === 0) {
     return [];
   }
 
   if (results.length === 0) {
-    throw new Error('Kingstone parser could not find any search result rows.');
+    throw new Error('Kingstone parser could not parse any search result rows.');
   }
 
   return results;

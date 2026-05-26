@@ -8,6 +8,7 @@ import {
   stripTags,
   toAbsoluteUrl,
 } from '../lib/html';
+import { logParseFailure } from '../lib/logger';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
@@ -153,10 +154,7 @@ function parsePublicationDate(block: string): string {
 }
 
 function parsePriceText(block: string): string {
-  const priceHtml = matchFirst(
-    /<ul class="list-nav clearfix">\s*<li>([\s\S]*?)<\/li>\s*<\/ul>/,
-    block
-  );
+  const priceHtml = matchFirst(/<ul class="list-nav clearfix">\s*<li>([\s\S]*?)<\/li>/, block);
 
   if (!priceHtml) {
     throw new Error('Books.com.tw parser could not find the price text.');
@@ -209,23 +207,37 @@ export function parseBooksComTwSearchResults(html: string): BookOffer[] {
     throw new Error('Books.com.tw parser could not find the main search result table.');
   }
 
-  const results = Array.from(resultTable.matchAll(RESULT_BLOCK_PATTERN), (match) => {
+  const rows = Array.from(resultTable.matchAll(RESULT_BLOCK_PATTERN));
+  const results: BookOffer[] = [];
+
+  for (const match of rows) {
     const productId = match[1];
     const block = match[2];
 
     if (!productId || !block) {
-      throw new Error('Books.com.tw parser found an incomplete result row.');
+      logParseFailure({
+        providerId: BOOKS_COM_TW_SOURCE_ID,
+        reason: 'Books.com.tw parser found an incomplete result row.',
+      });
+      continue;
     }
 
-    return parseOffer(productId, block);
-  });
+    try {
+      results.push(parseOffer(productId, block));
+    } catch (error) {
+      logParseFailure({
+        providerId: BOOKS_COM_TW_SOURCE_ID,
+        reason: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
 
   if (results.length === 0 && resultCount === 0) {
     return [];
   }
 
   if (results.length === 0) {
-    throw new Error('Books.com.tw parser could not find any search result rows.');
+    throw new Error('Books.com.tw parser could not parse any search result rows.');
   }
 
   return results;

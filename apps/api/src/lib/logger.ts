@@ -49,5 +49,5 @@ export function logFetchAttempt(fields: {
 }
 
 export function logParseFailure(fields: { providerId: string; reason: string }): void {
-  emit('error', 'provider.parse_failure', fields);
+  emit('warn', 'provider.parse_failure', fields);
 }

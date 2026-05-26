@@ -2,6 +2,7 @@ import type { BookOffer } from '@bookscompare/contracts';
 
 import { fetchWithTimeout } from '../lib/fetch-with-timeout';
 import { normalizeBookTitle } from '../lib/html';
+import { logParseFailure } from '../lib/logger';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
@@ -125,7 +126,6 @@ function parseEsliteOffer(hit: EsliteSearchHit): BookOffer {
   if (!publisher) {
     throw new Error('Eslite parser could not find the publisher.');
   }
-
   const sourceProductId = fields.eslite_sn ?? fields.isbn ?? fields.ean ?? hit.id;
 
   if (!sourceProductId) {
@@ -161,7 +161,24 @@ export function parseEsliteSearchResults(payload: EsliteSearchResponse): BookOff
     return [];
   }
 
-  return hits.filter((hit) => hit.fields?.is_book !== 'no').map(parseEsliteOffer);
+  const results: BookOffer[] = [];
+
+  for (const hit of hits) {
+    if (hit.fields?.is_book === 'no') {
+      continue;
+    }
+
+    try {
+      results.push(parseEsliteOffer(hit));
+    } catch (error) {
+      logParseFailure({
+        providerId: ESLITE_SOURCE_ID,
+        reason: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  return results;
 }
 
 async function fetchEsliteOffersByKeyword(
