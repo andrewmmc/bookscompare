@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useLayoutEffect, useMemo } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { track } from '../../analytics';
 import { useClearHistory, useHistory } from '../../api/history';
@@ -41,10 +41,12 @@ function getEntryId(entry: HistoryEntry): string {
 export function HistoryScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const tabBarHeight = useBottomTabBarHeight();
   const { data, isLoading } = useHistory();
   const clearHistory = useClearHistory();
 
   const hasHistory = (data?.length ?? 0) > 0;
+  const entries = data ?? [];
 
   const openEntry = (entry: HistoryEntry) => {
     track('history_open_entry', { type: entry.type });
@@ -103,36 +105,58 @@ export function HistoryScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <FlatList
-        data={data ?? []}
+        data={entries}
         keyExtractor={getEntryId}
-        ListHeaderComponent={<View style={styles.listEdge} />}
-        ListFooterComponent={<View style={styles.listEdge} />}
+        contentContainerStyle={[styles.listContent, { paddingBottom: tabBarHeight + spacing.xl }]}
+        contentInsetAdjustmentBehavior="automatic"
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        renderItem={({ item }) => {
-          const primaryText = item.type === 'isbn' ? item.title || item.isbn : item.title;
+        renderItem={({ item, index }) => {
+          const hasIsbnTitle = item.type === 'isbn' && Boolean(item.title);
+          const primaryText =
+            item.type === 'isbn' ? item.title || strings.history.isbnLabel(item.isbn) : item.title;
+          const isbnLine = hasIsbnTitle ? strings.history.isbnLabel(item.isbn) : null;
+          const isFirst = index === 0;
+          const isLast = index === entries.length - 1;
           return (
             <Pressable
               accessibilityRole="button"
               android_ripple={{ color: colors.rowPressed }}
               onPress={() => openEntry(item)}
-              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+              style={({ pressed }) => [
+                styles.row,
+                isFirst && styles.rowFirst,
+                isLast && styles.rowLast,
+                pressed && styles.rowPressed,
+              ]}
             >
-              <View style={styles.iconWrap}>
+              <View
+                style={[
+                  styles.iconTile,
+                  {
+                    backgroundColor: item.type === 'isbn' ? colors.accent : colors.accentDeep,
+                  },
+                ]}
+              >
                 <Ionicons
-                  color={colors.inkMuted}
-                  name={item.type === 'isbn' ? 'barcode-outline' : 'search-outline'}
-                  size={20}
+                  color="#ffffff"
+                  name={item.type === 'isbn' ? 'barcode' : 'search'}
+                  size={16}
                 />
               </View>
               <View style={styles.body}>
                 <Text style={styles.title} numberOfLines={2}>
                   {primaryText}
                 </Text>
-                <Text style={styles.meta}>
+                {isbnLine ? (
+                  <Text style={styles.isbn} numberOfLines={1}>
+                    {isbnLine}
+                  </Text>
+                ) : null}
+                <Text style={styles.meta} numberOfLines={1}>
                   {strings.history.viewedOn(formatViewedAt(item.viewedAt))}
                 </Text>
               </View>
-              <Ionicons color={colors.divider} name="chevron-forward" size={20} />
+              <Ionicons color={colors.inkMuted} name="chevron-forward" size={16} />
             </Pressable>
           );
         }}
@@ -145,39 +169,55 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.canvas,
+      backgroundColor: colors.groupedBackground,
+    },
+    listContent: {
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.md,
     },
     separator: {
       height: StyleSheet.hairlineWidth,
       backgroundColor: colors.divider,
-      marginLeft: spacing.md + 32 + spacing.sm,
-    },
-    listEdge: {
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: colors.divider,
+      marginLeft: spacing.md + 28 + spacing.sm,
     },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingHorizontal: spacing.md,
-      paddingVertical: spacing.md,
+      paddingVertical: spacing.sm + 2,
       backgroundColor: colors.surface,
       gap: spacing.sm,
+    },
+    rowFirst: {
+      borderTopLeftRadius: 14,
+      borderTopRightRadius: 14,
+    },
+    rowLast: {
+      borderBottomLeftRadius: 14,
+      borderBottomRightRadius: 14,
     },
     rowPressed: {
       backgroundColor: colors.rowPressed,
     },
-    iconWrap: {
-      width: 32,
+    iconTile: {
+      width: 28,
+      height: 28,
+      borderRadius: 6,
       alignItems: 'center',
+      justifyContent: 'center',
     },
     body: {
       flex: 1,
       gap: spacing.xxs,
     },
     title: {
-      ...typography.body,
+      ...typography.subhead,
       color: colors.ink,
+      fontWeight: '600',
+    },
+    isbn: {
+      ...typography.footnote,
+      color: colors.inkMuted,
     },
     meta: {
       ...typography.caption,
@@ -193,6 +233,6 @@ const createStyles = (colors: ThemeColors) =>
     headerActionText: {
       ...typography.body,
       color: colors.accent,
-      fontWeight: '600',
+      fontWeight: '500',
     },
   });

@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useEffect, useLayoutEffect, useMemo } from 'react';
-import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { track } from '../../analytics';
 import {
@@ -34,6 +34,7 @@ function isEbookOffer(item: BookOffer): boolean {
 export function SearchResultScreen({ navigation, route }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const tabBarHeight = useBottomTabBarHeight();
   const isbnParam = 'isbn' in route.params ? route.params.isbn : '';
   const titleParam = 'title' in route.params ? route.params.title : '';
   const isbnQuery = useIsbnLookup(isbnParam);
@@ -168,14 +169,21 @@ export function SearchResultScreen({ navigation, route }: Props) {
     });
   };
 
-  const renderOffer = ({ item }: { item: BookOffer }) => {
+  const renderOffer = ({ item, index }: { item: BookOffer; index: number }) => {
     const showRowFavourite = !isbnParam && Boolean(item.isbn);
     const rowIsFavourite = showRowFavourite && item.isbn ? favouriteIsbnSet.has(item.isbn) : false;
+    const isFirst = index === 0;
+    const isLast = index === offers.length - 1;
     return (
       <Pressable
         android_ripple={{ color: colors.rowPressed }}
         onPress={() => openOffer(item)}
-        style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+        style={({ pressed }) => [
+          styles.row,
+          isFirst && styles.rowFirst,
+          isLast && styles.rowLast,
+          pressed && styles.rowPressed,
+        ]}
       >
         <Image
           source={item.imageUrl ? { uri: item.imageUrl } : undefined}
@@ -211,14 +219,17 @@ export function SearchResultScreen({ navigation, route }: Props) {
                   : strings.favourites.addAccessibilityLabel
               }
               accessibilityRole="button"
-              hitSlop={8}
+              hitSlop={12}
               onPress={() => toggleOfferFavourite(item)}
-              style={styles.rowFavouriteButton}
+              style={({ pressed }) => [
+                styles.rowFavouriteButton,
+                pressed && styles.rowFavouritePressed,
+              ]}
             >
               <Ionicons
                 color={rowIsFavourite ? colors.accent : colors.inkMuted}
                 name={rowIsFavourite ? 'heart' : 'heart-outline'}
-                size={20}
+                size={22}
               />
             </Pressable>
           ) : null}
@@ -235,7 +246,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
   if (error) {
     return (
       <EmptyState
-        icon="sad"
+        icon="cloud-offline-outline"
         title={strings.searchResult.networkErrorTitle}
         description={strings.searchResult.networkErrorDescription}
         actionLabel={strings.searchResult.retryAction}
@@ -250,7 +261,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
       return (
         <View style={styles.container}>
           <EmptyState
-            icon="cloud-offline"
+            icon="cloud-offline-outline"
             title={strings.searchResult.allErroredTitle}
             description={strings.searchResult.allErroredDescription}
             actionLabel={strings.searchResult.retryAction}
@@ -264,7 +275,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
       return (
         <View style={styles.container}>
           <EmptyState
-            icon="construct"
+            icon="construct-outline"
             title={strings.searchResult.notLiveTitle}
             description={strings.searchResult.notLiveDescription}
             actionLabel={strings.searchResult.retryAction}
@@ -277,7 +288,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
     return (
       <View style={styles.container}>
         <EmptyState
-          icon="sad"
+          icon="sad-outline"
           title={strings.searchResult.notFoundTitle}
           description={strings.searchResult.notFoundDescription}
         />
@@ -285,22 +296,18 @@ export function SearchResultScreen({ navigation, route }: Props) {
     );
   }
 
-  const listHeader = (
-    <View>
-      {resultCount > 0 ? (
-        <View style={styles.divider}>
-          <Text style={styles.dividerText}>{strings.searchResult.resultsCount(resultCount)}</Text>
-        </View>
-      ) : null}
-    </View>
-  );
+  const listHeader =
+    resultCount > 0 ? (
+      <Text style={styles.sectionHeader}>{strings.searchResult.resultsCount(resultCount)}</Text>
+    ) : null;
 
   return (
     <View style={styles.container}>
       <FlatList
         data={offers}
         style={styles.list}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: tabBarHeight + spacing.xl }]}
+        contentInsetAdjustmentBehavior="automatic"
         keyExtractor={(item) => `${item.sourceId}:${item.sourceProductId}:${item.url}`}
         ListHeaderComponent={listHeader}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -317,7 +324,7 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.canvas,
+      backgroundColor: colors.groupedBackground,
     },
     headerFavouriteButton: {
       alignItems: 'center',
@@ -330,26 +337,21 @@ const createStyles = (colors: ThemeColors) =>
       width: '100%',
     },
     listContent: {
-      paddingBottom: spacing.xl,
-    },
-    divider: {
-      backgroundColor: colors.groupedBackground,
       paddingHorizontal: spacing.md,
+    },
+    sectionHeader: {
+      ...typography.footnote,
+      color: colors.inkMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
       paddingTop: spacing.md,
       paddingBottom: spacing.xs,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.divider,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.divider,
-    },
-    dividerText: {
-      ...typography.caption,
-      color: colors.inkMuted,
+      paddingHorizontal: spacing.xs,
     },
     separator: {
       height: StyleSheet.hairlineWidth,
       backgroundColor: colors.divider,
-      marginLeft: spacing.md + 64 + spacing.sm,
+      marginLeft: 64 + spacing.sm + spacing.md,
     },
     row: {
       width: '100%',
@@ -360,13 +362,22 @@ const createStyles = (colors: ThemeColors) =>
       backgroundColor: colors.surface,
       gap: spacing.sm,
     },
+    rowFirst: {
+      borderTopLeftRadius: 14,
+      borderTopRightRadius: 14,
+    },
+    rowLast: {
+      borderBottomLeftRadius: 14,
+      borderBottomRightRadius: 14,
+    },
     rowPressed: {
       backgroundColor: colors.rowPressed,
     },
     thumbnail: {
       width: 64,
       height: 80,
-      backgroundColor: 'transparent',
+      borderRadius: 6,
+      backgroundColor: colors.groupedBackground,
     },
     body: {
       flex: 1,
@@ -374,30 +385,38 @@ const createStyles = (colors: ThemeColors) =>
     },
     rowTrailing: {
       alignItems: 'flex-end',
+      justifyContent: 'space-between',
       gap: spacing.xs,
+      alignSelf: 'stretch',
     },
     rowFavouriteButton: {
-      padding: spacing.xxs,
+      width: 32,
+      height: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    rowFavouritePressed: {
+      opacity: 0.6,
     },
     ebookBadge: {
       alignSelf: 'flex-start',
       paddingHorizontal: spacing.xs,
-      paddingVertical: 1,
-      borderRadius: 3,
-      backgroundColor: colors.inkMuted,
+      paddingVertical: 2,
+      borderRadius: 10,
+      backgroundColor: colors.highlightSoft,
     },
     ebookBadgeText: {
-      ...typography.caption,
-      color: '#ffffff',
-      fontSize: 11,
-      lineHeight: 14,
+      ...typography.caption2,
+      color: colors.inkMuted,
+      fontWeight: '600',
     },
     title: {
-      ...typography.body,
+      ...typography.subhead,
       color: colors.ink,
+      fontWeight: '500',
     },
     note: {
-      ...typography.caption,
+      ...typography.footnote,
       color: colors.inkMuted,
     },
   });

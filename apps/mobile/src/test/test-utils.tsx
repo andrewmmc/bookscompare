@@ -1,4 +1,5 @@
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react-native';
 import { PaperProvider } from 'react-native-paper';
@@ -28,7 +29,11 @@ export function renderWithProviders(element: ReactElement, options: RenderOption
     <QueryClientProvider client={queryClient}>
       <ThemeProvider schemeOverride={scheme}>
         <PaperProvider theme={paperTheme}>
-          <ActionSheetProvider>{element}</ActionSheetProvider>
+          <ActionSheetProvider>
+            <BottomTabBarHeightContext.Provider value={0}>
+              {element}
+            </BottomTabBarHeightContext.Provider>
+          </ActionSheetProvider>
         </PaperProvider>
       </ThemeProvider>
     </QueryClientProvider>

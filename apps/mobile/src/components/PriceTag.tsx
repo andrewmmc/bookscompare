@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { strings } from '../i18n/strings';
 import { spacing } from '../theme/spacing';
@@ -21,10 +20,14 @@ export function PriceTag({ currency, price, discountRate }: PriceTagProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.currency}>{currency}</Text>
-      <Text style={styles.price}>{price.toLocaleString('en-US')}</Text>
+      <View style={styles.priceRow}>
+        <Text style={styles.currency}>{currency}</Text>
+        <Text style={styles.price}>{price.toLocaleString('en-US')}</Text>
+      </View>
       {discountRate ? (
-        <Text style={styles.discount}>{strings.priceTag.discountTag(discountRate)}</Text>
+        <View style={styles.discountChip}>
+          <Text style={styles.discountText}>{strings.priceTag.discountTag(discountRate)}</Text>
+        </View>
       ) : null}
     </View>
   );
@@ -36,16 +39,28 @@ const createStyles = (colors: ThemeColors) =>
       alignItems: 'flex-end',
       gap: spacing.xxs,
     },
+    priceRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: 2,
+    },
     currency: {
-      ...typography.caption,
+      ...typography.footnote,
       color: colors.inkMuted,
     },
     price: {
       ...typography.price,
       color: colors.accent,
     },
-    discount: {
-      ...typography.caption,
-      color: colors.accent,
+    discountChip: {
+      paddingHorizontal: spacing.xs,
+      paddingVertical: 2,
+      borderRadius: 10,
+      backgroundColor: colors.highlight,
+    },
+    discountText: {
+      ...typography.caption2,
+      color: colors.accentDeep,
+      fontWeight: '600',
     },
   });

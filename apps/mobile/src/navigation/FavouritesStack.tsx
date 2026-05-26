@@ -18,28 +18,30 @@ export function FavouritesStack() {
       screenOptions={{
         headerTintColor: colors.accent,
         headerShadowVisible: false,
-        headerStyle: {
-          backgroundColor: colors.surface,
-        },
+        headerStyle: { backgroundColor: colors.groupedBackground },
         headerTitleStyle: {
           color: colors.ink,
           fontSize: 17,
           fontWeight: '600',
         },
         contentStyle: {
-          backgroundColor: colors.canvas,
+          backgroundColor: colors.groupedBackground,
         },
       }}
     >
       <Stack.Screen
         name="Favourites"
         component={FavouritesScreen}
-        options={{ title: strings.navigation.favourites }}
+        options={{ title: strings.navigation.favourites, headerLargeTitle: true }}
       />
       <Stack.Screen
         name="SearchResult"
         component={SearchResultScreen}
-        options={{ title: strings.navigation.searchResult }}
+        options={{
+          title: strings.navigation.searchResult,
+          headerStyle: { backgroundColor: colors.groupedBackground },
+          contentStyle: { backgroundColor: colors.groupedBackground },
+        }}
       />
       <Stack.Screen name="SearchWebView" component={WebViewScreen} />
     </Stack.Navigator>

@@ -8,7 +8,6 @@ import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { strings } from '../../i18n/strings';
 import { openExternalUrl } from '../../lib/linking';
-import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -44,6 +43,7 @@ export function WebViewScreen({ navigation, route }: Props) {
               <Pressable
                 accessibilityLabel={strings.webview.shareAccessibility}
                 accessibilityRole="button"
+                hitSlop={8}
                 onPress={() => {
                   track('webview_share', { title: route.params.title });
                   void Share.share({
@@ -55,9 +55,12 @@ export function WebViewScreen({ navigation, route }: Props) {
                     void openExternalUrl(route.params.url);
                   });
                 }}
-                style={styles.headerButton}
+                style={({ pressed }) => [
+                  styles.headerButton,
+                  pressed && styles.headerButtonPressed,
+                ]}
               >
-                <Ionicons color={colors.accent} name="share-outline" size={24} />
+                <Ionicons color={colors.accent} name="share-outline" size={18} />
               </Pressable>
             ),
           }
@@ -121,6 +124,14 @@ const createStyles = (colors: ThemeColors) =>
       backgroundColor: colors.surface,
     },
     headerButton: {
-      paddingHorizontal: spacing.xs,
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.accentSoft,
+    },
+    headerButtonPressed: {
+      opacity: 0.6,
     },
   });

@@ -1,8 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useLayoutEffect, useMemo, useRef } from 'react';
-import { Alert, Animated, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Animated, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
-import { Text } from 'react-native-paper';
 
 import { track } from '../../analytics';
 import { useClearFavourites, useFavourites, useRemoveFavourite } from '../../api/favourites';
@@ -36,12 +36,14 @@ function formatAddedOn(addedAt: number): string {
 export function FavouritesScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const tabBarHeight = useBottomTabBarHeight();
   const { data, isLoading } = useFavourites();
   const removeFavourite = useRemoveFavourite();
   const clearFavourites = useClearFavourites();
   const swipeableRefs = useRef(new Map<string, Swipeable | null>());
 
   const hasFavourites = (data?.length ?? 0) > 0;
+  const entries = data ?? [];
 
   const openBook = (item: Favourite) => {
     track('favourites_open_book', { isbn: item.isbn });
@@ -93,14 +95,21 @@ export function FavouritesScreen({ navigation }: Props) {
   const renderRightActions = (
     progress: Animated.AnimatedInterpolation<number>,
     _drag: Animated.AnimatedInterpolation<number>,
-    item: Favourite
+    item: Favourite,
+    isLast: boolean
   ) => {
     const translateX = progress.interpolate({
       inputRange: [0, 1],
       outputRange: [96, 0],
     });
     return (
-      <Animated.View style={[styles.removeContainer, { transform: [{ translateX }] }]}>
+      <Animated.View
+        style={[
+          styles.removeContainer,
+          isLast && styles.removeContainerLast,
+          { transform: [{ translateX }] },
+        ]}
+      >
         <Pressable
           accessibilityLabel={strings.favourites.removeAccessibilityLabel}
           accessibilityRole="button"
@@ -130,49 +139,59 @@ export function FavouritesScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <FlatList
-        data={data ?? []}
+        data={entries}
         keyExtractor={(item) => item.isbn}
-        ListHeaderComponent={<View style={styles.listEdge} />}
-        ListFooterComponent={<View style={styles.listEdge} />}
+        contentContainerStyle={[styles.listContent, { paddingBottom: tabBarHeight + spacing.xl }]}
+        contentInsetAdjustmentBehavior="automatic"
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        renderItem={({ item }) => (
-          <Swipeable
-            ref={(ref) => {
-              swipeableRefs.current.set(item.isbn, ref);
-            }}
-            renderRightActions={(progress, drag) => renderRightActions(progress, drag, item)}
-            onSwipeableOpen={() => {
-              swipeableRefs.current.forEach((ref, key) => {
-                if (key !== item.isbn) {
-                  ref?.close();
+        renderItem={({ item, index }) => {
+          const isFirst = index === 0;
+          const isLast = index === entries.length - 1;
+          return (
+            <View style={[styles.swipeShell, isFirst && styles.rowFirst, isLast && styles.rowLast]}>
+              <Swipeable
+                ref={(ref) => {
+                  swipeableRefs.current.set(item.isbn, ref);
+                }}
+                renderRightActions={(progress, drag) =>
+                  renderRightActions(progress, drag, item, isLast)
                 }
-              });
-            }}
-            overshootRight={false}
-            rightThreshold={40}
-          >
-            <Pressable
-              accessibilityRole="button"
-              android_ripple={{ color: colors.rowPressed }}
-              onPress={() => openBook(item)}
-              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-            >
-              <View style={styles.iconWrap}>
-                <Ionicons color={colors.accent} name="heart" size={20} />
-              </View>
-              <View style={styles.body}>
-                <Text style={styles.title} numberOfLines={2}>
-                  {item.title}
-                </Text>
-                <Text style={styles.meta}>{item.isbn}</Text>
-                <Text style={styles.meta}>
-                  {strings.favourites.addedOn(formatAddedOn(item.addedAt))}
-                </Text>
-              </View>
-              <Ionicons color={colors.divider} name="chevron-forward" size={20} />
-            </Pressable>
-          </Swipeable>
-        )}
+                onSwipeableOpen={() => {
+                  swipeableRefs.current.forEach((ref, key) => {
+                    if (key !== item.isbn) {
+                      ref?.close();
+                    }
+                  });
+                }}
+                overshootRight={false}
+                rightThreshold={40}
+              >
+                <Pressable
+                  accessibilityRole="button"
+                  android_ripple={{ color: colors.rowPressed }}
+                  onPress={() => openBook(item)}
+                  style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+                >
+                  <View style={styles.iconTile}>
+                    <Ionicons color="#ffffff" name="heart" size={16} />
+                  </View>
+                  <View style={styles.body}>
+                    <Text style={styles.title} numberOfLines={2}>
+                      {item.title}
+                    </Text>
+                    <Text style={styles.isbn} numberOfLines={1}>
+                      {strings.history.isbnLabel(item.isbn)}
+                    </Text>
+                    <Text style={styles.meta} numberOfLines={1}>
+                      {strings.favourites.addedOn(formatAddedOn(item.addedAt))}
+                    </Text>
+                  </View>
+                  <Ionicons color={colors.inkMuted} name="chevron-forward" size={16} />
+                </Pressable>
+              </Swipeable>
+            </View>
+          );
+        }}
       />
     </View>
   );
@@ -182,39 +201,60 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.canvas,
+      backgroundColor: colors.groupedBackground,
+    },
+    listContent: {
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.md,
     },
     separator: {
       height: StyleSheet.hairlineWidth,
       backgroundColor: colors.divider,
-      marginLeft: spacing.md + 32 + spacing.sm,
+      marginLeft: spacing.md + 28 + spacing.sm,
     },
-    listEdge: {
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: colors.divider,
+    swipeShell: {
+      backgroundColor: colors.surface,
+      overflow: 'hidden',
+    },
+    rowFirst: {
+      borderTopLeftRadius: 14,
+      borderTopRightRadius: 14,
+    },
+    rowLast: {
+      borderBottomLeftRadius: 14,
+      borderBottomRightRadius: 14,
     },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingHorizontal: spacing.md,
-      paddingVertical: spacing.md,
+      paddingVertical: spacing.sm + 2,
       backgroundColor: colors.surface,
       gap: spacing.sm,
     },
     rowPressed: {
       backgroundColor: colors.rowPressed,
     },
-    iconWrap: {
-      width: 32,
+    iconTile: {
+      width: 28,
+      height: 28,
+      borderRadius: 6,
       alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.accent,
     },
     body: {
       flex: 1,
       gap: spacing.xxs,
     },
     title: {
-      ...typography.body,
+      ...typography.subhead,
       color: colors.ink,
+      fontWeight: '600',
+    },
+    isbn: {
+      ...typography.footnote,
+      color: colors.inkMuted,
     },
     meta: {
       ...typography.caption,
@@ -222,10 +262,13 @@ const createStyles = (colors: ThemeColors) =>
     },
     removeContainer: {
       width: 96,
+      backgroundColor: colors.danger,
+    },
+    removeContainerLast: {
+      borderBottomRightRadius: 14,
     },
     removeButton: {
       flex: 1,
-      backgroundColor: colors.danger,
       alignItems: 'center',
       justifyContent: 'center',
       gap: spacing.xxs,
@@ -234,7 +277,7 @@ const createStyles = (colors: ThemeColors) =>
       opacity: 0.85,
     },
     removeText: {
-      ...typography.caption,
+      ...typography.footnote,
       color: '#ffffff',
       fontWeight: '600',
     },
@@ -248,6 +291,6 @@ const createStyles = (colors: ThemeColors) =>
     headerActionText: {
       ...typography.body,
       color: colors.accent,
-      fontWeight: '600',
+      fontWeight: '500',
     },
   });

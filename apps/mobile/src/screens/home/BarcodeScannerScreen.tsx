@@ -1,11 +1,12 @@
+import { BlurView } from 'expo-blur';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { track } from '../../analytics';
 import { strings } from '../../i18n/strings';
 import { spacing } from '../../theme/spacing';
+import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
@@ -16,7 +17,17 @@ import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'BarcodeScanner'>;
 
+const FRAME_WIDTH = 280;
+const FRAME_HEIGHT = 160;
+const CORNER = 28;
+const CORNER_THICKNESS = 4;
+
+function CornerBracket({ style }: { style: object }) {
+  return <View style={[styles.corner, style]} />;
+}
+
 export function BarcodeScannerScreen({ navigation }: Props) {
+  const { colors } = useTheme();
   const [permission, requestPermission] = useCameraPermissions();
   const [hasScanned, setHasScanned] = useState(false);
 
@@ -32,7 +43,7 @@ export function BarcodeScannerScreen({ navigation }: Props) {
         description={strings.scanner.permissionRequiredDescription}
         actionLabel={strings.scanner.permissionRequiredAction}
         onAction={() => void requestPermission()}
-        containerStyle={styles.container}
+        containerStyle={{ backgroundColor: colors.groupedBackground }}
       />
     );
   }
@@ -66,8 +77,17 @@ export function BarcodeScannerScreen({ navigation }: Props) {
       />
 
       <View style={styles.overlay} pointerEvents="none">
-        <Text style={styles.helpText}>{strings.scanner.helpText}</Text>
-        <View style={styles.scanFrame} />
+        <View style={styles.helpPillWrapper}>
+          <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
+          <Text style={styles.helpText}>{strings.scanner.helpText}</Text>
+        </View>
+
+        <View style={styles.scanFrame}>
+          <CornerBracket style={styles.cornerTopLeft} />
+          <CornerBracket style={styles.cornerTopRight} />
+          <CornerBracket style={styles.cornerBottomLeft} />
+          <CornerBracket style={styles.cornerBottomRight} />
+        </View>
       </View>
     </View>
   );
@@ -84,16 +104,55 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
   },
+  helpPillWrapper: {
+    overflow: 'hidden',
+    borderRadius: 999,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.xl,
+  },
   helpText: {
-    ...typography.body,
+    ...typography.subhead,
     color: '#ffffff',
     textAlign: 'center',
-    marginBottom: spacing.md,
+    fontWeight: '600',
   },
   scanFrame: {
-    width: 300,
-    height: 100,
-    borderWidth: 3,
+    width: FRAME_WIDTH,
+    height: FRAME_HEIGHT,
+  },
+  corner: {
+    position: 'absolute',
+    width: CORNER,
+    height: CORNER,
     borderColor: '#ffffff',
+  },
+  cornerTopLeft: {
+    top: 0,
+    left: 0,
+    borderTopWidth: CORNER_THICKNESS,
+    borderLeftWidth: CORNER_THICKNESS,
+    borderTopLeftRadius: 8,
+  },
+  cornerTopRight: {
+    top: 0,
+    right: 0,
+    borderTopWidth: CORNER_THICKNESS,
+    borderRightWidth: CORNER_THICKNESS,
+    borderTopRightRadius: 8,
+  },
+  cornerBottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderBottomWidth: CORNER_THICKNESS,
+    borderLeftWidth: CORNER_THICKNESS,
+    borderBottomLeftRadius: 8,
+  },
+  cornerBottomRight: {
+    bottom: 0,
+    right: 0,
+    borderBottomWidth: CORNER_THICKNESS,
+    borderRightWidth: CORNER_THICKNESS,
+    borderBottomRightRadius: 8,
   },
 });

@@ -53,9 +53,11 @@ describe('HistoryScreen', () => {
 
     expect(screen.getByText('我的最愛之書')).toBeOnTheScreen();
     expect(screen.queryByText('9789861336275')).toBeNull();
+    // ISBN line shows below the title for resolved ISBN entries.
+    expect(screen.getByText('ISBN 9789861336275')).toBeOnTheScreen();
     expect(screen.getByText('哈利波特')).toBeOnTheScreen();
     // ISBN entry without a resolved title falls back to the ISBN as the primary text.
-    expect(screen.getByText('9781402894626')).toBeOnTheScreen();
+    expect(screen.getByText('ISBN 9781402894626')).toBeOnTheScreen();
 
     fireEvent.press(screen.getByText('我的最愛之書'));
     expect(navigation.navigate).toHaveBeenLastCalledWith('SearchResult', {

@@ -1,8 +1,9 @@
-import { StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Text } from 'react-native-paper';
+import { BlurView } from 'expo-blur';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { strings } from '../i18n/strings';
 import { spacing } from '../theme/spacing';
+import { useTheme } from '../theme/ThemeProvider';
 import { typography } from '../theme/typography';
 
 interface LoadingOverlayProps {
@@ -10,12 +11,15 @@ interface LoadingOverlayProps {
 }
 
 export function LoadingOverlay({ label = strings.loading.defaultLabel }: LoadingOverlayProps) {
+  const { colors, scheme } = useTheme();
+  const blurTint = scheme === 'dark' ? 'dark' : 'light';
+
   return (
     <View style={styles.overlay} pointerEvents="none">
-      <View style={styles.card}>
-        <ActivityIndicator color="#ffffff" size="large" />
-        {label ? <Text style={styles.label}>{label}</Text> : null}
-      </View>
+      <BlurView intensity={60} tint={blurTint} style={styles.card}>
+        <ActivityIndicator color={colors.ink} size="large" />
+        {label ? <Text style={[styles.label, { color: colors.ink }]}>{label}</Text> : null}
+      </BlurView>
     </View>
   );
 }
@@ -27,18 +31,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   card: {
-    minWidth: 100,
-    minHeight: 100,
-    borderRadius: 10,
+    minWidth: 120,
+    minHeight: 120,
+    borderRadius: 18,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    overflow: 'hidden',
   },
   label: {
-    ...typography.caption,
-    color: '#ffffff',
+    ...typography.footnote,
+    marginTop: spacing.xxs,
+    textAlign: 'center',
   },
 });

@@ -18,23 +18,21 @@ export function AboutStack() {
       screenOptions={{
         headerTintColor: colors.accent,
         headerShadowVisible: false,
-        headerStyle: {
-          backgroundColor: colors.surface,
-        },
+        headerStyle: { backgroundColor: colors.groupedBackground },
         headerTitleStyle: {
           color: colors.ink,
           fontSize: 17,
           fontWeight: '600',
         },
         contentStyle: {
-          backgroundColor: colors.canvas,
+          backgroundColor: colors.groupedBackground,
         },
       }}
     >
       <Stack.Screen
         name="About"
         component={AboutScreen}
-        options={{ title: strings.navigation.about }}
+        options={{ title: strings.navigation.about, headerLargeTitle: true }}
       />
       <Stack.Screen
         name="Settings"

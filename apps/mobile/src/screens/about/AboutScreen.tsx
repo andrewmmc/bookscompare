@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import logo from '../../../assets/logo.png';
 import packageJson from '../../../package.json';
@@ -27,19 +27,19 @@ const aboutItems = [
   {
     key: 'privacy',
     title: strings.about.items.privacy,
-    icon: 'information-circle',
+    icon: 'shield-checkmark',
     url: 'https://bookscompare.mmc.dev/privacy',
   },
   {
     key: 'feedback',
     title: strings.about.items.feedback,
-    icon: 'star',
+    icon: 'chatbubble-ellipses',
     url: 'https://github.com/andrewmmc/bookscompare/issues',
   },
   {
     key: 'copyright',
     title: strings.about.items.copyright,
-    icon: 'home',
+    icon: 'globe',
     url: 'https://andrewmmc.com',
   },
 ] as const;
@@ -47,30 +47,43 @@ const aboutItems = [
 export function AboutScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const preferences = usePreferences();
+  const tabBarHeight = useBottomTabBarHeight();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.contentContainer,
+        { paddingBottom: tabBarHeight + spacing.xl },
+      ]}
+      contentInsetAdjustmentBehavior="automatic"
+    >
       <View style={styles.hero}>
         <Image source={logo} style={styles.logo} />
         <Text style={styles.title}>{strings.about.title}</Text>
         <Text style={styles.version}>{strings.about.version(appVersion, buildNumber)}</Text>
-        <Text style={styles.disclaimer}>{strings.about.disclaimer}</Text>
       </View>
 
-      <View style={styles.list}>
+      <View style={styles.group}>
         <ListRow
           icon="settings-outline"
+          iconBackground={colors.accent}
           onPress={() => {
             track('about_open_settings');
             navigation.navigate('Settings');
           }}
           title={strings.navigation.settings}
+          isLast
         />
-        {aboutItems.map((item) => (
+      </View>
+
+      <View style={[styles.group, styles.groupSpaced]}>
+        {aboutItems.map((item, index) => (
           <ListRow
             key={item.key}
             icon={item.icon}
+            iconBackground={colors.accent}
             onPress={() => {
               track('about_open_link', { key: item.key });
 
@@ -85,10 +98,13 @@ export function AboutScreen({ navigation }: Props) {
               void openExternalUrl(item.url);
             }}
             title={item.title}
+            isLast={index === aboutItems.length - 1}
           />
         ))}
       </View>
-    </View>
+
+      <Text style={styles.disclaimer}>{strings.about.disclaimer}</Text>
+    </ScrollView>
   );
 }
 
@@ -96,39 +112,48 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.canvas,
+      backgroundColor: colors.groupedBackground,
+    },
+    contentContainer: {
+      paddingTop: spacing.md,
     },
     hero: {
-      paddingVertical: spacing.xl,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.lg,
       paddingHorizontal: spacing.lg,
       alignItems: 'center',
     },
+    // iOS squircle-ish app icon look (continuous corner approx with high radius on a square).
     logo: {
       width: 96,
       height: 96,
+      borderRadius: 22,
     },
     title: {
-      ...typography.sectionTitle,
+      ...typography.title3,
       color: colors.ink,
       marginTop: spacing.md,
       textAlign: 'center',
     },
     version: {
-      ...typography.caption,
-      color: colors.ink,
-      marginTop: spacing.xs,
+      ...typography.footnote,
+      color: colors.inkMuted,
+      marginTop: spacing.xxs,
+    },
+    group: {
+      marginHorizontal: spacing.md,
+      backgroundColor: colors.surface,
+      borderRadius: 14,
+      overflow: 'hidden',
+    },
+    groupSpaced: {
+      marginTop: spacing.lg,
     },
     disclaimer: {
-      ...typography.caption,
+      ...typography.footnote,
       color: colors.inkMuted,
-      marginTop: spacing.md,
-      maxWidth: 360,
+      marginTop: spacing.lg,
+      paddingHorizontal: spacing.lg,
       textAlign: 'center',
-    },
-    list: {
-      backgroundColor: colors.surface,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.divider,
     },
   });

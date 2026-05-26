@@ -55,7 +55,7 @@ describe('FavouritesScreen', () => {
 
     expect(screen.getByText('我的最愛之書')).toBeOnTheScreen();
     expect(screen.getByText('另一本書')).toBeOnTheScreen();
-    expect(screen.getByText('9789861336275')).toBeOnTheScreen();
+    expect(screen.getByText('ISBN 9789861336275')).toBeOnTheScreen();
 
     fireEvent.press(screen.getByText('我的最愛之書'));
     expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', {

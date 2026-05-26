@@ -1,16 +1,20 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
+  Text,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { Button, SegmentedButtons, Text, TextInput } from 'react-native-paper';
 
+import { AppButton } from '../../components/AppButton';
+import { AppTextField } from '../../components/AppTextField';
 import { track } from '../../analytics';
 import { featureFlags } from '../../config/featureFlags';
 import { normalizeIsbn, isValidIsbn } from '../../lib/isbn';
@@ -29,9 +33,51 @@ type SearchMode = 'isbn' | 'title';
 
 const TITLE_MAX_LENGTH = 100;
 
+interface SegmentedToggleProps<T extends string> {
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (value: T) => void;
+}
+
+function SegmentedToggle<T extends string>({ value, options, onChange }: SegmentedToggleProps<T>) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createToggleStyles(colors), [colors]);
+
+  return (
+    <View style={styles.track} accessibilityRole="tablist">
+      {options.map((option) => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            accessibilityRole="tab"
+            accessibilityState={{ selected }}
+            android_ripple={{ color: colors.rowPressed, borderless: false }}
+            onPress={() => {
+              if (!selected) {
+                onChange(option.value);
+              }
+            }}
+            style={({ pressed }) => [
+              styles.segment,
+              selected && styles.segmentSelected,
+              pressed && !selected && styles.segmentPressed,
+            ]}
+          >
+            <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
+              {option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 export function HomeScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const tabBarHeight = useBottomTabBarHeight();
   const [mode, setMode] = useState<SearchMode>('isbn');
   const [isbn, setIsbn] = useState('');
   const [title, setTitle] = useState('');
@@ -67,80 +113,68 @@ export function HomeScreen({ navigation }: Props) {
       style={styles.container}
     >
       <TouchableWithoutFeedback accessible={false} onPress={Keyboard.dismiss}>
-        <View style={styles.content}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + spacing.xl }]}
+          contentInsetAdjustmentBehavior="automatic"
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.intro}>
-            <Ionicons color={colors.ink} name="search" size={72} style={styles.icon} />
+            <View style={styles.iconCircle}>
+              <Ionicons color={colors.accent} name="search" size={36} />
+            </View>
             <Text style={styles.leadText}>
               {titleSearchEnabled ? strings.home.leadTextWithTitleSearch : strings.home.leadText}
             </Text>
           </View>
 
           {titleSearchEnabled ? (
-            <SegmentedButtons
-              density="medium"
-              onValueChange={(value) => {
-                const next = value as SearchMode;
-                track('home_change_mode', { mode: next });
-                setMode(next);
-              }}
-              style={styles.segments}
-              value={mode}
-              buttons={[
-                { value: 'isbn', label: strings.home.isbnTab },
-                { value: 'title', label: strings.home.titleTab },
-              ]}
-            />
+            <View style={styles.segments}>
+              <SegmentedToggle
+                value={mode}
+                onChange={(next) => {
+                  track('home_change_mode', { mode: next });
+                  setMode(next);
+                }}
+                options={[
+                  { value: 'isbn', label: strings.home.isbnTab },
+                  { value: 'title', label: strings.home.titleTab },
+                ]}
+              />
+            </View>
           ) : null}
 
           <View style={styles.inputRow}>
             {mode === 'isbn' ? (
-              <TextInput
+              <AppTextField
+                containerStyle={styles.input}
                 keyboardType="numeric"
                 maxLength={13}
-                mode="outlined"
                 onChangeText={(value) => {
                   track('home_type_isbn');
                   setIsbn(value);
                 }}
-                outlineColor={colors.border}
                 placeholder={strings.home.isbnPlaceholder}
-                right={
-                  isbn.length > 0 ? (
-                    <TextInput.Icon
-                      accessibilityLabel={strings.home.clearAction}
-                      icon="close-circle"
-                      onPress={() => setIsbn('')}
-                    />
-                  ) : undefined
-                }
-                style={styles.input}
                 value={isbn}
+                onClear={() => setIsbn('')}
+                clearAccessibilityLabel={strings.home.clearAction}
               />
             ) : (
-              <TextInput
+              <AppTextField
+                containerStyle={styles.input}
                 autoCapitalize="none"
                 autoCorrect={false}
                 maxLength={TITLE_MAX_LENGTH}
-                mode="outlined"
                 onChangeText={(value) => {
                   track('home_type_title');
                   setTitle(value);
                 }}
                 onSubmitEditing={handleSearch}
-                outlineColor={colors.border}
                 placeholder={strings.home.titlePlaceholder}
                 returnKeyType="search"
-                right={
-                  title.length > 0 ? (
-                    <TextInput.Icon
-                      accessibilityLabel={strings.home.clearAction}
-                      icon="close-circle"
-                      onPress={() => setTitle('')}
-                    />
-                  ) : undefined
-                }
-                style={styles.input}
                 value={title}
+                onClear={() => setTitle('')}
+                clearAccessibilityLabel={strings.home.clearAction}
               />
             )}
             {mode === 'isbn' ? (
@@ -154,21 +188,20 @@ export function HomeScreen({ navigation }: Props) {
                 }}
                 style={({ pressed }) => [styles.scannerButton, pressed && styles.scannerPressed]}
               >
-                <Ionicons color="#ffffff" name="camera" size={24} />
+                <Ionicons color="#ffffff" name="camera" size={22} />
               </Pressable>
             ) : null}
           </View>
 
-          <Button
+          <AppButton
             disabled={!canSearch}
-            mode="contained"
+            fullWidth
+            label={strings.home.searchAction}
             onPress={handleSearch}
+            size="large"
             style={styles.searchButton}
-            contentStyle={styles.searchButtonContent}
-          >
-            {strings.home.searchAction}
-          </Button>
-        </View>
+          />
+        </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
@@ -180,27 +213,35 @@ const createStyles = (colors: ThemeColors) =>
       flex: 1,
       backgroundColor: colors.canvas,
     },
-    content: {
+    scroll: {
       flex: 1,
+    },
+    content: {
       paddingHorizontal: spacing.lg,
-      paddingTop: spacing.xl,
     },
     intro: {
-      paddingTop: spacing.xl,
+      paddingTop: spacing.md,
       paddingBottom: spacing.lg,
       alignItems: 'center',
     },
-    icon: {
-      textAlign: 'center',
+    iconCircle: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.highlightSoft,
     },
     leadText: {
       ...typography.body,
       color: colors.ink,
       paddingTop: spacing.md,
       textAlign: 'center',
+      maxWidth: 320,
     },
     segments: {
       marginBottom: spacing.md,
+      alignItems: 'center',
     },
     inputRow: {
       flexDirection: 'row',
@@ -209,26 +250,65 @@ const createStyles = (colors: ThemeColors) =>
     },
     input: {
       flex: 1,
-      backgroundColor: colors.surface,
     },
     scannerButton: {
-      height: 56,
-      width: 56,
-      borderRadius: 4,
-      backgroundColor: colors.ink,
+      height: 44,
+      width: 44,
+      borderRadius: 22,
+      backgroundColor: colors.accent,
       alignItems: 'center',
       justifyContent: 'center',
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.18,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 3 },
+      elevation: 3,
     },
     scannerPressed: {
       opacity: 0.85,
+      transform: [{ scale: 0.97 }],
     },
     searchButton: {
       marginTop: spacing.lg,
-      alignSelf: 'center',
-      borderRadius: 4,
     },
-    searchButtonContent: {
-      paddingHorizontal: spacing.xl,
-      height: 44,
+  });
+
+const createToggleStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    track: {
+      flexDirection: 'row',
+      backgroundColor: colors.groupedBackground,
+      borderRadius: 100,
+      padding: 4,
+      alignSelf: 'center',
+      minWidth: 220,
+    },
+    segment: {
+      flex: 1,
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.md,
+      borderRadius: 100,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    segmentSelected: {
+      backgroundColor: colors.surface,
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.12,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 2,
+    },
+    segmentPressed: {
+      opacity: 0.6,
+    },
+    segmentLabel: {
+      ...typography.subhead,
+      fontWeight: '500',
+      color: colors.inkMuted,
+    },
+    segmentLabelSelected: {
+      color: colors.ink,
+      fontWeight: '600',
     },
   });

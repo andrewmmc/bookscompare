@@ -36,6 +36,7 @@ interface Dictionary {
     emptyTitle: string;
     emptyDescription: string;
     viewedOn: (dateText: string) => string;
+    isbnLabel: (isbn: string) => string;
     clearAllAction: string;
     clearAllConfirmTitle: string;
     clearAllConfirmMessage: string;
@@ -96,6 +97,8 @@ interface Dictionary {
   };
   settings: {
     title: string;
+    generalSection: string;
+    appearanceSection: string;
     openLinksIn: string;
     openLinksInApp: string;
     openLinksInBrowser: string;
@@ -157,6 +160,7 @@ const zhTW: Dictionary = {
     emptyTitle: '還沒有任何搜尋記錄',
     emptyDescription: '搜尋或掃描過的書本會出現在這裡，方便您再次查看。',
     viewedOn: (dateText) => `${dateText} 查看`,
+    isbnLabel: (isbn) => `ISBN ${isbn}`,
     clearAllAction: '全部清除',
     clearAllConfirmTitle: '清除所有搜尋記錄？',
     clearAllConfirmMessage: '此動作無法復原，所有搜尋記錄都會被移除。',
@@ -224,6 +228,8 @@ const zhTW: Dictionary = {
   },
   settings: {
     title: '設定',
+    generalSection: '一般',
+    appearanceSection: '外觀',
     openLinksIn: '開啟連結',
     openLinksInApp: '在 App 內開啟',
     openLinksInBrowser: '在瀏覽器開啟',
@@ -285,6 +291,7 @@ const en: Dictionary = {
     emptyTitle: 'No history yet',
     emptyDescription: 'Books you search or scan will appear here for quick access.',
     viewedOn: (dateText) => `Viewed on ${dateText}`,
+    isbnLabel: (isbn) => `ISBN ${isbn}`,
     clearAllAction: 'Clear all',
     clearAllConfirmTitle: 'Clear all history?',
     clearAllConfirmMessage: 'This cannot be undone. All search and scan history will be removed.',
@@ -355,6 +362,8 @@ const en: Dictionary = {
   },
   settings: {
     title: 'Settings',
+    generalSection: 'General',
+    appearanceSection: 'Appearance',
     openLinksIn: 'Open links',
     openLinksInApp: 'In app',
     openLinksInBrowser: 'Browser',

@@ -1,5 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { BlurView } from 'expo-blur';
+import { Platform, StyleSheet } from 'react-native';
 
 import { AboutStack } from './AboutStack';
 import { FavouritesStack } from './FavouritesStack';
@@ -19,17 +21,19 @@ function tabIconName(
 ): keyof typeof Ionicons.glyphMap {
   switch (routeName) {
     case 'HomeTab':
-      return 'search';
+      return focused ? 'search' : 'search-outline';
     case 'FavouritesTab':
       return focused ? 'heart' : 'heart-outline';
     case 'AboutTab':
     default:
-      return 'information-circle';
+      return focused ? 'information-circle' : 'information-circle-outline';
   }
 }
 
 export function RootNavigator() {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
+  const blurTint = scheme === 'dark' ? 'dark' : 'light';
+  const useBlur = Platform.OS === 'ios';
 
   return (
     <Tab.Navigator
@@ -37,10 +41,25 @@ export function RootNavigator() {
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.inkMuted,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.divider,
-        },
+        tabBarStyle: useBlur
+          ? {
+              position: 'absolute',
+              backgroundColor: 'transparent',
+              borderTopWidth: StyleSheet.hairlineWidth,
+              borderTopColor: colors.divider,
+              elevation: 0,
+            }
+          : {
+              backgroundColor: colors.surface,
+              borderTopColor: colors.divider,
+            },
+        ...(useBlur
+          ? {
+              tabBarBackground: () => (
+                <BlurView intensity={70} tint={blurTint} style={StyleSheet.absoluteFill} />
+              ),
+            }
+          : {}),
         tabBarLabelStyle: typography.tabLabel,
         tabBarIcon: ({ color, focused, size }) => (
           <Ionicons color={color} name={tabIconName(route.name, focused)} size={size} />

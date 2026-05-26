@@ -1,12 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Button, Text } from 'react-native-paper';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { AppButton } from './AppButton';
 import { spacing } from '../theme/spacing';
 import { useTheme } from '../theme/ThemeProvider';
 import { typography } from '../theme/typography';
 
+import type { StyleProp, ViewStyle } from 'react-native';
 import type { ThemeColors } from '../theme/colors';
 
 interface EmptyStateProps {
@@ -15,7 +16,7 @@ interface EmptyStateProps {
   description: string;
   actionLabel?: string;
   onAction?: () => void;
-  containerStyle?: object;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export function EmptyState({
@@ -31,13 +32,13 @@ export function EmptyState({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      <Ionicons color={colors.ink} name={icon} size={72} style={styles.icon} />
+      <View style={styles.iconCircle}>
+        <Ionicons color={colors.accent} name={icon} size={36} />
+      </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
       {actionLabel && onAction ? (
-        <Button mode="contained" onPress={onAction} style={styles.actionButton}>
-          {actionLabel}
-        </Button>
+        <AppButton label={actionLabel} onPress={onAction} style={styles.actionButton} />
       ) : null}
     </View>
   );
@@ -52,24 +53,29 @@ const createStyles = (colors: ThemeColors) =>
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.xxl,
       gap: spacing.sm,
-      backgroundColor: colors.canvas,
     },
-    icon: {
-      textAlign: 'center',
+    iconCircle: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.highlightSoft,
       marginBottom: spacing.sm,
     },
     title: {
-      ...typography.hero,
+      ...typography.title3,
       color: colors.ink,
       textAlign: 'center',
     },
     description: {
-      ...typography.body,
-      color: colors.ink,
+      ...typography.subhead,
+      color: colors.inkMuted,
       textAlign: 'center',
-      maxWidth: 340,
+      maxWidth: 320,
     },
     actionButton: {
       marginTop: spacing.md,
+      alignSelf: 'center',
     },
   });

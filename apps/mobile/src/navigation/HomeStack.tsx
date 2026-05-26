@@ -24,9 +24,7 @@ export function HomeStack() {
       screenOptions={{
         headerTintColor: colors.accent,
         headerShadowVisible: false,
-        headerStyle: {
-          backgroundColor: colors.surface,
-        },
+        headerStyle: { backgroundColor: colors.canvas },
         headerTitleStyle: {
           color: colors.ink,
           fontSize: 17,
@@ -42,6 +40,7 @@ export function HomeStack() {
         component={HomeScreen}
         options={({ navigation }) => ({
           title: strings.navigation.home,
+          headerLargeTitle: true,
           headerLeft: () => (
             <Pressable
               accessibilityLabel={strings.home.historyAction}
@@ -66,12 +65,21 @@ export function HomeStack() {
       <Stack.Screen
         name="SearchResult"
         component={SearchResultScreen}
-        options={{ title: strings.navigation.searchResult }}
+        options={{
+          title: strings.navigation.searchResult,
+          headerStyle: { backgroundColor: colors.groupedBackground },
+          contentStyle: { backgroundColor: colors.groupedBackground },
+        }}
       />
       <Stack.Screen
         name="History"
         component={HistoryScreen}
-        options={{ title: strings.navigation.history }}
+        options={{
+          title: strings.navigation.history,
+          headerLargeTitle: true,
+          headerStyle: { backgroundColor: colors.groupedBackground },
+          contentStyle: { backgroundColor: colors.groupedBackground },
+        }}
       />
       <Stack.Screen name="SearchWebView" component={WebViewScreen} />
     </Stack.Navigator>
