@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import { Pressable, Share, StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
@@ -28,6 +29,7 @@ type LoadState = 'loading' | 'ready' | 'not-found' | 'error';
 export function WebViewScreen({ navigation, route }: Props) {
   const { colors, scheme } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const tabBarHeight = useBottomTabBarHeight();
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const injectedJavaScript = useMemo(
     () => `document.documentElement.style.colorScheme = '${scheme}'; true;`,
@@ -106,7 +108,7 @@ export function WebViewScreen({ navigation, route }: Props) {
         }}
         injectedJavaScript={injectedJavaScript}
         source={{ uri: route.params.url }}
-        style={styles.webview}
+        style={[styles.webview, { marginBottom: tabBarHeight }]}
       />
       {loadState === 'loading' ? <LoadingOverlay label={strings.webview.loadingLabel} /> : null}
     </View>

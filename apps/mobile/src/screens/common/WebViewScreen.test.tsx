@@ -10,10 +10,21 @@ jest.mock('@expo/react-native-action-sheet', () => ({
   useActionSheet: () => ({ showActionSheetWithOptions: jest.fn() }),
 }));
 
+jest.mock('@react-navigation/bottom-tabs', () => {
+  const actual = jest.requireActual('@react-navigation/bottom-tabs');
+
+  return {
+    ...actual,
+    useBottomTabBarHeight: () => 48,
+  };
+});
+
 jest.mock('react-native-webview', () => ({
   WebView: ({
+    style,
     onHttpError,
   }: {
+    style?: unknown;
     onHttpError?: (event: { nativeEvent: { statusCode: number } }) => void;
   }) => {
     const { View } = jest.requireActual('react-native');
@@ -22,6 +33,7 @@ jest.mock('react-native-webview', () => ({
       <View
         testID="mock-webview"
         onTouchEnd={() => onHttpError?.({ nativeEvent: { statusCode: 404 } })}
+        style={style}
       />
     );
   },
@@ -49,5 +61,26 @@ describe('WebViewScreen', () => {
     fireEvent(screen.getByTestId('mock-webview'), 'onTouchEnd');
 
     expect(screen.getByText('頁面仍在準備中')).toBeTruthy();
+  });
+
+  it('adds bottom space for the tab bar', () => {
+    const navigation = {
+      setOptions: jest.fn(),
+    };
+
+    const screen = renderWithProviders(
+      <WebViewScreen
+        navigation={navigation as never}
+        route={
+          {
+            key: 'SearchWebView',
+            name: 'SearchWebView',
+            params: { title: '測試頁面', url: 'https://example.com', showOptions: true },
+          } as never
+        }
+      />
+    );
+
+    expect(screen.getByTestId('mock-webview')).toHaveStyle({ marginBottom: 48 });
   });
 });
