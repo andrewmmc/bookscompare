@@ -69,7 +69,7 @@ const createStyles = (colors: ThemeColors) =>
       alignItems: 'center',
       minHeight: 44,
       borderRadius: 10,
-      backgroundColor: colors.groupedBackground,
+      backgroundColor: colors.controlBackground,
       paddingHorizontal: spacing.sm,
     },
     leading: {

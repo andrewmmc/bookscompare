@@ -15,7 +15,7 @@ import { ThemeProvider, useTheme } from './theme/ThemeProvider';
 const queryClient = new QueryClient();
 
 function AppContent() {
-  const { scheme } = useTheme();
+  const { colors, scheme } = useTheme();
   const paperTheme = scheme === 'dark' ? paperThemeDark : paperThemeLight;
 
   useEffect(() => {
@@ -31,12 +31,12 @@ function AppContent() {
         background: paperTheme.colors.background,
         card: paperTheme.colors.elevation.level2,
         border: paperTheme.colors.outlineVariant,
-        primary: paperTheme.colors.primary,
+        primary: colors.navigationAction,
         text: paperTheme.colors.onSurface,
         notification: paperTheme.colors.secondary,
       },
     }),
-    [paperTheme, scheme]
+    [colors.navigationAction, paperTheme, scheme]
   );
 
   return (

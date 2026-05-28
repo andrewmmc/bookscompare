@@ -32,8 +32,20 @@ export function WebViewScreen({ navigation, route }: Props) {
   const tabBarHeight = useBottomTabBarHeight();
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const injectedJavaScript = useMemo(
-    () => `document.documentElement.style.colorScheme = '${scheme}'; true;`,
-    [scheme]
+    () => `
+      (function () {
+        document.documentElement.style.colorScheme = '${scheme}';
+        var style = document.getElementById('bookscompare-color-scheme');
+        if (!style) {
+          style = document.createElement('style');
+          style.id = 'bookscompare-color-scheme';
+          (document.head || document.documentElement).appendChild(style);
+        }
+        style.textContent = ':root { color-scheme: ${scheme}; } body { background-color: ${colors.canvas}; }';
+      })();
+      true;
+    `,
+    [colors.canvas, scheme]
   );
 
   useLayoutEffect(() => {
@@ -62,7 +74,7 @@ export function WebViewScreen({ navigation, route }: Props) {
                   pressed && styles.headerButtonPressed,
                 ]}
               >
-                <Ionicons color={colors.accent} name="share-outline" size={22} />
+                <Ionicons color={colors.navigationAction} name="share-outline" size={22} />
               </Pressable>
             ),
           }
@@ -106,7 +118,9 @@ export function WebViewScreen({ navigation, route }: Props) {
         onLoadEnd={() => {
           setLoadState((currentState) => (currentState === 'loading' ? 'ready' : currentState));
         }}
+        injectedJavaScriptBeforeContentLoaded={injectedJavaScript}
         injectedJavaScript={injectedJavaScript}
+        forceDarkOn={scheme === 'dark'}
         source={{ uri: route.params.url }}
         style={[styles.webview, { marginBottom: tabBarHeight }]}
       />
@@ -126,10 +140,10 @@ const createStyles = (colors: ThemeColors) =>
       backgroundColor: colors.surface,
     },
     headerButton: {
-      minWidth: 30,
-      minHeight: 30,
-      paddingHorizontal: 4,
-      paddingVertical: 4,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.controlBackground,
       alignItems: 'center',
       justifyContent: 'center',
     },

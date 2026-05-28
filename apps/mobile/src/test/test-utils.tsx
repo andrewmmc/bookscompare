@@ -18,7 +18,11 @@ export function renderWithProviders(element: ReactElement, options: RenderOption
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
+        gcTime: Infinity,
         retry: false,
+      },
+      mutations: {
+        gcTime: Infinity,
       },
     },
   });

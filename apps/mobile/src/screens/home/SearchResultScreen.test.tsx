@@ -5,6 +5,7 @@ import { renderWithProviders } from '../../test/test-utils';
 
 const mockUseTitleSearch = jest.fn();
 const mockUseIsbnLookup = jest.fn();
+const mockAddHistoryEntryMutate = jest.fn();
 
 jest.mock('../../api/queries', () => ({
   useIsbnLookup: (...args: unknown[]) => mockUseIsbnLookup(...args),
@@ -18,10 +19,15 @@ jest.mock('../../api/favourites', () => ({
   useRemoveFavourite: () => ({ mutate: jest.fn() }),
 }));
 
+jest.mock('../../api/history', () => ({
+  useAddHistoryEntry: () => ({ mutate: mockAddHistoryEntryMutate }),
+}));
+
 describe('SearchResultScreen', () => {
   beforeEach(() => {
     mockUseIsbnLookup.mockReset();
     mockUseTitleSearch.mockReset();
+    mockAddHistoryEntryMutate.mockReset();
     mockUseIsbnLookup.mockReturnValue({
       data: undefined,
       error: null,

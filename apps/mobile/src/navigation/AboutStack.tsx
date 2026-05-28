@@ -16,7 +16,7 @@ export function AboutStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerTintColor: colors.accent,
+        headerTintColor: colors.navigationAction,
         headerShadowVisible: false,
         headerStyle: { backgroundColor: colors.groupedBackground },
         headerTitleStyle: {

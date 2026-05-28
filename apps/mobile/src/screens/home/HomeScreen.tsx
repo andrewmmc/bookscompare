@@ -277,7 +277,7 @@ const createToggleStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     track: {
       flexDirection: 'row',
-      backgroundColor: colors.groupedBackground,
+      backgroundColor: colors.controlBackground,
       borderRadius: 100,
       padding: 4,
       alignSelf: 'center',
@@ -292,7 +292,7 @@ const createToggleStyles = (colors: ThemeColors) =>
       justifyContent: 'center',
     },
     segmentSelected: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.controlSelected,
       shadowColor: colors.shadow,
       shadowOpacity: 0.12,
       shadowRadius: 4,

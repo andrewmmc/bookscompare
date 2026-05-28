@@ -10,7 +10,6 @@ import { HomeScreen } from '../screens/home/HomeScreen';
 import { SearchResultScreen } from '../screens/home/SearchResultScreen';
 import { strings } from '../i18n/strings';
 import { useTheme } from '../theme/ThemeProvider';
-import { spacing } from '../theme/spacing';
 
 import type { HomeStackParamList } from './types';
 
@@ -22,7 +21,7 @@ export function HomeStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerTintColor: colors.accent,
+        headerTintColor: colors.navigationAction,
         headerShadowVisible: false,
         headerStyle: { backgroundColor: colors.canvas },
         headerTitleStyle: {
@@ -52,7 +51,7 @@ export function HomeStack() {
               }}
               style={({ pressed }) => [styles.headerLeft, pressed && styles.headerLeftPressed]}
             >
-              <Ionicons color={colors.accent} name="time-outline" size={24} />
+              <Ionicons color={colors.navigationAction} name="time-outline" size={24} />
             </Pressable>
           ),
         })}
@@ -88,8 +87,11 @@ export function HomeStack() {
 
 const styles = StyleSheet.create({
   headerLeft: {
-    paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.xxs,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerLeftPressed: {
     opacity: 0.6,

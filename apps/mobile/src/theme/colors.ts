@@ -13,6 +13,9 @@ export interface ThemeColors {
   highlightSoft: string;
   rowPressed: string;
   groupedBackground: string;
+  controlBackground: string;
+  controlSelected: string;
+  navigationAction: string;
   success: string;
   danger: string;
   shadow: string;
@@ -35,6 +38,9 @@ export const lightColors = {
   rowPressed: '#e5e5ea',
   // iOS systemGroupedBackground (slightly warmer/lighter than the canonical #f2f2f7).
   groupedBackground: '#f7f7f9',
+  controlBackground: '#f7f7f9',
+  controlSelected: '#ffffff',
+  navigationAction: '#ca5d3b',
   success: '#5e7f5d',
   danger: '#d33d2e',
   shadow: '#000000',
@@ -55,6 +61,9 @@ export const darkColors = {
   highlightSoft: '#2a211d',
   rowPressed: '#2c2c2e',
   groupedBackground: '#000000',
+  controlBackground: '#1c1c1e',
+  controlSelected: '#2c2c2e',
+  navigationAction: '#f2f2f2',
   success: '#78a076',
   danger: '#ff453a',
   shadow: '#000000',

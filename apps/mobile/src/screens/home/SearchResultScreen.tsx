@@ -336,8 +336,10 @@ const createStyles = (colors: ThemeColors) =>
     headerFavouriteButton: {
       alignItems: 'center',
       justifyContent: 'center',
-      height: 32,
-      width: 32,
+      height: 36,
+      width: 36,
+      borderRadius: 18,
+      backgroundColor: colors.controlBackground,
     },
     list: {
       flex: 1,
@@ -399,6 +401,8 @@ const createStyles = (colors: ThemeColors) =>
     rowFavouriteButton: {
       width: 32,
       height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.controlBackground,
       alignItems: 'center',
       justifyContent: 'center',
     },

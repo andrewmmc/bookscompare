@@ -232,7 +232,7 @@ const createStyles = (colors: ThemeColors) =>
     },
     headerActionText: {
       ...typography.body,
-      color: colors.accent,
+      color: colors.navigationAction,
       fontWeight: '500',
     },
   });
