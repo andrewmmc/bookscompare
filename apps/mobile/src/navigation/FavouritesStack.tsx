@@ -16,7 +16,6 @@ export function FavouritesStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerTintColor: colors.navigationAction,
         headerShadowVisible: false,
         headerStyle: { backgroundColor: colors.groupedBackground },
         headerTitleStyle: {
