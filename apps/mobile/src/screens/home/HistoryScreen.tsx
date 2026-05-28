@@ -88,7 +88,7 @@ export function HistoryScreen({ navigation }: Props) {
         ) : null,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation, hasHistory]);
+  }, [navigation, hasHistory, styles]);
 
   if (!isLoading && (!data || data.length === 0)) {
     return (

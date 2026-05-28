@@ -45,4 +45,5 @@ export const paperThemeDark = {
   colors: buildPaperColors(darkColors, MD3DarkTheme.colors),
 };
 
+/** @deprecated Do not use at runtime — always use useTheme() for theme-reactive values. */
 export const paperTheme = paperThemeLight;

@@ -90,7 +90,7 @@ export function FavouritesScreen({ navigation }: Props) {
         ) : null,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation, hasFavourites]);
+  }, [navigation, hasFavourites, styles]);
 
   const renderRightActions = (
     progress: Animated.AnimatedInterpolation<number>,
