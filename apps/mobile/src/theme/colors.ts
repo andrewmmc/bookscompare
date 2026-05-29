@@ -63,7 +63,7 @@ export const darkColors = {
   groupedBackground: '#000000',
   controlBackground: '#1c1c1e',
   controlSelected: '#2c2c2e',
-  navigationAction: '#f2f2f2',
+  navigationAction: '#e87a5a',
   success: '#78a076',
   danger: '#ff453a',
   shadow: '#000000',

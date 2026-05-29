@@ -8,6 +8,7 @@ import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { initAnalytics, registerAnalyticsProperties } from './analytics';
+import { usePreferencesLoaded } from './lib/preferences';
 import { RootNavigator } from './navigation/RootNavigator';
 import { paperThemeDark, paperThemeLight } from './theme/paperTheme';
 import { ThemeProvider, useTheme } from './theme/ThemeProvider';
@@ -17,6 +18,7 @@ const queryClient = new QueryClient();
 function AppContent() {
   const { colors, scheme } = useTheme();
   const paperTheme = scheme === 'dark' ? paperThemeDark : paperThemeLight;
+  const preferencesLoaded = usePreferencesLoaded();
 
   useEffect(() => {
     initAnalytics();
@@ -44,7 +46,7 @@ function AppContent() {
       <ActionSheetProvider>
         <NavigationContainer theme={navigationTheme}>
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-          <RootNavigator />
+          {preferencesLoaded ? <RootNavigator /> : null}
         </NavigationContainer>
       </ActionSheetProvider>
     </PaperProvider>

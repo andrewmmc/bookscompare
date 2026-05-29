@@ -27,7 +27,9 @@ const validators: {
 };
 
 let currentPreferences = defaultPreferences;
+let preferencesLoaded = false;
 const listeners = new Set<(preferences: Preferences) => void>();
+const loadedListeners = new Set<(loaded: boolean) => void>();
 
 function parsePreferences(value: unknown): Preferences {
   if (!value || typeof value !== 'object') {
@@ -49,22 +51,46 @@ function emit(preferences: Preferences): void {
   listeners.forEach((listener) => listener(preferences));
 }
 
+function markLoaded(): void {
+  if (preferencesLoaded) {
+    return;
+  }
+  preferencesLoaded = true;
+  loadedListeners.forEach((listener) => listener(true));
+}
+
+let inFlightLoad: Promise<Preferences> | null = null;
+
 export async function loadPreferences(): Promise<Preferences> {
-  try {
-    const raw = await AsyncStorage.getItem(PREFERENCES_STORAGE_KEY);
-    if (!raw) {
+  if (inFlightLoad) {
+    return inFlightLoad;
+  }
+
+  inFlightLoad = (async () => {
+    try {
+      const raw = await AsyncStorage.getItem(PREFERENCES_STORAGE_KEY);
+      if (!raw) {
+        emit(defaultPreferences);
+        return defaultPreferences;
+      }
+
+      const preferences = parsePreferences(JSON.parse(raw));
+      emit(preferences);
+      return preferences;
+    } catch {
       emit(defaultPreferences);
       return defaultPreferences;
+    } finally {
+      markLoaded();
     }
+  })();
 
-    const preferences = parsePreferences(JSON.parse(raw));
-    emit(preferences);
-    return preferences;
-  } catch {
-    emit(defaultPreferences);
-    return defaultPreferences;
-  }
+  return inFlightLoad;
 }
+
+// Kick off the load as soon as the module is imported so the splash/initial
+// render has the best chance of having the user's saved theme ready.
+void loadPreferences();
 
 async function savePreferences(preferences: Preferences): Promise<void> {
   await AsyncStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(preferences));
@@ -93,4 +119,23 @@ export function usePreferences(): Preferences {
   }, []);
 
   return preferences;
+}
+
+export function usePreferencesLoaded(): boolean {
+  const [loaded, setLoaded] = useState(preferencesLoaded);
+
+  useEffect(() => {
+    if (loaded) {
+      return;
+    }
+
+    loadedListeners.add(setLoaded);
+    void loadPreferences();
+
+    return () => {
+      loadedListeners.delete(setLoaded);
+    };
+  }, [loaded]);
+
+  return loaded;
 }
