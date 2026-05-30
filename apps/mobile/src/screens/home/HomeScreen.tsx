@@ -193,14 +193,14 @@ export function HomeScreen({ navigation }: Props) {
               <Pressable
                 accessibilityLabel={strings.home.scanAction}
                 accessibilityRole="button"
-                android_ripple={{ color: 'rgba(255,255,255,0.2)' }}
+                android_ripple={{ color: colors.accentSoft }}
                 onPress={() => {
                   track('home_click_scan');
                   navigation.navigate('BarcodeScanner');
                 }}
                 style={({ pressed }) => [styles.scannerButton, pressed && styles.scannerPressed]}
               >
-                <Ionicons color="#ffffff" name="camera" size={22} />
+                <Ionicons color={colors.accentDeep} name="camera" size={22} />
               </Pressable>
             ) : null}
           </View>
@@ -267,7 +267,7 @@ const createStyles = (colors: ThemeColors) =>
       height: 44,
       width: 44,
       borderRadius: 22,
-      backgroundColor: colors.accent,
+      backgroundColor: colors.highlight,
       alignItems: 'center',
       justifyContent: 'center',
       shadowColor: colors.shadow,
