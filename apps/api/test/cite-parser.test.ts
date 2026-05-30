@@ -42,3 +42,20 @@ test('parseCiteSearchResults returns empty array for live-style not-found page',
 
   assert.deepEqual(parseCiteSearchResults(html), []);
 });
+
+test('parseCiteSearchResults throws when search result markup is incomplete', () => {
+  assert.throws(
+    () => parseCiteSearchResults('<main>results exist</main>'),
+    /could not find the main search result list/
+  );
+
+  assert.throws(
+    () =>
+      parseCiteSearchResults(`
+        <div class="book-container">
+          <li class="book-area-1"><h2>missing link</h2><div class="clear"></div></li>
+        <ul class="page-numbers-2">
+      `),
+    /could not parse any search result rows/
+  );
+});

@@ -29,3 +29,15 @@ test('fetchBooksComTwOffersByIsbn returns every parsed result', async (t) => {
     ['0011049950', 'E050329458']
   );
 });
+
+test('fetchBooksComTwOffersByIsbn returns empty array for 404 responses', async (t) => {
+  const originalFetch = globalThis.fetch;
+
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  globalThis.fetch = (async () => new Response('missing', { status: 404 })) as typeof fetch;
+
+  assert.deepEqual(await fetchBooksComTwOffersByIsbn('9780000000000'), []);
+});

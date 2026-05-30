@@ -64,6 +64,24 @@ test('parseKingstoneSearchResults returns empty array for current live not-found
   assert.deepEqual(parseKingstoneSearchResults(html), []);
 });
 
+test('parseKingstoneSearchResults throws when announced results cannot be parsed', () => {
+  assert.throws(
+    () => parseKingstoneSearchResults('全館搜尋共計 <span>1</span> 筆'),
+    /could not find the main search result list/
+  );
+
+  assert.throws(
+    () =>
+      parseKingstoneSearchResults(`
+        全館搜尋共計 <span>1</span> 筆
+        <ul class="displaycol">
+          <li class="displayunit"><h3 class="pdnamebox">missing link</h3></li>
+        </ul>
+      `),
+    /could not parse any search result rows/
+  );
+});
+
 test('fetchKingstoneOffersByIsbn returns every normalized offer', async (t) => {
   const searchHtml = await readFixture('found.html');
   const originalFetch = globalThis.fetch;
@@ -147,4 +165,16 @@ test('fetchKingstoneOffersByIsbn returns every normalized offer', async (t) => {
   assert.equal(secondOffer.publicationDate, undefined);
   assert.match(firstOffer.summary, /演算法 \+ 真實案例 \+ 專題實作/);
   assert.match(secondOffer.summary, /演算法 \+ 真實案例 \+ 專題實作/);
+});
+
+test('fetchKingstoneOffersByIsbn returns empty array for 404 responses', async (t) => {
+  const originalFetch = globalThis.fetch;
+
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  globalThis.fetch = (async () => new Response('missing', { status: 404 })) as typeof fetch;
+
+  assert.deepEqual(await fetchKingstoneOffersByIsbn('9780000000000'), []);
 });

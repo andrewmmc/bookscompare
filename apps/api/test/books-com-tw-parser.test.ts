@@ -64,3 +64,23 @@ test('parseBooksComTwSearchResults returns empty array for not-found fixture', a
 
   assert.deepEqual(parseBooksComTwSearchResults(html), []);
 });
+
+test('parseBooksComTwSearchResults throws when announced results cannot be parsed', () => {
+  assert.throws(
+    () => parseBooksComTwSearchResults('搜尋結果共 <span>1</span> 筆'),
+    /could not find the main search result table/
+  );
+
+  assert.throws(
+    () =>
+      parseBooksComTwSearchResults(`
+        搜尋結果共 <span>1</span> 筆
+        <table id="itemlist_table">
+          <tbody id="itemlist_0011049950">
+            <h4><a rel="mid_name" href="/book" title="缺欄位"></a></h4>
+          </tbody>
+        </table>
+      `),
+    /could not parse any search result rows/
+  );
+});

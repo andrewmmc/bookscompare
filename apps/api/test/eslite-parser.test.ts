@@ -55,3 +55,52 @@ test('parseEsliteSearchResults strips ebook title markers and keeps ebook type',
 test('parseEsliteSearchResults returns empty array for empty payload', async () => {
   assert.deepEqual(parseEsliteSearchResults(await readFixture('not-found.json')), []);
 });
+
+test('parseEsliteSearchResults skips malformed and non-book hits', () => {
+  assert.deepEqual(
+    parseEsliteSearchResults({
+      hits: {
+        hit: [
+          {},
+          { fields: { is_book: 'no' } },
+          {
+            fields: { url: '/product/1', product_photo_url: '/cover.jpg', manufacturer: ['麥田'] },
+          },
+          { fields: { name: '書名', product_photo_url: '/cover.jpg', manufacturer: ['麥田'] } },
+          { fields: { name: '書名', url: '/product/1', manufacturer: ['麥田'] } },
+          { fields: { name: '書名', url: '/product/1', product_photo_url: '/cover.jpg' } },
+          {
+            fields: {
+              name: '書名',
+              url: '/product/1',
+              product_photo_url: '/cover.jpg',
+              manufacturer: ['麥田'],
+              manufacturer_date: 'bad date',
+            },
+          },
+          {
+            fields: {
+              name: '書名',
+              url: '/product/1',
+              product_photo_url: '/cover.jpg',
+              manufacturer: ['麥田'],
+              manufacturer_date: '04/30/2026',
+            },
+          },
+          {
+            id: 'bad-price',
+            fields: {
+              name: '書名',
+              url: '/product/1',
+              product_photo_url: '/cover.jpg',
+              manufacturer: ['麥田'],
+              manufacturer_date: '04/30/2026',
+              final_price: 'not-a-number',
+            },
+          },
+        ],
+      },
+    }),
+    []
+  );
+});
