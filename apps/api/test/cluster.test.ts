@@ -7,7 +7,6 @@ import {
   buildTitleAuthorClusterKey,
   clusterOffersIntoBooks,
   clusterToBookDetail,
-  clusterToBookSummary,
   findClusterByTitleAuthor,
   normalizeForClusterKey,
 } from '../src/lib/cluster';
@@ -128,35 +127,6 @@ test('clusterOffersIntoBooks normalizes hyphenated ISBNs', () => {
 
   assert.equal(clusters.length, 1);
   assert.equal(clusters[0]?.isbn, '9789861374482');
-});
-
-test('clusterToBookSummary picks lowest price, sums offers, and uses ISBN as id when available', () => {
-  const cluster = clusterOffersIntoBooks([
-    createOffer({ sourceId: 'books-com-tw', isbn: '9789861374482', price: 320 }),
-    createOffer({ sourceId: 'kingstone', isbn: '9789861374482', price: 280 }),
-    createOffer({ sourceId: 'eslite', isbn: '9789861374482', price: 300 }),
-  ])[0];
-
-  assert.ok(cluster);
-  const summary = clusterToBookSummary(cluster);
-
-  assert.equal(summary.id, '9789861374482');
-  assert.equal(summary.isbn, '9789861374482');
-  assert.equal(summary.lowestPrice, 280);
-  assert.equal(summary.offerCount, 3);
-  assert.equal(summary.currency, 'TWD');
-});
-
-test('clusterToBookSummary falls back to a t- prefixed id when the cluster has no ISBN', () => {
-  const cluster = clusterOffersIntoBooks([
-    createOffer({ title: '原子習慣', authors: ['James Clear'] }),
-  ])[0];
-
-  assert.ok(cluster);
-  const summary = clusterToBookSummary(cluster);
-
-  assert.ok(summary.id.startsWith('t-'));
-  assert.equal(summary.isbn, undefined);
 });
 
 test('clusterToBookDetail sorts offers by price ascending and prefers the longest summary as primary', () => {

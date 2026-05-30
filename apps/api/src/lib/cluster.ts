@@ -1,4 +1,4 @@
-import type { BookOffer, BookDetail, BookSummary } from '@bookscompare/contracts';
+import type { BookOffer, BookDetail } from '@bookscompare/contracts';
 
 import { isValidIsbn, normalizeIsbn } from './isbn';
 
@@ -123,29 +123,6 @@ function clusterBookId(cluster: OfferCluster): string {
   const primary = pickPrimaryOffer(cluster.offers);
 
   return `t-${buildTitleAuthorClusterKey(primary.title, primary.authors[0])}`;
-}
-
-export function clusterToBookSummary(cluster: OfferCluster): BookSummary {
-  const primary = pickPrimaryOffer(cluster.offers);
-  const lowestPrice = cluster.offers.reduce<number | undefined>((min, offer) => {
-    if (typeof min === 'undefined') {
-      return offer.price;
-    }
-    return Math.min(min, offer.price);
-  }, undefined);
-
-  return {
-    id: clusterBookId(cluster),
-    ...(cluster.isbn ? { isbn: cluster.isbn } : {}),
-    title: primary.title,
-    authors: primary.authors,
-    ...(primary.publisher ? { publisher: primary.publisher } : {}),
-    ...(primary.publicationDate ? { publicationDate: primary.publicationDate } : {}),
-    imageUrl: primary.imageUrl,
-    ...(typeof lowestPrice === 'number' ? { lowestPrice } : {}),
-    currency: 'TWD',
-    offerCount: cluster.offers.length,
-  };
 }
 
 export function clusterToBookDetail(cluster: OfferCluster): BookDetail {
