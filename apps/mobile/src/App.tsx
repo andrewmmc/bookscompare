@@ -3,17 +3,50 @@ import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { initAnalytics, registerAnalyticsProperties } from './analytics';
+import { strings } from './i18n/strings';
 import { usePreferencesLoaded } from './lib/preferences';
 import { RootNavigator } from './navigation/RootNavigator';
+import { spacing } from './theme/spacing';
 import { paperThemeDark, paperThemeLight } from './theme/paperTheme';
 import { ThemeProvider, useTheme } from './theme/ThemeProvider';
+import { typography } from './theme/typography';
 
 const queryClient = new QueryClient();
+
+function AppStartupSkeleton() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.startupScreen, { backgroundColor: colors.canvas }]}>
+      <View style={styles.startupContent}>
+        <View style={[styles.startupIconCircle, { backgroundColor: colors.highlightSoft }]}>
+          <View style={[styles.startupIconGlyph, { backgroundColor: colors.accent }]} />
+        </View>
+        <Text style={[styles.startupTitle, { color: colors.ink }]}>{strings.app.brand}</Text>
+        <View style={styles.startupBody}>
+          <View style={[styles.startupLeadBar, { backgroundColor: colors.highlightSoft }]} />
+          <View style={[styles.startupLeadBarShort, { backgroundColor: colors.highlightSoft }]} />
+          <View style={styles.startupInputRow}>
+            <View style={[styles.startupInput, { backgroundColor: colors.controlBackground }]} />
+            <View
+              style={[styles.startupCircleButton, { backgroundColor: colors.controlBackground }]}
+            />
+          </View>
+          <View style={[styles.startupButton, { backgroundColor: colors.accent }]} />
+        </View>
+      </View>
+      <Text style={[styles.startupLabel, { color: colors.inkMuted }]}>
+        {strings.loading.defaultLabel}
+      </Text>
+    </View>
+  );
+}
 
 function AppContent() {
   const { colors, scheme } = useTheme();
@@ -46,7 +79,7 @@ function AppContent() {
       <ActionSheetProvider>
         <NavigationContainer theme={navigationTheme}>
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-          {preferencesLoaded ? <RootNavigator /> : null}
+          {preferencesLoaded ? <RootNavigator /> : <AppStartupSkeleton />}
         </NavigationContainer>
       </ActionSheetProvider>
     </PaperProvider>
@@ -66,3 +99,75 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  startupScreen: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xxl * 2,
+    paddingBottom: spacing.xl,
+    justifyContent: 'space-between',
+  },
+  startupContent: {
+    alignItems: 'center',
+  },
+  startupIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  startupIconGlyph: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+  },
+  startupTitle: {
+    ...typography.title2,
+    marginTop: spacing.md,
+    textAlign: 'center',
+  },
+  startupBody: {
+    width: '100%',
+    maxWidth: 360,
+    marginTop: spacing.xxl,
+  },
+  startupLeadBar: {
+    height: 18,
+    borderRadius: 9,
+    width: '100%',
+  },
+  startupLeadBarShort: {
+    height: 18,
+    borderRadius: 9,
+    width: '72%',
+    marginTop: spacing.sm,
+    alignSelf: 'center',
+  },
+  startupInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.xxl,
+  },
+  startupInput: {
+    flex: 1,
+    height: 56,
+    borderRadius: 16,
+  },
+  startupCircleButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  startupButton: {
+    height: 52,
+    borderRadius: 16,
+    marginTop: spacing.lg,
+  },
+  startupLabel: {
+    ...typography.footnote,
+    textAlign: 'center',
+  },
+});
