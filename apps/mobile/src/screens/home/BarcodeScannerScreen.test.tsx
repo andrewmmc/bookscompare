@@ -12,7 +12,9 @@ jest.mock('expo-camera', () => ({
     return (
       <Pressable
         testID="camera-view"
-        onPress={() => onBarcodeScanned?.({ data: '9781402894626' })}
+        onPress={(event?: { nativeEvent?: { data?: string } }) =>
+          onBarcodeScanned?.({ data: event?.nativeEvent?.data ?? '9781402894626' })
+        }
       />
     );
   },

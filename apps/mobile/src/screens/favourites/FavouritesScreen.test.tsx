@@ -3,11 +3,16 @@ import type { ReactElement } from 'react';
 import { Alert } from 'react-native';
 
 import { FavouritesScreen } from './FavouritesScreen';
+import { track } from '../../analytics';
 import { renderWithProviders } from '../../test/test-utils';
 
 const mockUseFavourites = jest.fn();
 const mockMutate = jest.fn();
 const mockClearMutate = jest.fn();
+
+jest.mock('../../analytics', () => ({
+  track: jest.fn(),
+}));
 
 jest.mock('../../api/favourites', () => ({
   useFavourites: (...args: unknown[]) => mockUseFavourites(...args),
@@ -17,6 +22,7 @@ jest.mock('../../api/favourites', () => ({
 
 describe('FavouritesScreen', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockUseFavourites.mockReset();
     mockMutate.mockReset();
     mockClearMutate.mockReset();
@@ -61,6 +67,7 @@ describe('FavouritesScreen', () => {
     expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', {
       isbn: '9789861336275',
     });
+    expect(track).toHaveBeenCalledWith('favourites_open_book', { isbn: '9789861336275' });
   });
 
   it('confirms before clearing all favourites', () => {
@@ -100,7 +107,26 @@ describe('FavouritesScreen', () => {
     const confirm = buttons.find((b) => b.text === '全部清除');
     confirm?.onPress?.();
     expect(mockClearMutate).toHaveBeenCalled();
+    expect(track).toHaveBeenCalledWith('favourites_click_clear_all');
+    expect(track).toHaveBeenCalledWith('favourites_clear_all_confirm');
 
     alertSpy.mockRestore();
+  });
+
+  it('hides the clear-all action when there are no favourites', () => {
+    mockUseFavourites.mockReturnValue({ data: [], isLoading: false });
+
+    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
+    renderWithProviders(
+      <FavouritesScreen
+        navigation={navigation as never}
+        route={{ key: 'Favourites', name: 'Favourites', params: undefined } as never}
+      />
+    );
+
+    const headerRight = (navigation.setOptions as jest.Mock).mock.calls.at(-1)?.[0]?.headerRight as
+      | (() => ReactElement | null)
+      | undefined;
+    expect(headerRight?.()).toBeNull();
   });
 });

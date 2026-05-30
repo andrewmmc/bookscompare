@@ -39,6 +39,61 @@ describe('SettingsScreen', () => {
     expect(screen.getAllByText(/^全部$/)).toHaveLength(2);
   });
 
+  it('renders specific labels for browser, dark mode, ebook-only, and selected stores', () => {
+    mockGetPreferences.mockReturnValue({
+      openLinksIn: 'browser',
+      themeMode: 'dark',
+      preferredSources: ['books-com-tw', 'eslite'],
+      preferredBookTypes: ['ebook'],
+    });
+
+    const screen = renderWithProviders(
+      <SettingsScreen
+        navigation={{} as never}
+        route={{ key: 'Settings', name: 'Settings' } as never}
+      />
+    );
+
+    expect(screen.getByText('在瀏覽器開啟')).toBeOnTheScreen();
+    expect(screen.getByText('深色')).toBeOnTheScreen();
+    expect(screen.getByText('電子書')).toBeOnTheScreen();
+    expect(screen.getByText('已選 2 家')).toBeOnTheScreen();
+  });
+
+  it('renders physical-books label when only physical books are preferred', () => {
+    mockGetPreferences.mockReturnValue({
+      openLinksIn: 'app',
+      themeMode: 'light',
+      preferredSources: [],
+      preferredBookTypes: ['physical'],
+    });
+
+    const screen = renderWithProviders(
+      <SettingsScreen
+        navigation={{} as never}
+        route={{ key: 'Settings', name: 'Settings' } as never}
+      />
+    );
+
+    expect(screen.getByText('實體書')).toBeOnTheScreen();
+    expect(screen.getByText('淺色')).toBeOnTheScreen();
+  });
+
+  it('navigates to store preferences', () => {
+    const navigation = { navigate: jest.fn() };
+
+    const screen = renderWithProviders(
+      <SettingsScreen
+        navigation={navigation as never}
+        route={{ key: 'Settings', name: 'Settings' } as never}
+      />
+    );
+
+    fireEvent.press(screen.getByText('書店偏好'));
+
+    expect(navigation.navigate).toHaveBeenCalledWith('StorePreferences');
+  });
+
   it('navigates to book type preferences', () => {
     const navigation = { navigate: jest.fn() };
 
