@@ -37,7 +37,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const tabBarHeight = useBottomTabBarHeight();
-  const { openLinksIn } = usePreferences();
+  const { openLinksIn, preferredSources } = usePreferences();
   const isbnParam = 'isbn' in route.params ? route.params.isbn : '';
   const titleParam = 'title' in route.params ? route.params.title : '';
   const isbnQuery = useIsbnLookup(isbnParam);
@@ -47,17 +47,23 @@ export function SearchResultScreen({ navigation, route }: Props) {
   const isLoading = isbnParam ? isbnQuery.isLoading : titleQuery.isLoading;
   const isRefetching = isbnParam ? isbnQuery.isRefetching : titleQuery.isRefetching;
   const refetch = isbnParam ? isbnQuery.refetch : titleQuery.refetch;
+  const preferredSet = useMemo(() => new Set(preferredSources), [preferredSources]);
   const offers = useMemo(() => {
+    let items: BookOffer[];
     if (!data) {
-      return [];
+      items = [];
+    } else if ('book' in data) {
+      items = data.book ? data.book.offers : [];
+    } else {
+      items = data.books.flatMap((book) => book.offers);
     }
 
-    if ('book' in data) {
-      return data.book ? data.book.offers : [];
+    if (preferredSet.size === 0) {
+      return items;
     }
 
-    return data.books.flatMap((book) => book.offers);
-  }, [data]);
+    return items.filter((offer) => preferredSet.has(offer.sourceId));
+  }, [data, preferredSet]);
   const sources = data?.sources ?? [];
   const liveScraping = data?.meta.liveScraping ?? false;
   const resultCount = offers.length;

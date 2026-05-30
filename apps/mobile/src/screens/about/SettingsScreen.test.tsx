@@ -15,6 +15,7 @@ const mockUpdatePreference = jest.fn();
 const mockGetPreferences = jest.fn<Preferences, []>(() => ({
   openLinksIn: 'app',
   themeMode: 'system',
+  preferredSources: [],
 }));
 
 jest.mock('@expo/react-native-action-sheet', () => {
@@ -37,7 +38,11 @@ describe('SettingsScreen', () => {
     jest.mocked(track).mockReset();
     mockUpdatePreference.mockReset();
     mockShowActionSheetWithOptions.mockReset();
-    mockGetPreferences.mockReturnValue({ openLinksIn: 'app', themeMode: 'system' });
+    mockGetPreferences.mockReturnValue({
+      openLinksIn: 'app',
+      themeMode: 'system',
+      preferredSources: [],
+    });
   });
 
   it('renders current preferences', () => {

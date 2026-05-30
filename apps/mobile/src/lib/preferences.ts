@@ -1,6 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 
+import { BOOK_SOURCES } from '@bookscompare/contracts';
+
+import type { BookSourceId } from '@bookscompare/contracts';
+
 export const PREFERENCES_STORAGE_KEY = 'bookscompare:preferences:v1';
 
 export type OpenLinksIn = 'app' | 'browser';
@@ -9,13 +13,17 @@ export type ThemeMode = 'system' | 'light' | 'dark';
 export interface Preferences {
   openLinksIn: OpenLinksIn;
   themeMode: ThemeMode;
+  preferredSources: BookSourceId[];
 }
 
 type PreferenceKey = keyof Preferences;
 
+const validSourceIds = new Set<string>(BOOK_SOURCES.map((s) => s.id));
+
 const defaultPreferences: Preferences = {
   openLinksIn: 'app',
   themeMode: 'system',
+  preferredSources: [],
 };
 
 const validators: {
@@ -24,6 +32,8 @@ const validators: {
   openLinksIn: (value): value is OpenLinksIn => value === 'app' || value === 'browser',
   themeMode: (value): value is ThemeMode =>
     value === 'system' || value === 'light' || value === 'dark',
+  preferredSources: (value): value is BookSourceId[] =>
+    Array.isArray(value) && value.every((v) => typeof v === 'string' && validSourceIds.has(v)),
 };
 
 let currentPreferences = defaultPreferences;

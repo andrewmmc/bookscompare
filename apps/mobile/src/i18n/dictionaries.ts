@@ -108,6 +108,13 @@ interface Dictionary {
     appearanceDark: string;
     cancelAction: string;
   };
+  storePreferences: {
+    title: string;
+    settingsRow: string;
+    settingsRowValue: (count: number) => string;
+    settingsRowValueAll: string;
+    description: string;
+  };
   webview: {
     shareAccessibility: string;
     loadingLabel: string;
@@ -238,6 +245,13 @@ const zhTW: Dictionary = {
     appearanceLight: '淺色',
     appearanceDark: '深色',
     cancelAction: '取消',
+  },
+  storePreferences: {
+    title: '書店偏好',
+    settingsRow: '書店偏好',
+    settingsRowValue: (count) => `已選 ${count} 家`,
+    settingsRowValueAll: '全部',
+    description: '選擇您想要比較的書店。未選擇任何書店時，將顯示所有書店的結果。',
   },
   webview: {
     shareAccessibility: '分享',
@@ -372,6 +386,14 @@ const en: Dictionary = {
     appearanceLight: 'Light',
     appearanceDark: 'Dark',
     cancelAction: 'Cancel',
+  },
+  storePreferences: {
+    title: 'Bookstore Preferences',
+    settingsRow: 'Bookstores',
+    settingsRowValue: (count) => `${count} selected`,
+    settingsRowValueAll: 'All',
+    description:
+      'Choose which bookstores to compare. When none are selected, results from all stores are shown.',
   },
   webview: {
     shareAccessibility: 'Share',

@@ -14,6 +14,7 @@ const mockUpdatePreference = jest.fn();
 const mockGetPreferences = jest.fn<Preferences, []>(() => ({
   openLinksIn: 'app',
   themeMode: 'system',
+  preferredSources: [],
 }));
 
 jest.mock('../../lib/preferences', () => ({
@@ -25,7 +26,11 @@ describe('AboutScreen', () => {
   beforeEach(() => {
     jest.mocked(openExternalUrl).mockReset();
     mockUpdatePreference.mockReset();
-    mockGetPreferences.mockReturnValue({ openLinksIn: 'app', themeMode: 'system' });
+    mockGetPreferences.mockReturnValue({
+      openLinksIn: 'app',
+      themeMode: 'system',
+      preferredSources: [],
+    });
   });
 
   it('opens in-app links in the webview screen when preference is app', () => {
@@ -49,7 +54,11 @@ describe('AboutScreen', () => {
   });
 
   it('opens links externally when preference is browser', () => {
-    mockGetPreferences.mockReturnValue({ openLinksIn: 'browser', themeMode: 'system' });
+    mockGetPreferences.mockReturnValue({
+      openLinksIn: 'browser',
+      themeMode: 'system',
+      preferredSources: [],
+    });
 
     const navigation = {
       navigate: jest.fn(),
