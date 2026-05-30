@@ -52,7 +52,7 @@ export function BarcodeScannerScreen({ navigation }: Props) {
     <View style={styles.container}>
       <CameraView
         barcodeScannerSettings={{
-          barcodeTypes: ['ean13'],
+          barcodeTypes: ['ean13', 'upc_a', 'code128', 'code39'],
         }}
         facing="back"
         onBarcodeScanned={

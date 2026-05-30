@@ -61,25 +61,31 @@ export function SearchResultScreen({ navigation, route }: Props) {
   const isRefetching = isbnParam ? isbnQuery.isRefetching : titleQuery.isRefetching;
   const refetch = isbnParam ? isbnQuery.refetch : titleQuery.refetch;
   const preferredSet = useMemo(() => new Set(preferredSources), [preferredSources]);
-  const offers = useMemo(() => {
-    let items: BookOffer[];
+  const rawOffers = useMemo<BookOffer[]>(() => {
     if (!data) {
-      items = [];
-    } else if ('book' in data) {
-      items = data.book ? data.book.offers : [];
-    } else {
-      items = data.books.flatMap((book) => book.offers);
+      return [];
     }
-
-    return items.filter(
-      (offer) =>
-        (preferredSet.size === 0 || preferredSet.has(offer.sourceId)) &&
-        matchesBookTypePreference(offer, preferredBookTypes)
-    );
-  }, [data, preferredBookTypes, preferredSet]);
+    if ('book' in data) {
+      return data.book ? data.book.offers : [];
+    }
+    return data.books.flatMap((book) => book.offers);
+  }, [data]);
+  const offers = useMemo(
+    () =>
+      rawOffers
+        .filter(
+          (offer) =>
+            (preferredSet.size === 0 || preferredSet.has(offer.sourceId)) &&
+            matchesBookTypePreference(offer, preferredBookTypes)
+        )
+        .sort((a, b) => a.price - b.price),
+    [rawOffers, preferredBookTypes, preferredSet]
+  );
   const sources = data?.sources ?? [];
   const liveScraping = data?.meta.liveScraping ?? false;
   const resultCount = offers.length;
+  const lowestPrice = resultCount > 0 ? offers[0]!.price : null;
+  const hasFilteredEverything = rawOffers.length > 0 && resultCount === 0;
   const allSourcesErrored =
     sources.length > 0 && sources.every((source) => source.status === 'error');
 
@@ -215,6 +221,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
   const renderOffer = ({ item, index }: { item: BookOffer; index: number }) => {
     const showRowFavourite = !isbnParam && Boolean(item.isbn);
     const rowIsFavourite = showRowFavourite && item.isbn ? favouriteIsbnSet.has(item.isbn) : false;
+    const showLowestBadge = resultCount > 1 && lowestPrice !== null && item.price === lowestPrice;
     const isFirst = index === 0;
     const isLast = index === offers.length - 1;
     return (
@@ -234,9 +241,21 @@ export function SearchResultScreen({ navigation, route }: Props) {
           resizeMode="cover"
         />
         <View style={styles.body}>
-          {isEbookOffer(item) ? (
-            <View style={styles.ebookBadge}>
-              <Text style={styles.ebookBadgeText}>{strings.searchResult.ebookBadge}</Text>
+          {showLowestBadge || isEbookOffer(item) ? (
+            <View style={styles.badgeRow}>
+              {showLowestBadge ? (
+                <View style={styles.lowestBadge}>
+                  <Ionicons name="pricetag" size={11} color={colors.surface} />
+                  <Text style={styles.lowestBadgeText}>
+                    {strings.searchResult.lowestPriceBadge}
+                  </Text>
+                </View>
+              ) : null}
+              {isEbookOffer(item) ? (
+                <View style={styles.ebookBadge}>
+                  <Text style={styles.ebookBadgeText}>{strings.searchResult.ebookBadge}</Text>
+                </View>
+              ) : null}
             </View>
           ) : null}
           <Text style={styles.title} numberOfLines={2}>
@@ -300,6 +319,18 @@ export function SearchResultScreen({ navigation, route }: Props) {
   }
 
   if (!isLoading && resultCount === 0) {
+    if (hasFilteredEverything) {
+      return (
+        <View style={styles.container}>
+          <EmptyState
+            icon="funnel-outline"
+            title={strings.searchResult.filteredEmptyTitle}
+            description={strings.searchResult.filteredEmptyDescription}
+          />
+        </View>
+      );
+    }
+
     if (allSourcesErrored) {
       return (
         <View style={styles.container}>
@@ -454,6 +485,27 @@ const createStyles = (colors: ThemeColors) =>
       ...typography.caption2,
       color: colors.inkMuted,
       fontWeight: '600',
+    },
+    badgeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: spacing.xxs,
+    },
+    lowestBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 2,
+      alignSelf: 'flex-start',
+      paddingHorizontal: spacing.xs,
+      paddingVertical: 2,
+      borderRadius: 10,
+      backgroundColor: colors.accent,
+    },
+    lowestBadgeText: {
+      ...typography.caption2,
+      color: colors.surface,
+      fontWeight: '700',
     },
     title: {
       ...typography.subhead,

@@ -54,6 +54,7 @@ interface Dictionary {
     sourceStatus: { ready: string; error: string; disabled: string };
     sourceChipsAccessibilityLabel: string;
     ebookBadge: string;
+    lowestPriceBadge: string;
     resultsCount: (count: number) => string;
     fromPrice: (price: string) => string;
     storeCount: (count: number) => string;
@@ -67,6 +68,8 @@ interface Dictionary {
     notLiveDescription: string;
     notFoundTitle: string;
     notFoundDescription: string;
+    filteredEmptyTitle: string;
+    filteredEmptyDescription: string;
   };
   priceTag: {
     discountTag: (discountRate: number) => string;
@@ -197,6 +200,7 @@ const zhTW: Dictionary = {
     },
     sourceChipsAccessibilityLabel: '書店狀態',
     ebookBadge: '電子書',
+    lowestPriceBadge: '最低價',
     resultsCount: (count) => `共找到 ${count} 個結果。`,
     fromPrice: (price) => `${price} 起`,
     storeCount: (count) => `${count} 家書店`,
@@ -211,6 +215,9 @@ const zhTW: Dictionary = {
     notFoundTitle: '未能找到結果',
     notFoundDescription:
       '抱歉，找不到所搜尋書本的價格資料。\n您慣用的網絡書店不在名單上？\n歡迎提交意見給我們！',
+    filteredEmptyTitle: '沒有符合篩選條件的結果',
+    filteredEmptyDescription:
+      '已找到書價，但都被您目前的書店或書籍類型篩選排除了。\n請到「設定」調整偏好後再試。',
   },
   priceTag: {
     discountTag: (discountRate) => `${discountRate}折`,
@@ -344,6 +351,7 @@ const en: Dictionary = {
     },
     sourceChipsAccessibilityLabel: 'Bookstore status',
     ebookBadge: 'eBook',
+    lowestPriceBadge: 'Lowest',
     resultsCount: (count) => `Found ${count} ${count === 1 ? 'result' : 'results'}.`,
     fromPrice: (price) => `from ${price}`,
     storeCount: (count) => `${count} ${count === 1 ? 'store' : 'stores'}`,
@@ -360,6 +368,9 @@ const en: Dictionary = {
     notFoundTitle: 'No results found',
     notFoundDescription:
       "Sorry, we couldn't find pricing for that book.\nIs your favourite bookstore missing?\nLet us know!",
+    filteredEmptyTitle: 'No results match your filters',
+    filteredEmptyDescription:
+      'We found prices, but your current bookstore or book-type filters hid them all.\nAdjust your preferences in Settings and try again.',
   },
   priceTag: {
     discountTag: (discountRate) => `${discountRate}% list`,

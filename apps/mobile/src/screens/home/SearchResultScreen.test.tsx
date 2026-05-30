@@ -391,6 +391,70 @@ describe('SearchResultScreen', () => {
     expect(screen.queryByText('電子書')).toBeNull();
   });
 
+  it('sorts offers cheapest-first and badges the lowest price', () => {
+    mockUseTitleSearch.mockReturnValue({
+      data: createTitleData([
+        createOffer({
+          sourceId: 'eslite',
+          sourceName: '誠品線上',
+          sourceProductId: 'item-pricey',
+          price: 360,
+          priceText: '360',
+          url: 'https://example.com/store/pricey',
+        }),
+        createOffer({
+          sourceProductId: 'item-cheap',
+          price: 250,
+          priceText: '250',
+          url: 'https://example.com/store/cheap',
+        }),
+      ]),
+      error: null,
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    });
+
+    const navigation = createNavigation();
+    const screen = renderWithProviders(
+      <SearchResultScreen
+        navigation={navigation as never}
+        route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
+      />
+    );
+
+    const list = screen.UNSAFE_getByType(FlatList);
+    expect(list.props.data.map((offer: BookOffer) => offer.price)).toEqual([250, 360]);
+    expect(screen.getByText('最低價')).toBeOnTheScreen();
+  });
+
+  it('shows a filtered-empty state when filters remove every offer', () => {
+    mockGetPreferences.mockReturnValue({
+      openLinksIn: 'app',
+      themeMode: 'system',
+      preferredSources: [],
+      preferredBookTypes: ['ebook'],
+    });
+    mockUseTitleSearch.mockReturnValue({
+      data: createTitleData([createOffer({ productType: '中文書' })]),
+      error: null,
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    });
+
+    const navigation = createNavigation();
+    const screen = renderWithProviders(
+      <SearchResultScreen
+        navigation={navigation as never}
+        route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
+      />
+    );
+
+    expect(screen.getByText('沒有符合篩選條件的結果')).toBeOnTheScreen();
+    expect(screen.queryByText('未能找到結果')).toBeNull();
+  });
+
   it('opens offers in the browser when that preference is selected', () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'browser',
