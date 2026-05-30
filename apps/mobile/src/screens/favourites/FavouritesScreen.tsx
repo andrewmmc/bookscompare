@@ -1,11 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { useLayoutEffect, useMemo, useRef } from 'react';
-import { Alert, Animated, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useRef } from 'react';
+import { Animated, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
 import { track } from '../../analytics';
 import { useClearFavourites, useFavourites, useRemoveFavourite } from '../../api/favourites';
+import { useClearAllHeaderAction } from '../../components/ClearAllHeaderButton';
 import { EmptyState } from '../../components/EmptyState';
 import { strings } from '../../i18n/strings';
 import { formatDate } from '../../lib/datetime';
@@ -42,42 +43,14 @@ export function FavouritesScreen({ navigation }: Props) {
     removeFavourite.mutate(item.isbn);
   };
 
-  const handleClearAll = () => {
-    track('favourites_click_clear_all');
-    Alert.alert(
-      strings.favourites.clearAllConfirmTitle,
-      strings.favourites.clearAllConfirmMessage,
-      [
-        { text: strings.favourites.cancelAction, style: 'cancel' },
-        {
-          text: strings.favourites.clearAllConfirmAction,
-          style: 'destructive',
-          onPress: () => {
-            track('favourites_clear_all_confirm');
-            clearFavourites.mutate();
-          },
-        },
-      ]
-    );
-  };
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () =>
-        hasFavourites ? (
-          <Pressable
-            accessibilityLabel={strings.favourites.clearAllAction}
-            accessibilityRole="button"
-            hitSlop={8}
-            onPress={handleClearAll}
-            style={({ pressed }) => [styles.headerAction, pressed && styles.headerActionPressed]}
-          >
-            <Text style={styles.headerActionText}>{strings.favourites.clearAllAction}</Text>
-          </Pressable>
-        ) : null,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation, hasFavourites, styles]);
+  useClearAllHeaderAction({
+    navigation,
+    visible: hasFavourites,
+    strings: strings.favourites,
+    clickEvent: 'favourites_click_clear_all',
+    confirmEvent: 'favourites_clear_all_confirm',
+    onConfirm: () => clearFavourites.mutate(),
+  });
 
   const renderRightActions = (
     progress: Animated.AnimatedInterpolation<number>,
@@ -267,17 +240,5 @@ const createStyles = (colors: ThemeColors) =>
       ...typography.footnote,
       color: '#ffffff',
       fontWeight: '600',
-    },
-    headerAction: {
-      paddingHorizontal: spacing.xs,
-      paddingVertical: spacing.xxs,
-    },
-    headerActionPressed: {
-      opacity: 0.6,
-    },
-    headerActionText: {
-      ...typography.body,
-      color: colors.navigationAction,
-      fontWeight: '500',
     },
   });

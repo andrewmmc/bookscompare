@@ -1,10 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { useLayoutEffect, useMemo } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { track } from '../../analytics';
 import { useClearHistory, useHistory } from '../../api/history';
+import { useClearAllHeaderAction } from '../../components/ClearAllHeaderButton';
 import { EmptyState } from '../../components/EmptyState';
 import { strings } from '../../i18n/strings';
 import { formatDateTime } from '../../lib/datetime';
@@ -42,38 +43,14 @@ export function HistoryScreen({ navigation }: Props) {
     }
   };
 
-  const handleClearAll = () => {
-    track('history_click_clear_all');
-    Alert.alert(strings.history.clearAllConfirmTitle, strings.history.clearAllConfirmMessage, [
-      { text: strings.history.cancelAction, style: 'cancel' },
-      {
-        text: strings.history.clearAllConfirmAction,
-        style: 'destructive',
-        onPress: () => {
-          track('history_clear_all_confirm');
-          clearHistory.mutate();
-        },
-      },
-    ]);
-  };
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () =>
-        hasHistory ? (
-          <Pressable
-            accessibilityLabel={strings.history.clearAllAction}
-            accessibilityRole="button"
-            hitSlop={8}
-            onPress={handleClearAll}
-            style={({ pressed }) => [styles.headerAction, pressed && styles.headerActionPressed]}
-          >
-            <Text style={styles.headerActionText}>{strings.history.clearAllAction}</Text>
-          </Pressable>
-        ) : null,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation, hasHistory, styles]);
+  useClearAllHeaderAction({
+    navigation,
+    visible: hasHistory,
+    strings: strings.history,
+    clickEvent: 'history_click_clear_all',
+    confirmEvent: 'history_clear_all_confirm',
+    onConfirm: () => clearHistory.mutate(),
+  });
 
   if (!isLoading && (!data || data.length === 0)) {
     return (
@@ -207,17 +184,5 @@ const createStyles = (colors: ThemeColors) =>
     meta: {
       ...typography.caption,
       color: colors.inkMuted,
-    },
-    headerAction: {
-      paddingHorizontal: spacing.xs,
-      paddingVertical: spacing.xxs,
-    },
-    headerActionPressed: {
-      opacity: 0.6,
-    },
-    headerActionText: {
-      ...typography.body,
-      color: colors.navigationAction,
-      fontWeight: '500',
     },
   });
