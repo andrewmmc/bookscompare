@@ -12,7 +12,7 @@ import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { OpenLinksIn, ThemeMode } from '../../lib/preferences';
+import type { BookTypePreference, OpenLinksIn, ThemeMode } from '../../lib/preferences';
 import type { ThemeColors } from '../../theme/colors';
 import type { AboutStackParamList } from '../../navigation/types';
 
@@ -37,15 +37,33 @@ function themeModeLabel(value: ThemeMode): string {
   }
 }
 
+function bookTypePreferenceLabel(values: BookTypePreference[]): string {
+  if (values.length === 0 || values.length === 2) {
+    return strings.settings.bookTypeAll;
+  }
+
+  return values[0] === 'physical'
+    ? strings.settings.bookTypePhysical
+    : strings.settings.bookTypeEbook;
+}
+
 interface SettingsRowProps {
   icon: Parameters<typeof ListRow>[0]['icon'];
   iconBackground: string;
   title: string;
   value: string;
   onPress: () => void;
+  isLast?: boolean;
 }
 
-function SettingsRow({ icon, iconBackground, title, value, onPress }: SettingsRowProps) {
+function SettingsRow({
+  icon,
+  iconBackground,
+  title,
+  value,
+  onPress,
+  isLast = true,
+}: SettingsRowProps) {
   return (
     <ListRow
       icon={icon}
@@ -53,7 +71,7 @@ function SettingsRow({ icon, iconBackground, title, value, onPress }: SettingsRo
       title={title}
       value={value}
       onPress={onPress}
-      isLast
+      isLast={isLast}
     />
   );
 }
@@ -142,15 +160,24 @@ export function SettingsScreen({ navigation }: Props) {
       </View>
 
       <Text style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>
-        {strings.storePreferences.title}
+        {strings.settings.contentSection}
       </Text>
       <View style={styles.group}>
+        <SettingsRow
+          icon="library-outline"
+          iconBackground={colors.accent}
+          title={strings.settings.bookType}
+          value={bookTypePreferenceLabel(preferences.preferredBookTypes)}
+          onPress={() => navigation.navigate('BookTypePreferences')}
+          isLast={false}
+        />
         <SettingsRow
           icon="storefront-outline"
           iconBackground={colors.success}
           title={strings.storePreferences.settingsRow}
           value={storePrefsValue}
           onPress={() => navigation.navigate('StorePreferences')}
+          isLast
         />
       </View>
     </ScrollView>

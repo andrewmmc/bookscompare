@@ -16,6 +16,7 @@ const mockGetPreferences = jest.fn<Preferences, []>(() => ({
   openLinksIn: 'app',
   themeMode: 'system',
   preferredSources: [],
+  preferredBookTypes: [],
 }));
 
 jest.mock('@expo/react-native-action-sheet', () => {
@@ -42,6 +43,7 @@ describe('SettingsScreen', () => {
       openLinksIn: 'app',
       themeMode: 'system',
       preferredSources: [],
+      preferredBookTypes: [],
     });
   });
 
@@ -55,6 +57,22 @@ describe('SettingsScreen', () => {
 
     expect(screen.getByText(/在 App 內開啟/)).toBeOnTheScreen();
     expect(screen.getByText(/跟隨系統/)).toBeOnTheScreen();
+    expect(screen.getAllByText(/^全部$/)).toHaveLength(2);
+  });
+
+  it('navigates to book type preferences', () => {
+    const navigation = { navigate: jest.fn() };
+
+    const screen = renderWithProviders(
+      <SettingsScreen
+        navigation={navigation as never}
+        route={{ key: 'Settings', name: 'Settings' } as never}
+      />
+    );
+
+    fireEvent.press(screen.getByText('書籍類型'));
+
+    expect(navigation.navigate).toHaveBeenCalledWith('BookTypePreferences');
   });
 
   it('persists open links preference when changed via action sheet', () => {

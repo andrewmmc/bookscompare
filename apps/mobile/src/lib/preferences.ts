@@ -9,11 +9,13 @@ export const PREFERENCES_STORAGE_KEY = 'bookscompare:preferences:v1';
 
 export type OpenLinksIn = 'app' | 'browser';
 export type ThemeMode = 'system' | 'light' | 'dark';
+export type BookTypePreference = 'physical' | 'ebook';
 
 export interface Preferences {
   openLinksIn: OpenLinksIn;
   themeMode: ThemeMode;
   preferredSources: BookSourceId[];
+  preferredBookTypes: BookTypePreference[];
 }
 
 type PreferenceKey = keyof Preferences;
@@ -24,6 +26,7 @@ const defaultPreferences: Preferences = {
   openLinksIn: 'app',
   themeMode: 'system',
   preferredSources: [],
+  preferredBookTypes: [],
 };
 
 const validators: {
@@ -34,6 +37,10 @@ const validators: {
     value === 'system' || value === 'light' || value === 'dark',
   preferredSources: (value): value is BookSourceId[] =>
     Array.isArray(value) && value.every((v) => typeof v === 'string' && validSourceIds.has(v)),
+  preferredBookTypes: (value): value is BookTypePreference[] =>
+    Array.isArray(value) &&
+    value.every((v) => v === 'physical' || v === 'ebook') &&
+    new Set(value).size === value.length,
 };
 
 let currentPreferences = defaultPreferences;

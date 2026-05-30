@@ -24,6 +24,7 @@ import { typography } from '../../theme/typography';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BookOffer } from '@bookscompare/contracts';
+import type { BookTypePreference } from '../../lib/preferences';
 import type { ThemeColors } from '../../theme/colors';
 import type { SearchResultRoutes } from '../../navigation/types';
 
@@ -33,11 +34,23 @@ function isEbookOffer(item: BookOffer): boolean {
   return item.productType.includes('電子書') || item.title.includes('電子書');
 }
 
+function matchesBookTypePreference(
+  item: BookOffer,
+  preferredBookTypes: BookTypePreference[]
+): boolean {
+  if (preferredBookTypes.length === 0) {
+    return true;
+  }
+
+  const isEbook = isEbookOffer(item);
+  return preferredBookTypes.includes(isEbook ? 'ebook' : 'physical');
+}
+
 export function SearchResultScreen({ navigation, route }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const tabBarHeight = useBottomTabBarHeight();
-  const { openLinksIn, preferredSources } = usePreferences();
+  const { openLinksIn, preferredSources, preferredBookTypes } = usePreferences();
   const isbnParam = 'isbn' in route.params ? route.params.isbn : '';
   const titleParam = 'title' in route.params ? route.params.title : '';
   const isbnQuery = useIsbnLookup(isbnParam);
@@ -58,12 +71,12 @@ export function SearchResultScreen({ navigation, route }: Props) {
       items = data.books.flatMap((book) => book.offers);
     }
 
-    if (preferredSet.size === 0) {
-      return items;
-    }
-
-    return items.filter((offer) => preferredSet.has(offer.sourceId));
-  }, [data, preferredSet]);
+    return items.filter(
+      (offer) =>
+        (preferredSet.size === 0 || preferredSet.has(offer.sourceId)) &&
+        matchesBookTypePreference(offer, preferredBookTypes)
+    );
+  }, [data, preferredBookTypes, preferredSet]);
   const sources = data?.sources ?? [];
   const liveScraping = data?.meta.liveScraping ?? false;
   const resultCount = offers.length;

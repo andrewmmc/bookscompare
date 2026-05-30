@@ -25,6 +25,7 @@ export type AboutStackParamList = {
   About: undefined;
   Settings: undefined;
   StorePreferences: undefined;
+  BookTypePreferences: undefined;
   AboutWebView: WebViewScreenParams;
 };
 

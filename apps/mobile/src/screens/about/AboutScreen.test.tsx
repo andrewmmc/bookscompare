@@ -15,6 +15,7 @@ const mockGetPreferences = jest.fn<Preferences, []>(() => ({
   openLinksIn: 'app',
   themeMode: 'system',
   preferredSources: [],
+  preferredBookTypes: [],
 }));
 
 jest.mock('../../lib/preferences', () => ({
@@ -30,6 +31,7 @@ describe('AboutScreen', () => {
       openLinksIn: 'app',
       themeMode: 'system',
       preferredSources: [],
+      preferredBookTypes: [],
     });
   });
 
@@ -58,6 +60,7 @@ describe('AboutScreen', () => {
       openLinksIn: 'browser',
       themeMode: 'system',
       preferredSources: [],
+      preferredBookTypes: [],
     });
 
     const navigation = {

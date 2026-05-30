@@ -3,9 +3,17 @@ import { fireEvent } from '@testing-library/react-native';
 import { SearchResultScreen } from './SearchResultScreen';
 import { renderWithProviders } from '../../test/test-utils';
 
+import type { Preferences } from '../../lib/preferences';
+
 const mockUseTitleSearch = jest.fn();
 const mockUseIsbnLookup = jest.fn();
 const mockAddHistoryEntryMutate = jest.fn();
+const mockGetPreferences = jest.fn<Preferences, []>(() => ({
+  openLinksIn: 'app',
+  themeMode: 'system',
+  preferredSources: [],
+  preferredBookTypes: [],
+}));
 
 jest.mock('../../api/queries', () => ({
   useIsbnLookup: (...args: unknown[]) => mockUseIsbnLookup(...args),
@@ -23,11 +31,21 @@ jest.mock('../../api/history', () => ({
   useAddHistoryEntry: () => ({ mutate: mockAddHistoryEntryMutate }),
 }));
 
+jest.mock('../../lib/preferences', () => ({
+  usePreferences: () => mockGetPreferences(),
+}));
+
 describe('SearchResultScreen', () => {
   beforeEach(() => {
     mockUseIsbnLookup.mockReset();
     mockUseTitleSearch.mockReset();
     mockAddHistoryEntryMutate.mockReset();
+    mockGetPreferences.mockReturnValue({
+      openLinksIn: 'app',
+      themeMode: 'system',
+      preferredSources: [],
+      preferredBookTypes: [],
+    });
     mockUseIsbnLookup.mockReturnValue({
       data: undefined,
       error: null,
@@ -219,5 +237,83 @@ describe('SearchResultScreen', () => {
 
     expect(screen.getByText('未能找到結果')).toBeOnTheScreen();
     expect(navigation.navigate).not.toHaveBeenCalled();
+  });
+
+  it('filters title-search offers by preferred book type', () => {
+    mockGetPreferences.mockReturnValue({
+      openLinksIn: 'app',
+      themeMode: 'system',
+      preferredSources: [],
+      preferredBookTypes: ['physical'],
+    });
+    mockUseTitleSearch.mockReturnValue({
+      data: {
+        query: { title: '設計' },
+        books: [
+          {
+            id: '9781402894626',
+            isbn: '9781402894626',
+            title: '設計中的書',
+            authors: ['作者甲'],
+            publisher: '測試出版社',
+            imageUrl: 'https://example.com/book.jpg',
+            summary: '內容簡介',
+            offers: [
+              {
+                sourceId: 'books-com-tw',
+                sourceName: '博客來',
+                sourceProductId: 'item-1',
+                title: '設計中的書',
+                productType: '中文書',
+                authors: ['作者甲'],
+                publisher: '測試出版社',
+                summary: '內容簡介',
+                imageUrl: 'https://example.com/book.jpg',
+                price: 280,
+                currency: 'TWD',
+                priceText: '280',
+                url: 'https://example.com/store/book',
+                badges: [],
+              },
+              {
+                sourceId: 'eslite',
+                sourceName: '誠品線上',
+                sourceProductId: 'item-2',
+                title: '設計中的書',
+                productType: '中文電子書',
+                authors: ['作者甲'],
+                publisher: '測試出版社',
+                summary: '內容簡介',
+                imageUrl: 'https://example.com/book.jpg',
+                price: 320,
+                currency: 'TWD',
+                priceText: '320',
+                url: 'https://example.com/store/book-eslite',
+                badges: [],
+              },
+            ],
+          },
+        ],
+        sources: [{ id: 'books-com-tw', name: '博客來', status: 'ready' }],
+        meta: { liveScraping: true, requestedAt: 'now' },
+      },
+      error: null,
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    });
+
+    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
+
+    const screen = renderWithProviders(
+      <SearchResultScreen
+        navigation={navigation as never}
+        route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
+      />
+    );
+
+    expect(screen.getByText('博客來: 設計中的書')).toBeOnTheScreen();
+    expect(screen.queryByText('誠品線上: 設計中的書')).toBeNull();
+    expect(screen.queryByText('電子書')).toBeNull();
   });
 });

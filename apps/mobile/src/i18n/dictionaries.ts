@@ -99,6 +99,7 @@ interface Dictionary {
     title: string;
     generalSection: string;
     appearanceSection: string;
+    contentSection: string;
     openLinksIn: string;
     openLinksInApp: string;
     openLinksInBrowser: string;
@@ -106,6 +107,11 @@ interface Dictionary {
     appearanceSystem: string;
     appearanceLight: string;
     appearanceDark: string;
+    bookType: string;
+    bookTypeDescription: string;
+    bookTypeAll: string;
+    bookTypePhysical: string;
+    bookTypeEbook: string;
     cancelAction: string;
   };
   storePreferences: {
@@ -237,6 +243,7 @@ const zhTW: Dictionary = {
     title: '設定',
     generalSection: '一般',
     appearanceSection: '外觀',
+    contentSection: '內容',
     openLinksIn: '開啟連結',
     openLinksInApp: '在 App 內開啟',
     openLinksInBrowser: '在瀏覽器開啟',
@@ -244,6 +251,11 @@ const zhTW: Dictionary = {
     appearanceSystem: '跟隨系統',
     appearanceLight: '淺色',
     appearanceDark: '深色',
+    bookType: '書籍類型',
+    bookTypeDescription: '選擇要顯示的書籍類型。未選擇任何類型時，將顯示全部結果。',
+    bookTypeAll: '全部',
+    bookTypePhysical: '實體書',
+    bookTypeEbook: '電子書',
     cancelAction: '取消',
   },
   storePreferences: {
@@ -378,6 +390,7 @@ const en: Dictionary = {
     title: 'Settings',
     generalSection: 'General',
     appearanceSection: 'Appearance',
+    contentSection: 'Content',
     openLinksIn: 'Open links',
     openLinksInApp: 'In app',
     openLinksInBrowser: 'Browser',
@@ -385,6 +398,12 @@ const en: Dictionary = {
     appearanceSystem: 'System',
     appearanceLight: 'Light',
     appearanceDark: 'Dark',
+    bookType: 'Book type',
+    bookTypeDescription:
+      'Choose which book types to show. When none are selected, all results are shown.',
+    bookTypeAll: 'All',
+    bookTypePhysical: 'Physical books',
+    bookTypeEbook: 'eBooks',
     cancelAction: 'Cancel',
   },
   storePreferences: {
