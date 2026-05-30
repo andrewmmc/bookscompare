@@ -44,6 +44,3 @@ export const paperThemeDark = {
   roundness: 4,
   colors: buildPaperColors(darkColors, MD3DarkTheme.colors),
 };
-
-/** @deprecated Do not use at runtime — always use useTheme() for theme-reactive values. */
-export const paperTheme = paperThemeLight;

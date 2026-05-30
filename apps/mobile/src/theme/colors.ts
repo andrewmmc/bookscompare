@@ -68,6 +68,3 @@ export const darkColors = {
   danger: '#ff453a',
   shadow: '#000000',
 } satisfies ThemeColors;
-
-/** @deprecated Do not use at runtime — always use useTheme() for theme-reactive colors. */
-export const colors = lightColors;

@@ -43,7 +43,3 @@ export function renderWithProviders(element: ReactElement, options: RenderOption
     </QueryClientProvider>
   );
 }
-
-export function renderWithTheme(element: ReactElement, options: RenderOptions = {}) {
-  return renderWithProviders(element, options);
-}

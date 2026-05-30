@@ -6,19 +6,6 @@ function textStyle(style: TextStyle): TextStyle {
 
 // iOS 26 type scale (SF Pro inspired). Sizes/weights mirror Apple HIG.
 export const typography = {
-  // iOS large-title / titles
-  largeTitle: textStyle({
-    fontSize: 34,
-    lineHeight: 41,
-    fontWeight: '700',
-    letterSpacing: -0.4,
-  }),
-  title1: textStyle({
-    fontSize: 28,
-    lineHeight: 34,
-    fontWeight: '700',
-    letterSpacing: -0.3,
-  }),
   title2: textStyle({
     fontSize: 22,
     lineHeight: 28,
@@ -38,11 +25,6 @@ export const typography = {
   body: textStyle({
     fontSize: 17,
     lineHeight: 22,
-    fontWeight: '400',
-  }),
-  callout: textStyle({
-    fontSize: 16,
-    lineHeight: 21,
     fontWeight: '400',
   }),
   subhead: textStyle({
@@ -75,26 +57,5 @@ export const typography = {
     fontSize: 10,
     lineHeight: 12,
     fontWeight: '500',
-  }),
-  // Back-compat aliases (older code references these names)
-  hero: textStyle({
-    fontSize: 22,
-    lineHeight: 28,
-    fontWeight: '700',
-    letterSpacing: -0.2,
-  }),
-  sectionTitle: textStyle({
-    fontSize: 20,
-    lineHeight: 25,
-    fontWeight: '600',
-  }),
-  stackTitle: textStyle({
-    fontSize: 17,
-    fontWeight: '600',
-  }),
-  kicker: textStyle({
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '400',
   }),
 } as const;
