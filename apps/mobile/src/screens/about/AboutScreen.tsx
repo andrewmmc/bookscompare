@@ -28,7 +28,7 @@ const aboutItems = [
     key: 'privacy',
     title: strings.about.items.privacy,
     icon: 'shield-checkmark',
-    url: 'https://bookscompare.mmc.dev/privacy',
+    url: 'https://bookscompare.mmc.dev/privacy?embed=1',
   },
   {
     key: 'feedback',

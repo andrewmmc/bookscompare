@@ -49,7 +49,7 @@ describe('AboutScreen', () => {
 
     expect(navigation.navigate).toHaveBeenCalledWith('AboutWebView', {
       title: '使用條款及私隱政策',
-      url: 'https://bookscompare.mmc.dev/privacy',
+      url: 'https://bookscompare.mmc.dev/privacy?embed=1',
     });
   });
 
