@@ -19,6 +19,20 @@ export const BOOK_SOURCES = [
 
 export type BookSourceId = (typeof BOOK_SOURCES)[number]['id'];
 
+export type Currency = 'TWD';
+
+export type SourceStatus = 'disabled' | 'ready' | 'error';
+
+export const API_ERROR_CODES = [
+  'INVALID_ISBN',
+  'INVALID_QUERY',
+  'METHOD_NOT_ALLOWED',
+  'NOT_FOUND',
+  'RATE_LIMITED',
+] as const;
+
+export type ApiErrorCode = (typeof API_ERROR_CODES)[number];
+
 export interface BookOffer {
   sourceId: BookSourceId;
   sourceName: string;
@@ -31,7 +45,7 @@ export interface BookOffer {
   publicationDate?: string;
   summary: string;
   price: number;
-  currency: 'TWD';
+  currency: Currency;
   priceText: string;
   discountRate?: number;
   url: string;
@@ -43,11 +57,12 @@ export interface BookOffer {
 export interface SourceState {
   id: BookSourceId;
   name: string;
-  status: 'disabled' | 'ready' | 'error';
+  status: SourceStatus;
   message?: string;
 }
 
-export interface BookSummary {
+/** Fields shared by book list summaries and full detail records. */
+export interface BookCore {
   id: string;
   isbn?: string;
   title: string;
@@ -55,19 +70,15 @@ export interface BookSummary {
   publisher?: string;
   publicationDate?: string;
   imageUrl: string;
+}
+
+export interface BookSummary extends BookCore {
   lowestPrice?: number;
-  currency: 'TWD';
+  currency: Currency;
   offerCount: number;
 }
 
-export interface BookDetail {
-  id: string;
-  isbn?: string;
-  title: string;
-  authors: string[];
-  publisher?: string;
-  publicationDate?: string;
-  imageUrl: string;
+export interface BookDetail extends BookCore {
   summary: string;
   offers: BookOffer[];
 }
@@ -94,7 +105,7 @@ export interface BookDetailResponse {
 
 export interface ApiErrorResponse {
   error: {
-    code: 'INVALID_ISBN' | 'INVALID_QUERY' | 'METHOD_NOT_ALLOWED' | 'NOT_FOUND' | 'RATE_LIMITED';
+    code: ApiErrorCode;
     message: string;
   };
 }
