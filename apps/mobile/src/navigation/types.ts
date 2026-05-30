@@ -24,6 +24,7 @@ export type FavouritesStackParamList = SearchResultRoutes & {
 export type AboutStackParamList = {
   About: undefined;
   Settings: undefined;
+  StorePreferences: undefined;
   AboutWebView: WebViewScreenParams;
 };
 

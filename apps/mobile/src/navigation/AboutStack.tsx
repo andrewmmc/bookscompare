@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { AboutScreen } from '../screens/about/AboutScreen';
 import { SettingsScreen } from '../screens/about/SettingsScreen';
+import { StorePreferencesScreen } from '../screens/about/StorePreferencesScreen';
 import { WebViewScreen } from '../screens/common/WebViewScreen';
 import { strings } from '../i18n/strings';
 import { useTheme } from '../theme/ThemeProvider';
@@ -37,6 +38,11 @@ export function AboutStack() {
         name="Settings"
         component={SettingsScreen}
         options={{ title: strings.navigation.settings }}
+      />
+      <Stack.Screen
+        name="StorePreferences"
+        component={StorePreferencesScreen}
+        options={{ title: strings.storePreferences.title }}
       />
       <Stack.Screen name="AboutWebView" component={WebViewScreen} />
     </Stack.Navigator>

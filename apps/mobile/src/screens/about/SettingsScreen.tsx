@@ -58,7 +58,7 @@ function SettingsRow({ icon, iconBackground, title, value, onPress }: SettingsRo
   );
 }
 
-export function SettingsScreen(_props: Props) {
+export function SettingsScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const { showActionSheetWithOptions } = useActionSheet();
   const preferences = usePreferences();
@@ -103,6 +103,11 @@ export function SettingsScreen(_props: Props) {
     });
   };
 
+  const storePrefsValue =
+    preferences.preferredSources.length === 0
+      ? strings.storePreferences.settingsRowValueAll
+      : strings.storePreferences.settingsRowValue(preferences.preferredSources.length);
+
   return (
     <ScrollView
       style={styles.container}
@@ -133,6 +138,19 @@ export function SettingsScreen(_props: Props) {
           title={strings.settings.appearance}
           value={themeModeLabel(preferences.themeMode)}
           onPress={showThemeModePicker}
+        />
+      </View>
+
+      <Text style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>
+        {strings.storePreferences.title}
+      </Text>
+      <View style={styles.group}>
+        <SettingsRow
+          icon="storefront-outline"
+          iconBackground={colors.success}
+          title={strings.storePreferences.settingsRow}
+          value={storePrefsValue}
+          onPress={() => navigation.navigate('StorePreferences')}
         />
       </View>
     </ScrollView>
