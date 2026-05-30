@@ -85,6 +85,23 @@ export function SearchResultScreen({ navigation, route }: Props) {
   }, [titleParam]);
 
   useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+    const searchType = isbnParam ? 'isbn' : 'title';
+    if (error) {
+      track('search_result_error', { searchType });
+    } else if (data) {
+      if (resultCount > 0) {
+        track('search_result_loaded', { searchType, resultCount });
+      } else {
+        track('search_result_empty', { searchType });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, error, data, resultCount]);
+
+  useEffect(() => {
     if (!isbnParam || isLoading) {
       return;
     }
