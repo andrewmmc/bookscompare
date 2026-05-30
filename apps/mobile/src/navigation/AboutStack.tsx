@@ -38,17 +38,26 @@ export function AboutStack() {
       <Stack.Screen
         name="Settings"
         component={SettingsScreen}
-        options={{ title: strings.navigation.settings }}
+        options={{
+          title: strings.navigation.settings,
+          headerBackButtonDisplayMode: 'minimal',
+        }}
       />
       <Stack.Screen
         name="StorePreferences"
         component={StorePreferencesScreen}
-        options={{ title: strings.storePreferences.title }}
+        options={{
+          title: strings.storePreferences.title,
+          headerBackButtonDisplayMode: 'minimal',
+        }}
       />
       <Stack.Screen
         name="BookTypePreferences"
         component={BookTypePreferencesScreen}
-        options={{ title: strings.settings.bookType }}
+        options={{
+          title: strings.settings.bookType,
+          headerBackButtonDisplayMode: 'minimal',
+        }}
       />
       <Stack.Screen name="AboutWebView" component={WebViewScreen} />
     </Stack.Navigator>
