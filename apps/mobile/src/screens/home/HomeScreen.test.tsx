@@ -52,4 +52,35 @@ describe('HomeScreen', () => {
 
     expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', { title: '設計中的書' });
   });
+
+  it('switches input keyboard mode when toggling search type while focused', () => {
+    const navigation = {
+      navigate: jest.fn(),
+    };
+
+    const screen = renderWithProviders(
+      <HomeScreen navigation={navigation as never} route={{ key: 'Home', name: 'Home' } as never} />
+    );
+
+    const isbnInput = screen.getByPlaceholderText('ISBN 碼');
+    fireEvent(isbnInput, 'focus');
+
+    expect(isbnInput.props.inputMode).toBe('numeric');
+    expect(isbnInput.props.keyboardType).toBe('numeric');
+
+    fireEvent.press(screen.getByText('書名'));
+
+    const titleInput = screen.getByPlaceholderText('輸入書名');
+    expect(titleInput.props.autoFocus).toBe(true);
+    expect(titleInput.props.inputMode).toBe('text');
+    expect(titleInput.props.keyboardType).toBe('default');
+
+    fireEvent(titleInput, 'focus');
+    fireEvent.press(screen.getByText('ISBN 碼'));
+
+    const nextIsbnInput = screen.getByPlaceholderText('ISBN 碼');
+    expect(nextIsbnInput.props.autoFocus).toBe(true);
+    expect(nextIsbnInput.props.inputMode).toBe('numeric');
+    expect(nextIsbnInput.props.keyboardType).toBe('numeric');
+  });
 });

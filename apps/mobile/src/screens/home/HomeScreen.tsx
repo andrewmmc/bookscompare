@@ -81,6 +81,7 @@ export function HomeScreen({ navigation }: Props) {
   const [mode, setMode] = useState<SearchMode>('isbn');
   const [isbn, setIsbn] = useState('');
   const [title, setTitle] = useState('');
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const titleSearchEnabled = featureFlags.enableTitleSearch;
   const normalizedIsbn = normalizeIsbn(isbn);
@@ -147,13 +148,18 @@ export function HomeScreen({ navigation }: Props) {
           <View style={styles.inputRow}>
             {mode === 'isbn' ? (
               <AppTextField
+                key="isbn"
+                autoFocus={isInputFocused}
                 containerStyle={styles.input}
+                inputMode="numeric"
                 keyboardType="numeric"
                 maxLength={13}
                 onChangeText={(value) => {
                   track('home_type_isbn');
                   setIsbn(value);
                 }}
+                onBlur={() => setIsInputFocused(false)}
+                onFocus={() => setIsInputFocused(true)}
                 placeholder={strings.home.isbnPlaceholder}
                 value={isbn}
                 onClear={() => setIsbn('')}
@@ -161,14 +167,20 @@ export function HomeScreen({ navigation }: Props) {
               />
             ) : (
               <AppTextField
+                key="title"
+                autoFocus={isInputFocused}
                 containerStyle={styles.input}
                 autoCapitalize="none"
                 autoCorrect={false}
+                inputMode="text"
+                keyboardType="default"
                 maxLength={TITLE_MAX_LENGTH}
                 onChangeText={(value) => {
                   track('home_type_title');
                   setTitle(value);
                 }}
+                onBlur={() => setIsInputFocused(false)}
+                onFocus={() => setIsInputFocused(true)}
                 onSubmitEditing={handleSearch}
                 placeholder={strings.home.titlePlaceholder}
                 returnKeyType="search"
