@@ -1,12 +1,10 @@
-import { useActionSheet } from '@expo/react-native-action-sheet';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ListRow } from '../../components/ListRow';
-import { track } from '../../analytics';
 import { strings } from '../../i18n/strings';
-import { updatePreference, usePreferences } from '../../lib/preferences';
+import { usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
@@ -17,9 +15,6 @@ import type { ThemeColors } from '../../theme/colors';
 import type { AboutStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AboutStackParamList, 'Settings'>;
-
-const openLinksOptions: OpenLinksIn[] = ['app', 'browser'];
-const themeModeOptions: ThemeMode[] = ['system', 'light', 'dark'];
 
 function openLinksLabel(value: OpenLinksIn): string {
   return value === 'app' ? strings.settings.openLinksInApp : strings.settings.openLinksInBrowser;
@@ -78,48 +73,9 @@ function SettingsRow({
 
 export function SettingsScreen({ navigation }: Props) {
   const { colors } = useTheme();
-  const { showActionSheetWithOptions } = useActionSheet();
   const preferences = usePreferences();
   const tabBarHeight = useBottomTabBarHeight();
   const styles = useMemo(() => createStyles(colors), [colors]);
-
-  const showOpenLinksPicker = () => {
-    const options = [...openLinksOptions.map(openLinksLabel), strings.settings.cancelAction];
-    const cancelButtonIndex = options.length - 1;
-
-    showActionSheetWithOptions({ options, cancelButtonIndex }, (buttonIndex) => {
-      if (buttonIndex === undefined || buttonIndex === cancelButtonIndex) {
-        return;
-      }
-
-      const value = openLinksOptions[buttonIndex];
-      if (!value || value === preferences.openLinksIn) {
-        return;
-      }
-
-      track('settings_change', { key: 'openLinksIn', value });
-      void updatePreference('openLinksIn', value);
-    });
-  };
-
-  const showThemeModePicker = () => {
-    const options = [...themeModeOptions.map(themeModeLabel), strings.settings.cancelAction];
-    const cancelButtonIndex = options.length - 1;
-
-    showActionSheetWithOptions({ options, cancelButtonIndex }, (buttonIndex) => {
-      if (buttonIndex === undefined || buttonIndex === cancelButtonIndex) {
-        return;
-      }
-
-      const value = themeModeOptions[buttonIndex];
-      if (!value || value === preferences.themeMode) {
-        return;
-      }
-
-      track('settings_change', { key: 'themeMode', value });
-      void updatePreference('themeMode', value);
-    });
-  };
 
   const storePrefsValue =
     preferences.preferredSources.length === 0
@@ -142,7 +98,7 @@ export function SettingsScreen({ navigation }: Props) {
           iconBackground={colors.accent}
           title={strings.settings.openLinksIn}
           value={openLinksLabel(preferences.openLinksIn)}
-          onPress={showOpenLinksPicker}
+          onPress={() => navigation.navigate('OpenLinksPreferences')}
         />
       </View>
 
@@ -155,7 +111,7 @@ export function SettingsScreen({ navigation }: Props) {
           iconBackground={colors.accentDeep}
           title={strings.settings.appearance}
           value={themeModeLabel(preferences.themeMode)}
-          onPress={showThemeModePicker}
+          onPress={() => navigation.navigate('ThemePreferences')}
         />
       </View>
 

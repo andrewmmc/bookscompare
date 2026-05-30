@@ -2,8 +2,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { AboutScreen } from '../screens/about/AboutScreen';
 import { BookTypePreferencesScreen } from '../screens/about/BookTypePreferencesScreen';
+import { OpenLinksPreferencesScreen } from '../screens/about/OpenLinksPreferencesScreen';
 import { SettingsScreen } from '../screens/about/SettingsScreen';
 import { StorePreferencesScreen } from '../screens/about/StorePreferencesScreen';
+import { ThemePreferencesScreen } from '../screens/about/ThemePreferencesScreen';
 import { WebViewScreen } from '../screens/common/WebViewScreen';
 import { strings } from '../i18n/strings';
 import { useTheme } from '../theme/ThemeProvider';
@@ -36,6 +38,22 @@ export function AboutStack() {
         component={SettingsScreen}
         options={{
           title: strings.navigation.settings,
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      <Stack.Screen
+        name="OpenLinksPreferences"
+        component={OpenLinksPreferencesScreen}
+        options={{
+          title: strings.settings.openLinksIn,
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      <Stack.Screen
+        name="ThemePreferences"
+        component={ThemePreferencesScreen}
+        options={{
+          title: strings.settings.appearance,
           headerBackButtonDisplayMode: 'minimal',
         }}
       />

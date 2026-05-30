@@ -101,9 +101,11 @@ interface Dictionary {
     appearanceSection: string;
     contentSection: string;
     openLinksIn: string;
+    openLinksDescription: string;
     openLinksInApp: string;
     openLinksInBrowser: string;
     appearance: string;
+    appearanceDescription: string;
     appearanceSystem: string;
     appearanceLight: string;
     appearanceDark: string;
@@ -245,9 +247,11 @@ const zhTW: Dictionary = {
     appearanceSection: '外觀',
     contentSection: '內容',
     openLinksIn: '開啟連結',
+    openLinksDescription: '選擇點開書店連結時要在 App 內顯示，還是交由瀏覽器開啟。',
     openLinksInApp: '在 App 內開啟',
     openLinksInBrowser: '在瀏覽器開啟',
     appearance: '外觀',
+    appearanceDescription: '選擇 App 外觀，或跟隨裝置目前的系統顯示模式。',
     appearanceSystem: '跟隨系統',
     appearanceLight: '淺色',
     appearanceDark: '深色',
@@ -392,9 +396,11 @@ const en: Dictionary = {
     appearanceSection: 'Appearance',
     contentSection: 'Content',
     openLinksIn: 'Open links',
+    openLinksDescription: 'Choose whether bookstore links open inside the app or in your browser.',
     openLinksInApp: 'In app',
     openLinksInBrowser: 'Browser',
     appearance: 'Appearance',
+    appearanceDescription: 'Choose the app appearance or follow your device system setting.',
     appearanceSystem: 'System',
     appearanceLight: 'Light',
     appearanceDark: 'Dark',
