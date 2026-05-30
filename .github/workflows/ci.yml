@@ -37,11 +37,80 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: API tests
-        run: pnpm test
+      - name: API coverage
+        run: pnpm coverage:api | tee api-coverage.txt
 
-      - name: Mobile tests
-        run: pnpm test:mobile
+      - name: Mobile coverage
+        run: pnpm coverage:mobile | tee mobile-coverage.txt
+
+      - name: Publish coverage summary
+        if: always()
+        run: |
+          node --input-type=module <<'EOF'
+          import fs from 'node:fs';
+
+          const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+          let markdown = '## Test Coverage\n\n';
+
+          if (fs.existsSync('api-coverage.txt')) {
+            const apiOutput = fs.readFileSync('api-coverage.txt', 'utf8');
+            const startMarker = 'start of coverage report';
+            const endMarker = 'end of coverage report';
+            const start = apiOutput.indexOf(startMarker);
+            const end = apiOutput.indexOf(endMarker);
+
+            markdown += '### API\n\n';
+
+            if (start !== -1 && end !== -1) {
+              const report = apiOutput
+                .slice(start, end + endMarker.length)
+                .split('\n')
+                .map((line) => line.replace(/^ℹ\s?/, ''))
+                .join('\n');
+
+              markdown += `\`\`\`text\n${report}\n\`\`\`\n\n`;
+            } else {
+              markdown += 'Coverage report unavailable.\n\n';
+            }
+          }
+
+          markdown += '### Mobile\n\n';
+
+          if (fs.existsSync('apps/mobile/coverage/coverage-summary.json')) {
+            const summary = JSON.parse(
+              fs.readFileSync('apps/mobile/coverage/coverage-summary.json', 'utf8')
+            );
+            const total = summary.total;
+            const percent = (value) => `${Number(value).toFixed(2)}%`;
+
+            markdown += [
+              '| Metric | Coverage | Covered / Total |',
+              '| --- | ---: | ---: |',
+              `| Statements | ${percent(total.statements.pct)} | ${total.statements.covered} / ${total.statements.total} |`,
+              `| Branches | ${percent(total.branches.pct)} | ${total.branches.covered} / ${total.branches.total} |`,
+              `| Functions | ${percent(total.functions.pct)} | ${total.functions.covered} / ${total.functions.total} |`,
+              `| Lines | ${percent(total.lines.pct)} | ${total.lines.covered} / ${total.lines.total} |`,
+            ].join('\n');
+
+            markdown += '\n';
+          } else {
+            markdown += 'Coverage summary unavailable.\n';
+          }
+
+          fs.appendFileSync(summaryPath, markdown);
+          EOF
+
+      - name: Upload coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          if-no-files-found: ignore
+          path: |
+            api-coverage.txt
+            mobile-coverage.txt
+            apps/mobile/coverage/coverage-summary.json
+            apps/mobile/coverage/lcov.info
 
       - name: API deploy dry-run
         run: pnpm check:api

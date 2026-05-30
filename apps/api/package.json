@@ -8,7 +8,8 @@
     "deploy": "wrangler deploy",
     "check": "wrangler deploy --dry-run",
     "typecheck": "pnpm exec tsc --noEmit -p tsconfig.json",
-    "test": "pnpm exec tsx --test test/*.test.ts"
+    "test": "pnpm exec tsx --test test/*.test.ts",
+    "coverage": "node --test --experimental-test-coverage --import tsx test/*.test.ts"
   },
   "dependencies": {
     "@bookscompare/contracts": "workspace:*"

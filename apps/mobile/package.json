@@ -10,6 +10,7 @@
     "prebuild": "expo prebuild",
     "prebuild:ios": "expo prebuild --platform ios",
     "test": "jest --runInBand",
+    "coverage": "jest --runInBand --coverage --coverageDirectory=coverage --coverageReporters=text-summary --coverageReporters=text --coverageReporters=json-summary --coverageReporters=lcovonly",
     "typecheck": "pnpm exec tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
