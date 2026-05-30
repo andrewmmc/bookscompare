@@ -1,4 +1,4 @@
-import { fetchEsliteOffersByIsbn, fetchEsliteOffersByTitle } from '../sources/eslite';
+import { fetchEsliteOffers } from '../sources/eslite';
 
 import type { BookProvider } from './types';
 
@@ -8,6 +8,6 @@ export const esliteProvider: BookProvider = {
   enabled: true,
   usesJsonApi: true,
   timeoutMs: 8000,
-  searchByIsbn: fetchEsliteOffersByIsbn,
-  searchByTitle: fetchEsliteOffersByTitle,
+  searchByIsbn: fetchEsliteOffers,
+  searchByTitle: fetchEsliteOffers,
 };

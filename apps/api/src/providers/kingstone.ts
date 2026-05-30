@@ -1,4 +1,4 @@
-import { fetchKingstoneOffersByIsbn, fetchKingstoneOffersByTitle } from '../sources/kingstone';
+import { fetchKingstoneOffers } from '../sources/kingstone';
 
 import type { BookProvider } from './types';
 
@@ -8,6 +8,6 @@ export const kingstoneProvider: BookProvider = {
   enabled: true,
   usesJsonApi: false,
   timeoutMs: 10000,
-  searchByIsbn: fetchKingstoneOffersByIsbn,
-  searchByTitle: fetchKingstoneOffersByTitle,
+  searchByIsbn: fetchKingstoneOffers,
+  searchByTitle: fetchKingstoneOffers,
 };

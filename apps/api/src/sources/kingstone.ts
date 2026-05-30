@@ -3,6 +3,8 @@ import type { BookOffer } from '@bookscompare/contracts';
 import { fetchHtml } from '../lib/fetch-html';
 import {
   decodeHtmlEntities,
+  extractAll,
+  matchFirst,
   normalizeBookTitle,
   normalizeWhitespace,
   stripTags,
@@ -22,14 +24,6 @@ const RESULT_COUNT_PATTERN = /全館搜尋共計\s*<span>(\d+)<\/span>\s*筆/;
 const RESULT_LIST_PATTERN = /<ul class="displaycol">([\s\S]*?)<\/ul>/;
 const RESULT_BLOCK_PATTERN =
   /<li class="displayunit">([\s\S]*?)<\/li>\s*(?=<li class="displayunit">|$)/g;
-
-function matchFirst(pattern: RegExp, input: string): string | undefined {
-  return pattern.exec(input)?.[1];
-}
-
-function extractAll(pattern: RegExp, input: string): string[] {
-  return Array.from(input.matchAll(pattern), (match) => stripTags(match[1] ?? '')).filter(Boolean);
-}
 
 function toKingstoneAbsoluteUrl(url: string): string {
   return new URL(decodeHtmlEntities(url), KINGSTONE_BASE_URL).toString();
@@ -212,7 +206,7 @@ export function parseKingstoneSearchResults(html: string): BookOffer[] {
   return results;
 }
 
-async function fetchKingstoneOffersByKeyword(
+export async function fetchKingstoneOffers(
   keyword: string,
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
@@ -236,18 +230,4 @@ async function fetchKingstoneOffersByKeyword(
   }
 
   return searchOffers;
-}
-
-export function fetchKingstoneOffersByIsbn(
-  isbn: string,
-  options: ProviderSearchOptions = {}
-): Promise<BookOffer[]> {
-  return fetchKingstoneOffersByKeyword(isbn, options);
-}
-
-export function fetchKingstoneOffersByTitle(
-  title: string,
-  options: ProviderSearchOptions = {}
-): Promise<BookOffer[]> {
-  return fetchKingstoneOffersByKeyword(title, options);
 }

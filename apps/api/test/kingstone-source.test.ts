@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-import { fetchKingstoneOffersByIsbn, parseKingstoneSearchResults } from '../src/sources/kingstone';
+import { fetchKingstoneOffers, parseKingstoneSearchResults } from '../src/sources/kingstone';
 
 async function readFixture(name: string): Promise<string> {
   const filePath = fileURLToPath(new URL(`./fixtures/kingstone/${name}`, import.meta.url));
@@ -82,7 +82,7 @@ test('parseKingstoneSearchResults throws when announced results cannot be parsed
   );
 });
 
-test('fetchKingstoneOffersByIsbn returns every normalized offer', async (t) => {
+test('fetchKingstoneOffers returns every normalized offer', async (t) => {
   const searchHtml = await readFixture('found.html');
   const originalFetch = globalThis.fetch;
 
@@ -101,7 +101,7 @@ test('fetchKingstoneOffersByIsbn returns every normalized offer', async (t) => {
     throw new Error(`Unexpected URL: ${url}`);
   }) as typeof fetch;
 
-  const offers = await fetchKingstoneOffersByIsbn('9786267569337');
+  const offers = await fetchKingstoneOffers('9786267569337');
   const [firstOffer, secondOffer] = offers;
 
   assert.equal(offers.length, 2);
@@ -167,7 +167,7 @@ test('fetchKingstoneOffersByIsbn returns every normalized offer', async (t) => {
   assert.match(secondOffer.summary, /演算法 \+ 真實案例 \+ 專題實作/);
 });
 
-test('fetchKingstoneOffersByIsbn returns empty array for 404 responses', async (t) => {
+test('fetchKingstoneOffers returns empty array for 404 responses', async (t) => {
   const originalFetch = globalThis.fetch;
 
   t.after(() => {
@@ -176,5 +176,5 @@ test('fetchKingstoneOffersByIsbn returns empty array for 404 responses', async (
 
   globalThis.fetch = (async () => new Response('missing', { status: 404 })) as typeof fetch;
 
-  assert.deepEqual(await fetchKingstoneOffersByIsbn('9780000000000'), []);
+  assert.deepEqual(await fetchKingstoneOffers('9780000000000'), []);
 });

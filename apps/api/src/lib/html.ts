@@ -38,3 +38,11 @@ export function toAbsoluteUrl(url: string): string {
 
   return url;
 }
+
+export function matchFirst(pattern: RegExp, input: string): string | undefined {
+  return pattern.exec(input)?.[1];
+}
+
+export function extractAll(pattern: RegExp, input: string): string[] {
+  return Array.from(input.matchAll(pattern), (match) => stripTags(match[1] ?? '')).filter(Boolean);
+}

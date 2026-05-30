@@ -87,24 +87,18 @@ function withLookupCacheStatus(response: Response, status: 'HIT' | 'MISS'): Resp
   });
 }
 
-async function handleIsbnRoute(
-  request: Request,
+function invalidRequestResponse(
+  code: Parameters<typeof createErrorResponse>[0],
+  message: string
+): Response {
+  return withLookupCacheStatus(jsonResponse(createErrorResponse(code, message), 400), 'MISS');
+}
+
+async function handleCachedLookup(
   ctx: ExecutionContext,
-  rawIsbn: string
+  cacheKey: Request,
+  runLookup: () => Promise<SearchResponse | BookDetailResponse>
 ): Promise<Response> {
-  const isbn = normalizeIsbn(rawIsbn);
-
-  if (!isValidIsbn(isbn)) {
-    return withLookupCacheStatus(
-      jsonResponse(
-        createErrorResponse('INVALID_ISBN', 'Provide a valid ISBN-10 or ISBN-13 value.'),
-        400
-      ),
-      'MISS'
-    );
-  }
-
-  const cacheKey = createIsbnCacheKey(request, isbn);
   const cache = getLookupCache();
   const cachedResponse = await cache.match(cacheKey);
 
@@ -112,7 +106,7 @@ async function handleIsbnRoute(
     return withLookupCacheStatus(cachedResponse, 'HIT');
   }
 
-  const lookupResponse = await searchBooksByIsbn(isbn);
+  const lookupResponse = await runLookup();
 
   if (!shouldCacheLookupResponse(lookupResponse)) {
     return withLookupCacheStatus(jsonResponse(lookupResponse), 'MISS');
@@ -124,6 +118,20 @@ async function handleIsbnRoute(
   return withLookupCacheStatus(response, 'MISS');
 }
 
+async function handleIsbnRoute(
+  request: Request,
+  ctx: ExecutionContext,
+  rawIsbn: string
+): Promise<Response> {
+  const isbn = normalizeIsbn(rawIsbn);
+
+  if (!isValidIsbn(isbn)) {
+    return invalidRequestResponse('INVALID_ISBN', 'Provide a valid ISBN-10 or ISBN-13 value.');
+  }
+
+  return handleCachedLookup(ctx, createIsbnCacheKey(request, isbn), () => searchBooksByIsbn(isbn));
+}
+
 async function handleSearchRoute(
   request: Request,
   ctx: ExecutionContext,
@@ -132,46 +140,19 @@ async function handleSearchRoute(
   const query = normalizeFreeTextQuery(url.searchParams.get('q'));
 
   if (!query) {
-    return withLookupCacheStatus(
-      jsonResponse(
-        createErrorResponse('INVALID_QUERY', 'Provide a non-empty search query via ?q=.'),
-        400
-      ),
-      'MISS'
-    );
+    return invalidRequestResponse('INVALID_QUERY', 'Provide a non-empty search query via ?q=.');
   }
 
   if (query.length > SEARCH_QUERY_MAX_LENGTH) {
-    return withLookupCacheStatus(
-      jsonResponse(
-        createErrorResponse(
-          'INVALID_QUERY',
-          `Search query must be ${SEARCH_QUERY_MAX_LENGTH} characters or fewer.`
-        ),
-        400
-      ),
-      'MISS'
+    return invalidRequestResponse(
+      'INVALID_QUERY',
+      `Search query must be ${SEARCH_QUERY_MAX_LENGTH} characters or fewer.`
     );
   }
 
-  const cacheKey = createSearchCacheKey(request, query);
-  const cache = getLookupCache();
-  const cachedResponse = await cache.match(cacheKey);
-
-  if (cachedResponse) {
-    return withLookupCacheStatus(cachedResponse, 'HIT');
-  }
-
-  const lookupResponse = await searchBooksByTitle(query);
-
-  if (!shouldCacheLookupResponse(lookupResponse)) {
-    return withLookupCacheStatus(jsonResponse(lookupResponse), 'MISS');
-  }
-
-  const response = jsonResponse(lookupResponse, 200, LOOKUP_CACHE_CONTROL);
-  ctx.waitUntil(cache.put(cacheKey, response.clone()));
-
-  return withLookupCacheStatus(response, 'MISS');
+  return handleCachedLookup(ctx, createSearchCacheKey(request, query), () =>
+    searchBooksByTitle(query)
+  );
 }
 
 async function handleBookByTitleRoute(
@@ -183,62 +164,32 @@ async function handleBookByTitleRoute(
   const author = normalizeFreeTextQuery(url.searchParams.get('author'));
 
   if (!title) {
-    return withLookupCacheStatus(
-      jsonResponse(
-        createErrorResponse('INVALID_QUERY', 'Provide a non-empty title via ?title=.'),
-        400
-      ),
-      'MISS'
-    );
+    return invalidRequestResponse('INVALID_QUERY', 'Provide a non-empty title via ?title=.');
   }
 
   if (title.length > SEARCH_QUERY_MAX_LENGTH) {
-    return withLookupCacheStatus(
-      jsonResponse(
-        createErrorResponse(
-          'INVALID_QUERY',
-          `Title must be ${SEARCH_QUERY_MAX_LENGTH} characters or fewer.`
-        ),
-        400
-      ),
-      'MISS'
+    return invalidRequestResponse(
+      'INVALID_QUERY',
+      `Title must be ${SEARCH_QUERY_MAX_LENGTH} characters or fewer.`
     );
   }
 
   if (author && author.length > AUTHOR_QUERY_MAX_LENGTH) {
-    return withLookupCacheStatus(
-      jsonResponse(
-        createErrorResponse(
-          'INVALID_QUERY',
-          `Author must be ${AUTHOR_QUERY_MAX_LENGTH} characters or fewer.`
-        ),
-        400
-      ),
-      'MISS'
+    return invalidRequestResponse(
+      'INVALID_QUERY',
+      `Author must be ${AUTHOR_QUERY_MAX_LENGTH} characters or fewer.`
     );
   }
 
-  const cacheKey = createBookByTitleCacheKey(request, title, author || undefined);
-  const cache = getLookupCache();
-  const cachedResponse = await cache.match(cacheKey);
-
-  if (cachedResponse) {
-    return withLookupCacheStatus(cachedResponse, 'HIT');
-  }
-
-  const lookupResponse = await lookupBookByTitleAuthor({
-    title,
-    ...(author ? { author } : {}),
-  });
-
-  if (!shouldCacheLookupResponse(lookupResponse)) {
-    return withLookupCacheStatus(jsonResponse(lookupResponse), 'MISS');
-  }
-
-  const response = jsonResponse(lookupResponse, 200, LOOKUP_CACHE_CONTROL);
-  ctx.waitUntil(cache.put(cacheKey, response.clone()));
-
-  return withLookupCacheStatus(response, 'MISS');
+  return handleCachedLookup(
+    ctx,
+    createBookByTitleCacheKey(request, title, author || undefined),
+    () =>
+      lookupBookByTitleAuthor({
+        title,
+        ...(author ? { author } : {}),
+      })
+  );
 }
 
 export default {

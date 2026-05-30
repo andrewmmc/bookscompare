@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-import { fetchCiteOffersByIsbn } from '../src/sources/cite';
+import { fetchCiteOffers } from '../src/sources/cite';
 
 async function readFixture(name: string): Promise<string> {
   const filePath = fileURLToPath(new URL(`./fixtures/cite/${name}`, import.meta.url));
@@ -11,7 +11,7 @@ async function readFixture(name: string): Promise<string> {
   return readFile(filePath, 'utf8');
 }
 
-test('fetchCiteOffersByIsbn returns every parsed result', async (t) => {
+test('fetchCiteOffers returns every parsed result', async (t) => {
   const html = await readFixture('found.html');
   const originalFetch = globalThis.fetch;
 
@@ -30,7 +30,7 @@ test('fetchCiteOffersByIsbn returns every parsed result', async (t) => {
     throw new Error(`Unexpected URL: ${url}`);
   }) as typeof fetch;
 
-  const offers = await fetchCiteOffersByIsbn('9786267698396');
+  const offers = await fetchCiteOffers('9786267698396');
 
   assert.equal(offers.length, 1);
   assert.deepEqual(
@@ -39,7 +39,7 @@ test('fetchCiteOffersByIsbn returns every parsed result', async (t) => {
   );
 });
 
-test('fetchCiteOffersByIsbn returns empty array for 404 responses', async (t) => {
+test('fetchCiteOffers returns empty array for 404 responses', async (t) => {
   const originalFetch = globalThis.fetch;
 
   t.after(() => {
@@ -48,5 +48,5 @@ test('fetchCiteOffersByIsbn returns empty array for 404 responses', async (t) =>
 
   globalThis.fetch = (async () => new Response('missing', { status: 404 })) as typeof fetch;
 
-  assert.deepEqual(await fetchCiteOffersByIsbn('9780000000000'), []);
+  assert.deepEqual(await fetchCiteOffers('9780000000000'), []);
 });

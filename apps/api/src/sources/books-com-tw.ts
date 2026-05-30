@@ -3,6 +3,8 @@ import type { BookOffer } from '@bookscompare/contracts';
 import { fetchHtml } from '../lib/fetch-html';
 import {
   decodeHtmlEntities,
+  extractAll,
+  matchFirst,
   normalizeBookTitle,
   normalizeWhitespace,
   stripTags,
@@ -23,14 +25,6 @@ const RESULT_COUNT_PATTERN = /搜尋結果共\s*<span>(\d+)<\/span>\s*筆/;
 const RESULT_TABLE_PATTERN = /<table id="itemlist_table"[\s\S]*?>([\s\S]*?)<\/table>/;
 const NO_RESULTS_PATTERN =
   /抱歉，找不到您所查詢的\s*&quot;?.+?&quot;?\s*資料|抱歉，找不到您所查詢的\s*".+?"\s*資料/;
-
-function matchFirst(pattern: RegExp, input: string): string | undefined {
-  return pattern.exec(input)?.[1];
-}
-
-function extractAll(pattern: RegExp, input: string): string[] {
-  return Array.from(input.matchAll(pattern), (match) => stripTags(match[1] ?? '')).filter(Boolean);
-}
 
 function parseDiscountRate(priceBlock: string): number | undefined {
   const value = matchFirst(/優惠價:\s*(\d+)\s*折/, priceBlock);
@@ -243,7 +237,7 @@ export function parseBooksComTwSearchResults(html: string): BookOffer[] {
   return results;
 }
 
-async function fetchBooksComTwOffersByKeyword(
+export async function fetchBooksComTwOffers(
   keyword: string,
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
@@ -261,18 +255,4 @@ async function fetchBooksComTwOffersByKeyword(
   }
 
   return parseBooksComTwSearchResults(html);
-}
-
-export function fetchBooksComTwOffersByIsbn(
-  isbn: string,
-  options: ProviderSearchOptions = {}
-): Promise<BookOffer[]> {
-  return fetchBooksComTwOffersByKeyword(isbn, options);
-}
-
-export function fetchBooksComTwOffersByTitle(
-  title: string,
-  options: ProviderSearchOptions = {}
-): Promise<BookOffer[]> {
-  return fetchBooksComTwOffersByKeyword(title, options);
 }

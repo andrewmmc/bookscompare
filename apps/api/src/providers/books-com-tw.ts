@@ -1,4 +1,4 @@
-import { fetchBooksComTwOffersByIsbn, fetchBooksComTwOffersByTitle } from '../sources/books-com-tw';
+import { fetchBooksComTwOffers } from '../sources/books-com-tw';
 
 import type { BookProvider } from './types';
 
@@ -8,6 +8,6 @@ export const booksComTwProvider: BookProvider = {
   enabled: true,
   usesJsonApi: false,
   timeoutMs: 8000,
-  searchByIsbn: fetchBooksComTwOffersByIsbn,
-  searchByTitle: fetchBooksComTwOffersByTitle,
+  searchByIsbn: fetchBooksComTwOffers,
+  searchByTitle: fetchBooksComTwOffers,
 };

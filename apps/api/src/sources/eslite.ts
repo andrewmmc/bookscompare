@@ -1,7 +1,7 @@
 import type { BookOffer } from '@bookscompare/contracts';
 
 import { fetchWithTimeout } from '../lib/fetch-with-timeout';
-import { normalizeBookTitle } from '../lib/html';
+import { normalizeBookTitle, normalizeWhitespace } from '../lib/html';
 import { logParseFailure } from '../lib/logger';
 
 import type { ProviderSearchOptions } from '../providers/types';
@@ -41,10 +41,6 @@ interface EsliteSearchResponse {
     found?: string | number;
     hit?: EsliteSearchHit[];
   };
-}
-
-function normalizeWhitespace(input: string): string {
-  return input.replace(/\s+/g, ' ').trim();
 }
 
 function hasEbookTitleMarker(input: string): boolean {
@@ -181,7 +177,7 @@ export function parseEsliteSearchResults(payload: EsliteSearchResponse): BookOff
   return results;
 }
 
-async function fetchEsliteOffersByKeyword(
+export async function fetchEsliteOffers(
   keyword: string,
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
@@ -216,18 +212,4 @@ async function fetchEsliteOffersByKeyword(
   }
 
   return parseEsliteSearchResults((await response.json()) as EsliteSearchResponse);
-}
-
-export function fetchEsliteOffersByIsbn(
-  isbn: string,
-  options: ProviderSearchOptions = {}
-): Promise<BookOffer[]> {
-  return fetchEsliteOffersByKeyword(isbn, options);
-}
-
-export function fetchEsliteOffersByTitle(
-  title: string,
-  options: ProviderSearchOptions = {}
-): Promise<BookOffer[]> {
-  return fetchEsliteOffersByKeyword(title, options);
 }

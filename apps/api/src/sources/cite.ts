@@ -1,7 +1,13 @@
 import type { BookOffer } from '@bookscompare/contracts';
 
 import { fetchHtml } from '../lib/fetch-html';
-import { decodeHtmlEntities, normalizeWhitespace, stripTags } from '../lib/html';
+import {
+  decodeHtmlEntities,
+  extractAll,
+  matchFirst,
+  normalizeWhitespace,
+  stripTags,
+} from '../lib/html';
 import { logParseFailure } from '../lib/logger';
 
 import type { ProviderSearchOptions } from '../providers/types';
@@ -19,14 +25,6 @@ const RESULT_CONTAINER_PATTERN =
   /<div class="book-container">([\s\S]*?)<ul class="page-numbers-2">/;
 const RESULT_BLOCK_PATTERN =
   /<li class="book-area-1">([\s\S]*?)<div class="clear"><\/div>\s*<\/li>/g;
-
-function matchFirst(pattern: RegExp, input: string): string | undefined {
-  return pattern.exec(input)?.[1];
-}
-
-function extractAll(pattern: RegExp, input: string): string[] {
-  return Array.from(input.matchAll(pattern), (match) => stripTags(match[1] ?? '')).filter(Boolean);
-}
 
 function toCiteAbsoluteUrl(url: string): string {
   return new URL(decodeHtmlEntities(url), CITE_BASE_URL).toString();
@@ -220,7 +218,7 @@ export function parseCiteSearchResults(html: string): BookOffer[] {
   return results;
 }
 
-async function fetchCiteOffersByKeyword(
+export async function fetchCiteOffers(
   keyword: string,
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
@@ -239,18 +237,4 @@ async function fetchCiteOffersByKeyword(
   }
 
   return parseCiteSearchResults(html);
-}
-
-export function fetchCiteOffersByIsbn(
-  isbn: string,
-  options: ProviderSearchOptions = {}
-): Promise<BookOffer[]> {
-  return fetchCiteOffersByKeyword(isbn, options);
-}
-
-export function fetchCiteOffersByTitle(
-  title: string,
-  options: ProviderSearchOptions = {}
-): Promise<BookOffer[]> {
-  return fetchCiteOffersByKeyword(title, options);
 }
