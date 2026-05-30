@@ -73,7 +73,11 @@ export function AboutStack() {
           headerBackButtonDisplayMode: 'minimal',
         }}
       />
-      <Stack.Screen name="AboutWebView" component={WebViewScreen} />
+      <Stack.Screen
+        name="AboutWebView"
+        component={WebViewScreen}
+        options={{ headerBackButtonDisplayMode: 'minimal' }}
+      />
     </Stack.Navigator>
   );
 }
