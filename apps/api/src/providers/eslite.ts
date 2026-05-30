@@ -7,7 +7,7 @@ export const esliteProvider: BookProvider = {
   name: '誠品線上',
   enabled: true,
   usesJsonApi: true,
-  timeoutMs: 5000,
+  timeoutMs: 8000,
   searchByIsbn: fetchEsliteOffersByIsbn,
   searchByTitle: fetchEsliteOffersByTitle,
 };
