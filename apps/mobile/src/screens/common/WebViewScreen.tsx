@@ -142,8 +142,6 @@ const createStyles = (colors: ThemeColors) =>
     headerButton: {
       width: 36,
       height: 36,
-      borderRadius: 18,
-      backgroundColor: colors.controlBackground,
       alignItems: 'center',
       justifyContent: 'center',
     },

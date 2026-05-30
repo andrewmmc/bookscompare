@@ -374,8 +374,6 @@ const createStyles = (colors: ThemeColors) =>
       justifyContent: 'center',
       height: 36,
       width: 36,
-      borderRadius: 18,
-      backgroundColor: colors.controlBackground,
     },
     list: {
       flex: 1,
