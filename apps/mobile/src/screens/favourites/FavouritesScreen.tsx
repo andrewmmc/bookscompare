@@ -7,7 +7,8 @@ import { Swipeable } from 'react-native-gesture-handler';
 import { track } from '../../analytics';
 import { useClearFavourites, useFavourites, useRemoveFavourite } from '../../api/favourites';
 import { EmptyState } from '../../components/EmptyState';
-import { activeLocale, strings } from '../../i18n/strings';
+import { strings } from '../../i18n/strings';
+import { formatDate } from '../../lib/datetime';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
@@ -18,20 +19,6 @@ import type { ThemeColors } from '../../theme/colors';
 import type { FavouritesStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<FavouritesStackParamList, 'Favourites'>;
-
-const dateFormatter = new Intl.DateTimeFormat(activeLocale, {
-  year: 'numeric',
-  month: 'short',
-  day: 'numeric',
-});
-
-function formatAddedOn(addedAt: number): string {
-  try {
-    return dateFormatter.format(new Date(addedAt));
-  } catch {
-    return new Date(addedAt).toISOString().slice(0, 10);
-  }
-}
 
 export function FavouritesScreen({ navigation }: Props) {
   const { colors } = useTheme();
@@ -183,7 +170,7 @@ export function FavouritesScreen({ navigation }: Props) {
                       {strings.history.isbnLabel(item.isbn)}
                     </Text>
                     <Text style={styles.meta} numberOfLines={1}>
-                      {strings.favourites.addedOn(formatAddedOn(item.addedAt))}
+                      {strings.favourites.addedOn(formatDate(item.addedAt))}
                     </Text>
                   </View>
                   <Ionicons color={colors.inkMuted} name="chevron-forward" size={16} />

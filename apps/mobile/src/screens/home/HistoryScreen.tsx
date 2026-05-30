@@ -6,7 +6,8 @@ import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native
 import { track } from '../../analytics';
 import { useClearHistory, useHistory } from '../../api/history';
 import { EmptyState } from '../../components/EmptyState';
-import { activeLocale, strings } from '../../i18n/strings';
+import { strings } from '../../i18n/strings';
+import { formatDateTime } from '../../lib/datetime';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
@@ -17,22 +18,6 @@ import type { ThemeColors } from '../../theme/colors';
 import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'History'>;
-
-const dateTimeFormatter = new Intl.DateTimeFormat(activeLocale, {
-  year: 'numeric',
-  month: 'short',
-  day: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
-});
-
-function formatViewedAt(viewedAt: number): string {
-  try {
-    return dateTimeFormatter.format(new Date(viewedAt));
-  } catch {
-    return new Date(viewedAt).toISOString().slice(0, 16);
-  }
-}
 
 function getEntryId(entry: HistoryEntry): string {
   return entry.type === 'isbn' ? `isbn:${entry.isbn}` : `title:${entry.title}`;
@@ -153,7 +138,7 @@ export function HistoryScreen({ navigation }: Props) {
                   </Text>
                 ) : null}
                 <Text style={styles.meta} numberOfLines={1}>
-                  {strings.history.viewedOn(formatViewedAt(item.viewedAt))}
+                  {strings.history.viewedOn(formatDateTime(item.viewedAt))}
                 </Text>
               </View>
               <Ionicons color={colors.inkMuted} name="chevron-forward" size={16} />
