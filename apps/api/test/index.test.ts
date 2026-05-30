@@ -6,6 +6,8 @@ import type { BookOffer } from '@bookscompare/contracts';
 import worker from '../src/index';
 import { providers } from '../src/providers/registry';
 
+import { createExecutionContext, createFakeCache, createTestEnv } from './helpers';
+
 import type { BookProvider } from '../src/providers/types';
 
 function getBookProviders(): BookProvider[] {
@@ -29,44 +31,6 @@ function createOffer(provider: BookProvider): BookOffer {
     url: `https://example.com/${provider.id}`,
     imageUrl: `https://example.com/${provider.id}.jpg`,
     badges: [],
-  };
-}
-
-function createExecutionContext() {
-  const pending: Promise<unknown>[] = [];
-
-  return {
-    pending,
-    waitUntil(promise: Promise<unknown>) {
-      pending.push(promise);
-    },
-    passThroughOnException() {},
-  } as ExecutionContext & { pending: Promise<unknown>[] };
-}
-
-function createFakeCache() {
-  const store = new Map<string, Response>();
-
-  return {
-    store,
-    cache: {
-      async match(request: Request | string): Promise<Response | undefined> {
-        const key = typeof request === 'string' ? request : request.url;
-        const response = store.get(key);
-
-        return response?.clone();
-      },
-      async put(request: Request | string, response: Response): Promise<void> {
-        const key = typeof request === 'string' ? request : request.url;
-        store.set(key, response.clone());
-      },
-    },
-  };
-}
-
-function createTestEnv() {
-  return {
-    env: {} as Record<string, never>,
   };
 }
 
