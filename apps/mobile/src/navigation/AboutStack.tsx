@@ -30,11 +30,7 @@ export function AboutStack() {
         },
       }}
     >
-      <Stack.Screen
-        name="About"
-        component={AboutScreen}
-        options={{ title: strings.navigation.about, headerLargeTitle: true }}
-      />
+      <Stack.Screen name="About" component={AboutScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="Settings"
         component={SettingsScreen}
