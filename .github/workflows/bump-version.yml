@@ -23,6 +23,7 @@ on:
           - major
 
 permissions:
+  actions: write
   contents: write
 
 jobs:
@@ -43,5 +44,19 @@ jobs:
       - name: Bump version
         run: bash scripts/bump-version.sh "${{ inputs.bump }}" "${{ inputs.package }}"
 
+      - name: Capture mobile release tag
+        if: inputs.package == 'mobile'
+        id: release_tag
+        run: echo "value=$(git describe --tags --exact-match HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Push commit and tag
         run: git push --follow-tags
+
+      - name: Trigger mobile release workflow
+        if: inputs.package == 'mobile'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run appstore-mobile.yml \
+            --ref "${{ github.ref_name }}" \
+            -f "release_ref=${{ steps.release_tag.outputs.value }}"
