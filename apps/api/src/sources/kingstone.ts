@@ -9,15 +9,14 @@ import {
   normalizeWhitespace,
   stripTags,
 } from '../lib/html';
-import { logParseFailure } from '../lib/logger';
+import { DEFAULT_CURRENCY, parseSearchResultRows, sourceMeta } from './shared';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
 const KINGSTONE_BASE_URL = 'https://www.kingstone.com.tw';
 const KINGSTONE_SOURCE_ID = 'kingstone';
-const KINGSTONE_SOURCE_NAME = '金石堂';
+const KINGSTONE_SOURCE = sourceMeta(KINGSTONE_SOURCE_ID);
 const KINGSTONE_SEARCH_URL = `${KINGSTONE_BASE_URL}/search/key/`;
-const KINGSTONE_CURRENCY = 'TWD';
 
 const NO_RESULTS_PATTERN = /找不到與\s*[^\s]+\s*有關的結果/;
 const RESULT_COUNT_PATTERN = /全館搜尋共計\s*<span>(\d+)<\/span>\s*筆/;
@@ -138,14 +137,14 @@ function parseKingstoneSearchOffer(block: string): BookOffer {
 
   return {
     sourceId: KINGSTONE_SOURCE_ID,
-    sourceName: KINGSTONE_SOURCE_NAME,
+    sourceName: KINGSTONE_SOURCE.name,
     sourceProductId,
     title,
     productType: parseKingstoneProductType(block),
     authors: extractAll(/<a[^>]*>([\s\S]*?)<\/a\s*>/g, authorBlock),
     publisher: parseKingstonePublisher(block),
     summary: summaryHtml ? normalizeKingstoneSummary(summaryHtml) : '',
-    currency: KINGSTONE_CURRENCY,
+    currency: DEFAULT_CURRENCY,
     url,
     imageUrl: parseKingstoneImageUrl(block),
     badges: [],
@@ -172,28 +171,13 @@ export function parseKingstoneSearchResults(html: string): BookOffer[] {
   }
 
   const rows = Array.from(resultList.matchAll(RESULT_BLOCK_PATTERN));
-  const results: BookOffer[] = [];
-
-  for (const match of rows) {
-    const block = match[1];
-
-    if (!block) {
-      logParseFailure({
-        providerId: KINGSTONE_SOURCE_ID,
-        reason: 'Kingstone parser found an incomplete result row.',
-      });
-      continue;
-    }
-
-    try {
-      results.push(parseKingstoneSearchOffer(block));
-    } catch (error) {
-      logParseFailure({
-        providerId: KINGSTONE_SOURCE_ID,
-        reason: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }
+  const results = parseSearchResultRows({
+    providerId: KINGSTONE_SOURCE_ID,
+    rows,
+    getBlock: (match) => match[1],
+    parseOffer: parseKingstoneSearchOffer,
+    incompleteRowMessage: 'Kingstone parser found an incomplete result row.',
+  });
 
   if (results.length === 0 && resultCount === 0) {
     return [];

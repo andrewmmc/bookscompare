@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { isValidIsbn, normalizeIsbn } from '../src/lib/isbn';
+import { isValidIsbn, normalizeIsbn } from '@bookscompare/contracts';
 
 test('normalizeIsbn strips separators and uppercases', () => {
   assert.equal(normalizeIsbn(' 978-1-4028-9462-6 '), '9781402894626');

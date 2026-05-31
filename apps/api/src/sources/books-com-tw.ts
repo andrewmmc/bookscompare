@@ -10,15 +10,14 @@ import {
   stripTags,
   toAbsoluteUrl,
 } from '../lib/html';
-import { logParseFailure } from '../lib/logger';
+import { DEFAULT_CURRENCY, parseSearchResultRows, sourceMeta } from './shared';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
 const BOOKS_COM_TW_SOURCE_ID = 'books-com-tw';
-const BOOKS_COM_TW_SOURCE_NAME = '博客來';
+const BOOKS_COM_TW_SOURCE = sourceMeta(BOOKS_COM_TW_SOURCE_ID);
 const BOOKS_COM_TW_SEARCH_URL =
   'https://search.books.com.tw/search/query/cat/all/sort/1/v/0/page/1/spell/3/key/';
-const BOOKS_COM_TW_CURRENCY = 'TWD';
 
 const RESULT_BLOCK_PATTERN = /<tbody id="itemlist_([A-Z0-9]+)">([\s\S]*?)<\/tbody>/g;
 const RESULT_COUNT_PATTERN = /搜尋結果共\s*<span>(\d+)<\/span>\s*筆/;
@@ -166,7 +165,7 @@ function parseOffer(productId: string, block: string): BookOffer {
 
   return {
     sourceId: BOOKS_COM_TW_SOURCE_ID,
-    sourceName: BOOKS_COM_TW_SOURCE_NAME,
+    sourceName: BOOKS_COM_TW_SOURCE.name,
     sourceProductId: productId,
     title,
     productType: parseProductType(block),
@@ -175,7 +174,7 @@ function parseOffer(productId: string, block: string): BookOffer {
     publicationDate: parsePublicationDate(block),
     summary: parseSummary(block),
     price: parsePrice(productId, block, priceText),
-    currency: BOOKS_COM_TW_CURRENCY,
+    currency: DEFAULT_CURRENCY,
     priceText,
     ...(discountRate ? { discountRate } : {}),
     url,
@@ -202,29 +201,13 @@ export function parseBooksComTwSearchResults(html: string): BookOffer[] {
   }
 
   const rows = Array.from(resultTable.matchAll(RESULT_BLOCK_PATTERN));
-  const results: BookOffer[] = [];
-
-  for (const match of rows) {
-    const productId = match[1];
-    const block = match[2];
-
-    if (!productId || !block) {
-      logParseFailure({
-        providerId: BOOKS_COM_TW_SOURCE_ID,
-        reason: 'Books.com.tw parser found an incomplete result row.',
-      });
-      continue;
-    }
-
-    try {
-      results.push(parseOffer(productId, block));
-    } catch (error) {
-      logParseFailure({
-        providerId: BOOKS_COM_TW_SOURCE_ID,
-        reason: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }
+  const results = parseSearchResultRows({
+    providerId: BOOKS_COM_TW_SOURCE_ID,
+    rows,
+    getBlock: (match) => (match[1] && match[2] ? match[2] : undefined),
+    parseOffer: (block, match) => parseOffer(match[1]!, block),
+    incompleteRowMessage: 'Books.com.tw parser found an incomplete result row.',
+  });
 
   if (results.length === 0 && resultCount === 0) {
     return [];

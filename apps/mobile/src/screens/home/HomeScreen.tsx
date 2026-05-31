@@ -17,12 +17,12 @@ import { AppButton } from '../../components/AppButton';
 import { AppTextField } from '../../components/AppTextField';
 import { track } from '../../analytics';
 import { featureFlags } from '../../config/featureFlags';
-import { normalizeIsbn, isValidIsbn } from '../../lib/isbn';
 import { strings } from '../../i18n/strings';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 
+import { normalizeIsbn, isValidIsbn } from '@bookscompare/contracts';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ThemeColors } from '../../theme/colors';
 import type { HomeStackParamList } from '../../navigation/types';

@@ -56,51 +56,56 @@ test('parseEsliteSearchResults returns empty array for empty payload', async () 
   assert.deepEqual(parseEsliteSearchResults(await readFixture('not-found.json')), []);
 });
 
-test('parseEsliteSearchResults skips malformed and non-book hits', () => {
-  assert.deepEqual(
-    parseEsliteSearchResults({
-      hits: {
-        hit: [
-          {},
-          { fields: { is_book: 'no' } },
-          {
-            fields: { url: '/product/1', product_photo_url: '/cover.jpg', manufacturer: ['麥田'] },
-          },
-          { fields: { name: '書名', product_photo_url: '/cover.jpg', manufacturer: ['麥田'] } },
-          { fields: { name: '書名', url: '/product/1', manufacturer: ['麥田'] } },
-          { fields: { name: '書名', url: '/product/1', product_photo_url: '/cover.jpg' } },
-          {
-            fields: {
-              name: '書名',
-              url: '/product/1',
-              product_photo_url: '/cover.jpg',
-              manufacturer: ['麥田'],
-              manufacturer_date: 'bad date',
+test('parseEsliteSearchResults throws when every book hit is malformed', () => {
+  assert.throws(
+    () =>
+      parseEsliteSearchResults({
+        hits: {
+          hit: [
+            {},
+            { fields: { is_book: 'no' } },
+            {
+              fields: {
+                url: '/product/1',
+                product_photo_url: '/cover.jpg',
+                manufacturer: ['麥田'],
+              },
             },
-          },
-          {
-            fields: {
-              name: '書名',
-              url: '/product/1',
-              product_photo_url: '/cover.jpg',
-              manufacturer: ['麥田'],
-              manufacturer_date: '04/30/2026',
+            { fields: { name: '書名', product_photo_url: '/cover.jpg', manufacturer: ['麥田'] } },
+            { fields: { name: '書名', url: '/product/1', manufacturer: ['麥田'] } },
+            { fields: { name: '書名', url: '/product/1', product_photo_url: '/cover.jpg' } },
+            {
+              fields: {
+                name: '書名',
+                url: '/product/1',
+                product_photo_url: '/cover.jpg',
+                manufacturer: ['麥田'],
+                manufacturer_date: 'bad date',
+              },
             },
-          },
-          {
-            id: 'bad-price',
-            fields: {
-              name: '書名',
-              url: '/product/1',
-              product_photo_url: '/cover.jpg',
-              manufacturer: ['麥田'],
-              manufacturer_date: '04/30/2026',
-              final_price: 'not-a-number',
+            {
+              fields: {
+                name: '書名',
+                url: '/product/1',
+                product_photo_url: '/cover.jpg',
+                manufacturer: ['麥田'],
+                manufacturer_date: '04/30/2026',
+              },
             },
-          },
-        ],
-      },
-    }),
-    []
+            {
+              id: 'bad-price',
+              fields: {
+                name: '書名',
+                url: '/product/1',
+                product_photo_url: '/cover.jpg',
+                manufacturer: ['麥田'],
+                manufacturer_date: '04/30/2026',
+                final_price: 'not-a-number',
+              },
+            },
+          ],
+        },
+      }),
+    /could not parse any search result rows/
   );
 });

@@ -1,4 +1,4 @@
-import { isValidIsbn, normalizeIsbn } from './isbn';
+import { isValidIsbn, normalizeIsbn } from '@bookscompare/contracts';
 
 describe('isbn helpers', () => {
   it('normalizes separators and casing', () => {

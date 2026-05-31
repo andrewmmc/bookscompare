@@ -1,7 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 
 import { BOOK_SOURCES } from '@bookscompare/contracts';
+
+import { loadJsonValue, saveJsonValue } from './jsonStorage';
 
 import type { BookSourceId } from '@bookscompare/contracts';
 
@@ -85,18 +86,13 @@ export async function loadPreferences(): Promise<Preferences> {
 
   inFlightLoad = (async () => {
     try {
-      const raw = await AsyncStorage.getItem(PREFERENCES_STORAGE_KEY);
-      if (!raw) {
-        emit(defaultPreferences);
-        return defaultPreferences;
-      }
-
-      const preferences = parsePreferences(JSON.parse(raw));
+      const preferences = await loadJsonValue(
+        PREFERENCES_STORAGE_KEY,
+        defaultPreferences,
+        parsePreferences
+      );
       emit(preferences);
       return preferences;
-    } catch {
-      emit(defaultPreferences);
-      return defaultPreferences;
     } finally {
       markLoaded();
     }
@@ -110,7 +106,7 @@ export async function loadPreferences(): Promise<Preferences> {
 void loadPreferences();
 
 async function savePreferences(preferences: Preferences): Promise<void> {
-  await AsyncStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(preferences));
+  await saveJsonValue(PREFERENCES_STORAGE_KEY, preferences);
 }
 
 export async function updatePreference<Key extends PreferenceKey>(

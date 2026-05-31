@@ -1,6 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { normalizeIsbn } from '@bookscompare/contracts';
 
-import { normalizeIsbn } from './isbn';
+import { loadJsonValue, saveJsonValue } from './jsonStorage';
 
 export const FAVOURITES_STORAGE_KEY = 'bookscompare:favourites:v1';
 
@@ -28,26 +28,20 @@ function isFavourite(value: unknown): value is Favourite {
   );
 }
 
-export async function loadFavourites(): Promise<Favourite[]> {
-  try {
-    const raw = await AsyncStorage.getItem(FAVOURITES_STORAGE_KEY);
-    if (!raw) {
-      return [];
-    }
-
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed.filter(isFavourite).sort((a, b) => b.addedAt - a.addedAt);
-  } catch {
+function parseFavourites(value: unknown): Favourite[] {
+  if (!Array.isArray(value)) {
     return [];
   }
+
+  return value.filter(isFavourite).sort((a, b) => b.addedAt - a.addedAt);
+}
+
+export async function loadFavourites(): Promise<Favourite[]> {
+  return loadJsonValue(FAVOURITES_STORAGE_KEY, [], parseFavourites);
 }
 
 async function saveFavourites(list: Favourite[]): Promise<void> {
-  await AsyncStorage.setItem(FAVOURITES_STORAGE_KEY, JSON.stringify(list));
+  await saveJsonValue(FAVOURITES_STORAGE_KEY, list);
 }
 
 export async function addFavourite(input: FavouriteInput): Promise<Favourite[]> {

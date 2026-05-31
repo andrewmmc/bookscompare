@@ -1,6 +1,11 @@
-import type { ApiErrorResponse, BookDetailResponse, SearchResponse } from '@bookscompare/contracts';
+import {
+  isValidIsbn,
+  normalizeIsbn,
+  type ApiErrorResponse,
+  type BookDetailResponse,
+  type SearchResponse,
+} from '@bookscompare/contracts';
 
-import { isValidIsbn, normalizeIsbn } from './lib/isbn';
 import { createErrorResponse } from './lib/responses';
 import { lookupBookByTitleAuthor } from './services/book-by-title';
 import { searchBooksByIsbn } from './services/search-by-isbn';

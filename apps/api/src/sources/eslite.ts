@@ -3,14 +3,14 @@ import type { BookOffer } from '@bookscompare/contracts';
 import { fetchWithTimeout } from '../lib/fetch-with-timeout';
 import { normalizeBookTitle, normalizeWhitespace } from '../lib/html';
 import { logParseFailure } from '../lib/logger';
+import { DEFAULT_CURRENCY, sourceMeta } from './shared';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
 const ESLITE_SOURCE_ID = 'eslite';
-const ESLITE_SOURCE_NAME = '誠品線上';
+const ESLITE_SOURCE = sourceMeta(ESLITE_SOURCE_ID);
 const ESLITE_SEARCH_URL = 'https://athena.eslite.com/api/v2/search?q=';
 const ESLITE_BASE_URL = 'https://www.eslite.com';
-const ESLITE_CURRENCY = 'TWD';
 const ESLITE_USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36';
 
@@ -134,7 +134,7 @@ function parseEsliteOffer(hit: EsliteSearchHit): BookOffer {
 
   return {
     sourceId: ESLITE_SOURCE_ID,
-    sourceName: ESLITE_SOURCE_NAME,
+    sourceName: ESLITE_SOURCE.name,
     sourceProductId,
     title,
     productType,
@@ -142,7 +142,7 @@ function parseEsliteOffer(hit: EsliteSearchHit): BookOffer {
     publisher,
     publicationDate: parseEsliteDate(fields.manufacturer_date),
     summary: normalizeWhitespace(fields.description ?? ''),
-    currency: ESLITE_CURRENCY,
+    currency: DEFAULT_CURRENCY,
     url: toEsliteAbsoluteUrl(fields.url),
     imageUrl: toEsliteAbsoluteUrl(fields.product_photo_url),
     badges,
@@ -172,6 +172,10 @@ export function parseEsliteSearchResults(payload: EsliteSearchResponse): BookOff
         reason: error instanceof Error ? error.message : String(error),
       });
     }
+  }
+
+  if (results.length === 0) {
+    throw new Error('Eslite parser could not parse any search result rows.');
   }
 
   return results;

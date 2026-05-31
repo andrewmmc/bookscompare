@@ -1,6 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { normalizeIsbn } from '@bookscompare/contracts';
 
-import { normalizeIsbn } from './isbn';
+import { loadJsonValue, saveJsonValue } from './jsonStorage';
 
 export const HISTORY_STORAGE_KEY = 'bookscompare:history:v1';
 export const HISTORY_MAX_ENTRIES = 20;
@@ -12,6 +12,14 @@ export type HistoryEntry =
 export type HistoryInput =
   | { type: 'isbn'; isbn: string; title?: string }
   | { type: 'title'; title: string };
+
+function parseHistory(value: unknown): HistoryEntry[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(isHistoryEntry).sort((a, b) => b.viewedAt - a.viewedAt);
+}
 
 function isHistoryEntry(value: unknown): value is HistoryEntry {
   if (!value || typeof value !== 'object') {
@@ -34,23 +42,11 @@ function isHistoryEntry(value: unknown): value is HistoryEntry {
 }
 
 export async function loadHistory(): Promise<HistoryEntry[]> {
-  try {
-    const raw = await AsyncStorage.getItem(HISTORY_STORAGE_KEY);
-    if (!raw) {
-      return [];
-    }
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed.filter(isHistoryEntry).sort((a, b) => b.viewedAt - a.viewedAt);
-  } catch {
-    return [];
-  }
+  return loadJsonValue(HISTORY_STORAGE_KEY, [], parseHistory);
 }
 
 async function saveHistory(list: HistoryEntry[]): Promise<void> {
-  await AsyncStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(list));
+  await saveJsonValue(HISTORY_STORAGE_KEY, list);
 }
 
 function isSameEntry(a: HistoryEntry, b: HistoryEntry): boolean {

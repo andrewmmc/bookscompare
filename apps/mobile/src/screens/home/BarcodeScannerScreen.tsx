@@ -10,8 +10,8 @@ import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
-import { isValidIsbn, normalizeIsbn } from '../../lib/isbn';
 
+import { isValidIsbn, normalizeIsbn } from '@bookscompare/contracts';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '../../navigation/types';
 

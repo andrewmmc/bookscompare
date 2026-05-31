@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useMemo } from 'react';
 import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 
 import { track } from '../analytics';
@@ -43,7 +43,7 @@ export function useClearAllHeaderAction({
   onConfirm,
 }: UseClearAllHeaderActionOptions): void {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   useLayoutEffect(() => {
     const handlePress = () => {
@@ -75,8 +75,7 @@ export function useClearAllHeaderAction({
           </Pressable>
         ) : null,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation, visible, strings, clickEvent, confirmEvent, onConfirm, colors]);
+  }, [navigation, visible, strings, clickEvent, confirmEvent, onConfirm, styles]);
 }
 
 function createStyles(colors: ThemeColors) {

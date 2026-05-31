@@ -1,6 +1,9 @@
-import type { BookOffer, BookDetail } from '@bookscompare/contracts';
-
-import { isValidIsbn, normalizeIsbn } from './isbn';
+import {
+  isValidIsbn,
+  normalizeIsbn,
+  type BookOffer,
+  type BookDetail,
+} from '@bookscompare/contracts';
 
 /**
  * Normalize a string for cluster-key comparison. Lower-cases, collapses

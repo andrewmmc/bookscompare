@@ -8,15 +8,14 @@ import {
   normalizeWhitespace,
   stripTags,
 } from '../lib/html';
-import { logParseFailure } from '../lib/logger';
+import { DEFAULT_CURRENCY, parseSearchResultRows, sourceMeta } from './shared';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
 const CITE_BASE_URL = 'https://www.cite.com.tw';
 const CITE_SOURCE_ID = 'cite';
-const CITE_SOURCE_NAME = '城邦讀書花園';
+const CITE_SOURCE = sourceMeta(CITE_SOURCE_ID);
 const CITE_SEARCH_URL = `${CITE_BASE_URL}/search_result?keywords=`;
-const CITE_CURRENCY = 'TWD';
 const CITE_USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36';
 
@@ -158,7 +157,7 @@ function parseCiteOffer(block: string): BookOffer {
 
   return {
     sourceId: CITE_SOURCE_ID,
-    sourceName: CITE_SOURCE_NAME,
+    sourceName: CITE_SOURCE.name,
     sourceProductId,
     title,
     productType: parseCiteProductType(block),
@@ -166,7 +165,7 @@ function parseCiteOffer(block: string): BookOffer {
     publisher: parseCitePublisher(block),
     publicationDate: parseCitePublicationDate(block),
     summary: parseCiteSummary(block),
-    currency: CITE_CURRENCY,
+    currency: DEFAULT_CURRENCY,
     url,
     imageUrl: parseCiteImageUrl(block),
     badges: [],
@@ -188,28 +187,13 @@ export function parseCiteSearchResults(html: string): BookOffer[] {
   }
 
   const rows = Array.from(resultContainer.matchAll(RESULT_BLOCK_PATTERN));
-  const results: BookOffer[] = [];
-
-  for (const match of rows) {
-    const block = match[1];
-
-    if (!block) {
-      logParseFailure({
-        providerId: CITE_SOURCE_ID,
-        reason: 'Cite parser found an incomplete result row.',
-      });
-      continue;
-    }
-
-    try {
-      results.push(parseCiteOffer(block));
-    } catch (error) {
-      logParseFailure({
-        providerId: CITE_SOURCE_ID,
-        reason: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }
+  const results = parseSearchResultRows({
+    providerId: CITE_SOURCE_ID,
+    rows,
+    getBlock: (match) => match[1],
+    parseOffer: parseCiteOffer,
+    incompleteRowMessage: 'Cite parser found an incomplete result row.',
+  });
 
   if (results.length === 0) {
     throw new Error('Cite parser could not parse any search result rows.');

@@ -7,7 +7,8 @@ import {
   removeFavourite,
   type Favourite,
 } from '../lib/favourites';
-import { normalizeIsbn } from '../lib/isbn';
+
+import { normalizeIsbn } from '@bookscompare/contracts';
 
 export const FAVOURITES_QUERY_KEY = ['favourites'] as const;
 
