@@ -10,6 +10,10 @@ jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageTag: 'zh-TW', languageCode: 'zh' }],
 }));
 
+jest.mock('expo-clipboard', () => ({
+  setStringAsync: jest.fn(() => Promise.resolve(true)),
+}));
+
 jest.mock('@react-native-async-storage/async-storage', () =>
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')

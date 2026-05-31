@@ -145,14 +145,14 @@ packages/
 
 ### 環境需求
 
-- Node.js 20 以上
-- pnpm 9.15.0（已透過 `packageManager` 鎖定版本）
+- Node.js 22 以上（請參考 `.nvmrc`）
+- npm（本專案使用 npm workspaces，workspace 範圍為 `apps/*` 與 `packages/*`）
 - Xcode / CocoaPods（執行 iOS 原生流程時需要）
 
 ### 安裝相依
 
 ```bash
-pnpm install
+npm install
 ```
 
 ### 本機開發
@@ -160,33 +160,33 @@ pnpm install
 在一個終端機啟動 Cloudflare Worker：
 
 ```bash
-pnpm dev:api          # http://localhost:8787
+npm run dev:api          # http://localhost:8787
 ```
 
 在另一個終端機啟動 Expo 開發伺服器（先複製 `apps/mobile/.env.example` 為 `.env`）：
 
 ```bash
-pnpm dev:mobile
+npm run dev:mobile
 ```
 
 直接在 iOS 模擬器執行：
 
 ```bash
-pnpm ios:mobile
+npm run ios:mobile
 ```
 
 ### 常用指令
 
 ```bash
-pnpm typecheck        # 全 workspace 型別檢查
-pnpm lint             # ESLint
-pnpm lint:fix         # ESLint 自動修正
-pnpm format           # Prettier
-pnpm test             # API 測試 (tsx --test)
-pnpm test:mobile      # Mobile 測試 (Jest)
-pnpm check:api        # Wrangler 部署 dry-run
-pnpm verify           # typecheck + lint + tests + worker check
-pnpm deploy:api       # 部署 API 到 Cloudflare Workers
+npm run typecheck        # 全 workspace 型別檢查
+npm run lint             # ESLint
+npm run lint:fix         # ESLint 自動修正
+npm run format           # Prettier
+npm run test             # API 測試 (tsx --test)
+npm run test:mobile      # Mobile 測試 (Jest)
+npm run check:api        # Wrangler 部署 dry-run
+npm run verify           # typecheck + lint + tests + worker check
+npm run deploy:api       # 部署 API 到 Cloudflare Workers
 ```
 
 ## 開發守則

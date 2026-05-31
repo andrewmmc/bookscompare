@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import * as Clipboard from 'expo-clipboard';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { track } from '../../analytics';
@@ -23,11 +24,13 @@ import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type {
-  BookDetailResponse,
-  BookOffer,
-  SearchResponse,
-  SourceState,
+import {
+  BOOK_SOURCES,
+  type BookDetailResponse,
+  type BookOffer,
+  type BookSourceId,
+  type SearchResponse,
+  type SourceState,
 } from '@bookscompare/contracts';
 import type { BookTypePreference } from '../../lib/preferences';
 import type { ThemeColors } from '../../theme/colors';
@@ -35,6 +38,15 @@ import type { SearchResultRoutes } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<SearchResultRoutes, 'SearchResult'>;
 type SearchResultData = BookDetailResponse | SearchResponse;
+type ResultSortMode = 'price' | 'store' | 'physical' | 'ebook';
+
+const defaultSourceOrder = BOOK_SOURCES.map((source) => source.id);
+const sortOptions: Array<{ value: ResultSortMode; label: string }> = [
+  { value: 'price', label: strings.searchResult.sortOptions.price },
+  { value: 'store', label: strings.searchResult.sortOptions.store },
+  { value: 'physical', label: strings.searchResult.sortOptions.physical },
+  { value: 'ebook', label: strings.searchResult.sortOptions.ebook },
+];
 
 function isEbookOffer(item: BookOffer): boolean {
   return item.productType.includes('電子書') || item.title.includes('電子書');
@@ -69,13 +81,52 @@ function filterOffers(
   preferredSources: Set<string>,
   preferredBookTypes: BookTypePreference[]
 ): BookOffer[] {
-  return offers
-    .filter(
-      (offer) =>
-        (preferredSources.size === 0 || preferredSources.has(offer.sourceId)) &&
-        matchesBookTypePreference(offer, preferredBookTypes)
-    )
-    .sort((a, b) => a.price - b.price);
+  return offers.filter(
+    (offer) =>
+      (preferredSources.size === 0 || preferredSources.has(offer.sourceId)) &&
+      matchesBookTypePreference(offer, preferredBookTypes)
+  );
+}
+
+function compareByPrice(a: BookOffer, b: BookOffer): number {
+  return a.price - b.price;
+}
+
+function getSourceRank(sourceId: BookSourceId, preferredSources: BookSourceId[]): number {
+  const preferredIndex = preferredSources.indexOf(sourceId);
+  if (preferredIndex >= 0) {
+    return preferredIndex;
+  }
+
+  const defaultIndex = defaultSourceOrder.indexOf(sourceId);
+  return preferredSources.length + (defaultIndex >= 0 ? defaultIndex : defaultSourceOrder.length);
+}
+
+function sortOffers(
+  offers: BookOffer[],
+  sortMode: ResultSortMode,
+  preferredSources: BookSourceId[]
+): BookOffer[] {
+  return offers.slice().sort((a, b) => {
+    switch (sortMode) {
+      case 'store': {
+        const sourceRank =
+          getSourceRank(a.sourceId, preferredSources) - getSourceRank(b.sourceId, preferredSources);
+        return sourceRank || compareByPrice(a, b);
+      }
+      case 'physical': {
+        const bookTypeRank = Number(isEbookOffer(a)) - Number(isEbookOffer(b));
+        return bookTypeRank || compareByPrice(a, b);
+      }
+      case 'ebook': {
+        const bookTypeRank = Number(isEbookOffer(b)) - Number(isEbookOffer(a));
+        return bookTypeRank || compareByPrice(a, b);
+      }
+      case 'price':
+      default:
+        return compareByPrice(a, b);
+    }
+  });
 }
 
 function allSourcesErrored(sources: SourceState[]): boolean {
@@ -197,6 +248,8 @@ export function SearchResultScreen({ navigation, route }: Props) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const tabBarHeight = useBottomTabBarHeight();
   const { openLinksIn, preferredSources, preferredBookTypes } = usePreferences();
+  const [sortMode, setSortMode] = useState<ResultSortMode>('price');
+  const [copiedQuery, setCopiedQuery] = useState(false);
   const isbnParam = 'isbn' in route.params ? route.params.isbn : '';
   const titleParam = 'title' in route.params ? route.params.title : '';
   const isbnQuery = useIsbnLookup(isbnParam);
@@ -208,16 +261,22 @@ export function SearchResultScreen({ navigation, route }: Props) {
   const refetch = isbnParam ? isbnQuery.refetch : titleQuery.refetch;
   const preferredSet = useMemo(() => new Set(preferredSources), [preferredSources]);
   const rawOffers = useMemo(() => extractOffers(data), [data]);
-  const offers = useMemo(
+  const filteredOffers = useMemo(
     () => filterOffers(rawOffers, preferredSet, preferredBookTypes),
     [rawOffers, preferredBookTypes, preferredSet]
+  );
+  const offers = useMemo(
+    () => sortOffers(filteredOffers, sortMode, preferredSources),
+    [filteredOffers, preferredSources, sortMode]
   );
   const sources = data?.sources ?? [];
   const liveScraping = data?.meta.liveScraping ?? false;
   const resultCount = offers.length;
-  const lowestPrice = resultCount > 0 ? offers[0]!.price : null;
+  const lowestPrice = resultCount > 0 ? Math.min(...offers.map((offer) => offer.price)) : null;
   const hasFilteredEverything = rawOffers.length > 0 && resultCount === 0;
   const sourcesErrored = allSourcesErrored(sources);
+  const copyValue = isbnParam || titleParam;
+  const searchType = isbnParam ? 'isbn' : 'title';
 
   const isbnBookTitle = useMemo(() => {
     if (!isbnParam || !data || !('book' in data) || !data.book) {
@@ -234,6 +293,16 @@ export function SearchResultScreen({ navigation, route }: Props) {
   const trackedSearchState = useRef<string | null>(null);
   const recordedTitleHistory = useRef<string | null>(null);
   const recordedIsbnHistory = useRef<string | null>(null);
+  const copyResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (copyResetTimer.current) {
+        clearTimeout(copyResetTimer.current);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     if (!titleParam || recordedTitleHistory.current === titleParam) {
@@ -248,7 +317,6 @@ export function SearchResultScreen({ navigation, route }: Props) {
     if (isLoading) {
       return;
     }
-    const searchType = isbnParam ? 'isbn' : 'title';
     const searchState = error
       ? `${searchType}:error`
       : data
@@ -270,7 +338,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
         track('search_result_empty', { searchType });
       }
     }
-  }, [isLoading, error, data, resultCount, isbnParam]);
+  }, [isLoading, error, data, resultCount, searchType]);
 
   useEffect(() => {
     if (!isbnParam || isLoading) {
@@ -292,38 +360,70 @@ export function SearchResultScreen({ navigation, route }: Props) {
   }, [isbnParam, isbnBookTitle, isLoading, addHistoryEntry]);
 
   useLayoutEffect(() => {
-    if (!isbnParam || !isbnBookTitle) {
+    if (!copyValue) {
       navigation.setOptions({ headerRight: () => null });
       return;
     }
 
     navigation.setOptions({
       headerRight: () => (
-        <Pressable
-          accessibilityLabel={
-            isbnIsFavourite
-              ? strings.favourites.removeAccessibilityLabel
-              : strings.favourites.addAccessibilityLabel
-          }
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={() => {
-            if (isbnIsFavourite) {
-              track('favourite_remove', { isbn: isbnParam, source: 'search_result_header' });
-              removeFavourite.mutate(isbnParam);
-            } else {
-              track('favourite_add', { isbn: isbnParam, source: 'search_result_header' });
-              addFavourite.mutate({ isbn: isbnParam, title: isbnBookTitle });
+        <View style={styles.headerActions}>
+          <Pressable
+            accessibilityLabel={
+              copiedQuery
+                ? strings.searchResult.copiedAccessibilityLabel
+                : isbnParam
+                  ? strings.searchResult.copyIsbnAccessibilityLabel
+                  : strings.searchResult.copyTitleAccessibilityLabel
             }
-          }}
-          style={styles.headerFavouriteButton}
-        >
-          <Ionicons
-            color={isbnIsFavourite ? colors.accent : colors.ink}
-            name={isbnIsFavourite ? 'heart' : 'heart-outline'}
-            size={24}
-          />
-        </Pressable>
+            accessibilityRole="button"
+            hitSlop={12}
+            onPress={() => {
+              void Clipboard.setStringAsync(copyValue).then(() => {
+                track('search_result_copy_query', { searchType });
+                setCopiedQuery(true);
+                if (copyResetTimer.current) {
+                  clearTimeout(copyResetTimer.current);
+                }
+                copyResetTimer.current = setTimeout(() => setCopiedQuery(false), 1600);
+              });
+            }}
+            style={styles.headerButton}
+          >
+            <Ionicons
+              color={copiedQuery ? colors.accent : colors.ink}
+              name={copiedQuery ? 'checkmark' : 'copy-outline'}
+              size={22}
+            />
+          </Pressable>
+          {isbnParam && isbnBookTitle ? (
+            <Pressable
+              accessibilityLabel={
+                isbnIsFavourite
+                  ? strings.favourites.removeAccessibilityLabel
+                  : strings.favourites.addAccessibilityLabel
+              }
+              accessibilityRole="button"
+              hitSlop={12}
+              onPress={() => {
+                if (isbnIsFavourite) {
+                  track('favourite_remove', { isbn: isbnParam, source: 'search_result_header' });
+                  removeFavourite.mutate(isbnParam);
+                } else {
+                  track('favourite_add', { isbn: isbnParam, source: 'search_result_header' });
+                  addFavourite.mutate({ isbn: isbnParam, title: isbnBookTitle });
+                }
+              }}
+              style={styles.headerButton}
+            >
+              <Ionicons
+                color={isbnIsFavourite ? colors.accent : colors.ink}
+                name={isbnIsFavourite ? 'heart' : 'heart-outline'}
+                size={24}
+              />
+            </Pressable>
+          ) : null}
+        </View>
       ),
     });
   }, [
@@ -335,6 +435,9 @@ export function SearchResultScreen({ navigation, route }: Props) {
     removeFavourite,
     colors,
     styles,
+    copyValue,
+    copiedQuery,
+    searchType,
   ]);
 
   const favouriteIsbnSet = useMemo(
@@ -445,7 +548,13 @@ export function SearchResultScreen({ navigation, route }: Props) {
         <EmptyState
           icon="sad-outline"
           title={strings.searchResult.notFoundTitle}
-          description={strings.searchResult.notFoundDescription}
+          description={
+            isbnParam
+              ? strings.searchResult.notFoundIsbnDescription
+              : strings.searchResult.notFoundTitleDescription
+          }
+          actionLabel={strings.searchResult.retryAction}
+          onAction={() => void refetch()}
         />
       </View>
     );
@@ -453,7 +562,45 @@ export function SearchResultScreen({ navigation, route }: Props) {
 
   const listHeader =
     resultCount > 0 ? (
-      <Text style={styles.sectionHeader}>{strings.searchResult.resultsCount(resultCount)}</Text>
+      <View style={styles.listHeader}>
+        <Text style={styles.sectionHeader}>{strings.searchResult.resultsCount(resultCount)}</Text>
+        <View
+          style={styles.sortSection}
+          accessibilityLabel={strings.searchResult.sortAccessibilityLabel}
+        >
+          <Text style={styles.sortLabel}>{strings.searchResult.sortByLabel}</Text>
+          <View style={styles.sortOptions}>
+            {sortOptions.map((option) => {
+              const selected = option.value === sortMode;
+              return (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  android_ripple={{ color: colors.rowPressed }}
+                  onPress={() => {
+                    if (!selected) {
+                      track('search_result_change_sort', { sortMode: option.value });
+                      setSortMode(option.value);
+                    }
+                  }}
+                  style={({ pressed }) => [
+                    styles.sortOption,
+                    selected && styles.sortOptionSelected,
+                    pressed && !selected && styles.sortOptionPressed,
+                  ]}
+                >
+                  <Text
+                    style={[styles.sortOptionLabel, selected && styles.sortOptionLabelSelected]}
+                  >
+                    {option.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      </View>
     ) : null;
 
   return (
@@ -481,7 +628,12 @@ const createStyles = (colors: ThemeColors) =>
       flex: 1,
       backgroundColor: colors.groupedBackground,
     },
-    headerFavouriteButton: {
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
+    headerButton: {
       alignItems: 'center',
       justifyContent: 'center',
       height: 36,
@@ -494,14 +646,55 @@ const createStyles = (colors: ThemeColors) =>
     listContent: {
       paddingHorizontal: spacing.md,
     },
+    listHeader: {
+      paddingTop: spacing.md,
+      paddingBottom: spacing.xs,
+      gap: spacing.xs,
+    },
     sectionHeader: {
       ...typography.footnote,
       color: colors.inkMuted,
       textTransform: 'uppercase',
       letterSpacing: 0.5,
-      paddingTop: spacing.md,
-      paddingBottom: spacing.xs,
       paddingHorizontal: spacing.xs,
+    },
+    sortSection: {
+      gap: spacing.xs,
+    },
+    sortLabel: {
+      ...typography.caption,
+      color: colors.inkMuted,
+      paddingHorizontal: spacing.xs,
+    },
+    sortOptions: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.xs,
+    },
+    sortOption: {
+      minHeight: 34,
+      borderRadius: 17,
+      paddingHorizontal: spacing.sm,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    sortOptionSelected: {
+      backgroundColor: colors.accent,
+      borderColor: colors.accent,
+    },
+    sortOptionPressed: {
+      backgroundColor: colors.rowPressed,
+    },
+    sortOptionLabel: {
+      ...typography.footnote,
+      color: colors.ink,
+      fontWeight: '600',
+    },
+    sortOptionLabelSelected: {
+      color: colors.surface,
     },
     separator: {
       height: StyleSheet.hairlineWidth,

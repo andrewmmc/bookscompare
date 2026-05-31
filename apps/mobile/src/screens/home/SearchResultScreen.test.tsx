@@ -1,5 +1,6 @@
+import * as Clipboard from 'expo-clipboard';
 import { FlatList } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 
 import { SearchResultScreen } from './SearchResultScreen';
 import { track } from '../../analytics';
@@ -428,6 +429,103 @@ describe('SearchResultScreen', () => {
     expect(screen.getByText('最低價')).toBeOnTheScreen();
   });
 
+  it('sorts offers by configured bookstore preference', () => {
+    mockGetPreferences.mockReturnValue({
+      openLinksIn: 'app',
+      themeMode: 'system',
+      preferredSources: ['eslite', 'books-com-tw'],
+      preferredBookTypes: [],
+    });
+    mockUseTitleSearch.mockReturnValue({
+      data: createTitleData([
+        createOffer({
+          sourceProductId: 'item-books',
+          price: 250,
+          priceText: '250',
+          url: 'https://example.com/store/books',
+        }),
+        createOffer({
+          sourceId: 'eslite',
+          sourceName: '誠品線上',
+          sourceProductId: 'item-eslite',
+          price: 360,
+          priceText: '360',
+          url: 'https://example.com/store/eslite',
+        }),
+      ]),
+      error: null,
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    });
+
+    const navigation = createNavigation();
+    const screen = renderWithProviders(
+      <SearchResultScreen
+        navigation={navigation as never}
+        route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
+      />
+    );
+
+    fireEvent.press(screen.getByText('書店偏好'));
+
+    const list = screen.UNSAFE_getByType(FlatList);
+    expect(list.props.data.map((offer: BookOffer) => offer.sourceId)).toEqual([
+      'eslite',
+      'books-com-tw',
+    ]);
+    expect(track).toHaveBeenCalledWith('search_result_change_sort', { sortMode: 'store' });
+  });
+
+  it('sorts physical and ebook offers first from the result controls', () => {
+    mockUseTitleSearch.mockReturnValue({
+      data: createTitleData([
+        createOffer({
+          sourceId: 'eslite',
+          sourceName: '誠品線上',
+          sourceProductId: 'item-ebook',
+          productType: '中文電子書',
+          price: 260,
+          priceText: '260',
+          url: 'https://example.com/store/ebook',
+        }),
+        createOffer({
+          sourceProductId: 'item-physical',
+          productType: '中文書',
+          price: 300,
+          priceText: '300',
+          url: 'https://example.com/store/physical',
+        }),
+      ]),
+      error: null,
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    });
+
+    const navigation = createNavigation();
+    const screen = renderWithProviders(
+      <SearchResultScreen
+        navigation={navigation as never}
+        route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
+      />
+    );
+
+    const list = screen.UNSAFE_getByType(FlatList);
+
+    fireEvent.press(screen.getByText('實體書優先'));
+    expect(list.props.data.map((offer: BookOffer) => offer.sourceProductId)).toEqual([
+      'item-physical',
+      'item-ebook',
+    ]);
+
+    fireEvent.press(screen.getByText('電子書優先'));
+    expect(list.props.data.map((offer: BookOffer) => offer.sourceProductId)).toEqual([
+      'item-ebook',
+      'item-physical',
+    ]);
+  });
+
   it('shows a filtered-empty state when filters remove every offer', () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
@@ -600,6 +698,66 @@ describe('SearchResultScreen', () => {
       isbn: '9781402894626',
       title: '設計中的書',
     });
+  });
+
+  it('copies the ISBN query from the header action', async () => {
+    mockUseIsbnLookup.mockReturnValue({
+      data: createIsbnData(),
+      error: null,
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    });
+
+    const navigation = createNavigation();
+    renderWithProviders(
+      <SearchResultScreen
+        navigation={navigation as never}
+        route={
+          { key: 'SearchResult', name: 'SearchResult', params: { isbn: '9781402894626' } } as never
+        }
+      />
+    );
+
+    const headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
+    const header = renderWithProviders(<>{headerRight()}</>);
+
+    await act(async () => {
+      fireEvent.press(header.getByLabelText('複製 ISBN'));
+      await Promise.resolve();
+    });
+
+    expect(Clipboard.setStringAsync).toHaveBeenCalledWith('9781402894626');
+    expect(track).toHaveBeenCalledWith('search_result_copy_query', { searchType: 'isbn' });
+  });
+
+  it('copies the title query from the header action', async () => {
+    mockUseTitleSearch.mockReturnValue({
+      data: createTitleData(),
+      error: null,
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    });
+
+    const navigation = createNavigation();
+    renderWithProviders(
+      <SearchResultScreen
+        navigation={navigation as never}
+        route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
+      />
+    );
+
+    const headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
+    const header = renderWithProviders(<>{headerRight()}</>);
+
+    await act(async () => {
+      fireEvent.press(header.getByLabelText('複製書名'));
+      await Promise.resolve();
+    });
+
+    expect(Clipboard.setStringAsync).toHaveBeenCalledWith('設計');
+    expect(track).toHaveBeenCalledWith('search_result_copy_query', { searchType: 'title' });
   });
 
   it('removes the ISBN result from favourites from the header action', () => {

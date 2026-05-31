@@ -55,6 +55,17 @@ interface Dictionary {
     sourceChipsAccessibilityLabel: string;
     ebookBadge: string;
     lowestPriceBadge: string;
+    copyIsbnAccessibilityLabel: string;
+    copyTitleAccessibilityLabel: string;
+    copiedAccessibilityLabel: string;
+    sortByLabel: string;
+    sortAccessibilityLabel: string;
+    sortOptions: {
+      price: string;
+      store: string;
+      physical: string;
+      ebook: string;
+    };
     resultsCount: (count: number) => string;
     fromPrice: (price: string) => string;
     storeCount: (count: number) => string;
@@ -67,7 +78,8 @@ interface Dictionary {
     notLiveTitle: string;
     notLiveDescription: string;
     notFoundTitle: string;
-    notFoundDescription: string;
+    notFoundIsbnDescription: string;
+    notFoundTitleDescription: string;
     filteredEmptyTitle: string;
     filteredEmptyDescription: string;
   };
@@ -201,6 +213,17 @@ const zhTW: Dictionary = {
     sourceChipsAccessibilityLabel: '書店狀態',
     ebookBadge: '電子書',
     lowestPriceBadge: '最低價',
+    copyIsbnAccessibilityLabel: '複製 ISBN',
+    copyTitleAccessibilityLabel: '複製書名',
+    copiedAccessibilityLabel: '已複製',
+    sortByLabel: '排序方式',
+    sortAccessibilityLabel: '搜尋結果排序方式',
+    sortOptions: {
+      price: '價錢最低',
+      store: '書店偏好',
+      physical: '實體書優先',
+      ebook: '電子書優先',
+    },
     resultsCount: (count) => `共找到 ${count} 個結果。`,
     fromPrice: (price) => `${price} 起`,
     storeCount: (count) => `${count} 家書店`,
@@ -213,8 +236,10 @@ const zhTW: Dictionary = {
     notLiveTitle: '即時搜尋尚未啟用',
     notLiveDescription: '目前沒有可用的書店即時資料。\n請稍後再試。',
     notFoundTitle: '未能找到結果',
-    notFoundDescription:
-      '抱歉，找不到所搜尋書本的價格資料。\n您慣用的網絡書店不在名單上？\n歡迎提交意見給我們！',
+    notFoundIsbnDescription:
+      '抱歉，找不到這個 ISBN 的價格資料。\n請確認 ISBN 是否正確，或回到首頁改用書名搜尋。',
+    notFoundTitleDescription:
+      '抱歉，找不到這本書的價格資料。\n請檢查書名是否正確，或回到首頁改用 ISBN 搜尋。',
     filteredEmptyTitle: '沒有符合篩選條件的結果',
     filteredEmptyDescription:
       '已找到書價，但都被您目前的書店或書籍類型篩選排除了。\n請到「設定」調整偏好後再試。',
@@ -352,6 +377,17 @@ const en: Dictionary = {
     sourceChipsAccessibilityLabel: 'Bookstore status',
     ebookBadge: 'eBook',
     lowestPriceBadge: 'Lowest',
+    copyIsbnAccessibilityLabel: 'Copy ISBN',
+    copyTitleAccessibilityLabel: 'Copy title',
+    copiedAccessibilityLabel: 'Copied',
+    sortByLabel: 'Sort by',
+    sortAccessibilityLabel: 'Search result sort order',
+    sortOptions: {
+      price: 'Lowest price',
+      store: 'Bookstore preference',
+      physical: 'Physical first',
+      ebook: 'eBook first',
+    },
     resultsCount: (count) => `Found ${count} ${count === 1 ? 'result' : 'results'}.`,
     fromPrice: (price) => `from ${price}`,
     storeCount: (count) => `${count} ${count === 1 ? 'store' : 'stores'}`,
@@ -366,8 +402,10 @@ const en: Dictionary = {
     notLiveTitle: 'Live search is not yet enabled',
     notLiveDescription: 'No live bookstore data is available right now.\nPlease try again later.',
     notFoundTitle: 'No results found',
-    notFoundDescription:
-      "Sorry, we couldn't find pricing for that book.\nIs your favourite bookstore missing?\nLet us know!",
+    notFoundIsbnDescription:
+      "Sorry, we couldn't find pricing for that ISBN.\nCheck the ISBN, or go back and search by title instead.",
+    notFoundTitleDescription:
+      "Sorry, we couldn't find pricing for that title.\nCheck the title, or go back and search by ISBN instead.",
     filteredEmptyTitle: 'No results match your filters',
     filteredEmptyDescription:
       'We found prices, but your current bookstore or book-type filters hid them all.\nAdjust your preferences in Settings and try again.',
