@@ -202,7 +202,7 @@ Prefer the narrowest check that meaningfully validates the change:
 
 ## Git Workflow Defaults
 
-- Do not push unless the user asks to push, ship, publish, or create/update a PR.
+- After completing non-exploratory changes that modify files, always push the current branch after committing. Skip push only if the user explicitly says not to push or the task was exploratory/aborted.
 - For exploratory/read-only tasks, do not commit unless files were intentionally changed.
 - Before staging, inspect `git status --short` and the relevant diff; never stage secrets, `.env` files, or unrelated user changes.
 - Batch read-only git context when possible:
