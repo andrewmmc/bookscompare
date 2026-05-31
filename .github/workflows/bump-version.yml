@@ -3,6 +3,15 @@ name: Bump Version
 on:
   workflow_dispatch:
     inputs:
+      package:
+        description: Package to bump
+        required: false
+        type: choice
+        default: mobile
+        options:
+          - mobile
+          - api
+          - contracts
       bump:
         description: Version component to bump
         required: false
@@ -32,7 +41,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Bump version
-        run: bash scripts/bump-version.sh "${{ inputs.bump }}"
+        run: bash scripts/bump-version.sh "${{ inputs.bump }}" "${{ inputs.package }}"
 
       - name: Push commit and tag
         run: git push --follow-tags
