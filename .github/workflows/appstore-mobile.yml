@@ -6,10 +6,6 @@ on:
       - 'v*.*.*'
   workflow_dispatch:
     inputs:
-      release_ref:
-        description: Git ref to build and submit (defaults to the dispatched workflow ref)
-        required: false
-        type: string
       what_to_test:
         description: TestFlight "What to Test" notes
         required: false
@@ -19,14 +15,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: appstore-mobile-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_ref || github.ref }}
+  group: appstore-mobile-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   publish-ios:
     runs-on: ubuntu-latest
     env:
-      RELEASE_REF: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_ref || github.ref }}
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_OWNER: ${{ vars.EXPO_OWNER }}
       EXPO_PROJECT_ID: ${{ vars.EXPO_PROJECT_ID }}
@@ -44,8 +39,12 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ env.RELEASE_REF }}
+        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Fail on unsupported ref
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          echo "App Store Mobile Release must run from a v*.*.* tag ref, got ${GITHUB_REF}" >&2
+          exit 1
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
