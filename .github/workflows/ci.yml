@@ -145,20 +145,10 @@ jobs:
       - name: Validate App Store release notes
         run: ./scripts/validate-release-notes.sh
 
-  mark-deploy-api:
+  deploy-api:
     needs:
       - changes
       - validate
-    if: needs.changes.outputs.api == 'true'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Create deploy marker
-        run: touch deploy-api-trigger.txt
-
-      - name: Upload deploy marker
-        uses: actions/upload-artifact@v4
-        with:
-          name: deploy-api-trigger
-          path: deploy-api-trigger.txt
-          if-no-files-found: error
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.changes.outputs.api == 'true'
+    uses: ./.github/workflows/deploy-api.yml
+    secrets: inherit
