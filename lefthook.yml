@@ -3,7 +3,7 @@ pre-commit:
   commands:
     mobile-typecheck:
       glob: 'apps/mobile/**/*.{ts,tsx}'
-      run: pnpm --filter @bookscompare/mobile typecheck
+      run: npm run typecheck -w @bookscompare/mobile
     prettier:
       glob: '*.{js,ts,jsx,tsx,json,md,yml,yaml}'
       run: npx prettier --write {staged_files} && git add {staged_files}
@@ -15,4 +15,4 @@ pre-push:
   parallel: true
   commands:
     typecheck:
-      run: pnpm typecheck
+      run: npm run typecheck
