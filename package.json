@@ -16,7 +16,7 @@
     "check:api": "npm run check -w @bookscompare/api",
     "ios:mobile": "npm run ios -w @bookscompare/mobile",
     "android:mobile": "npm run android -w @bookscompare/mobile",
-    "typecheck": "npm run typecheck -ws --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test -w @bookscompare/api",
     "test:mobile": "npm run test -w @bookscompare/mobile",
     "coverage:api": "npm run coverage -w @bookscompare/api",
