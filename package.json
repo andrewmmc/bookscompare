@@ -35,18 +35,18 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@react-native/eslint-plugin": "^0.85.2",
-    "@typescript-eslint/eslint-plugin": "^8.59.0",
-    "@typescript-eslint/parser": "^8.59.0",
-    "eslint": "^10.2.1",
+    "@react-native/eslint-plugin": "^0.85.3",
+    "@typescript-eslint/eslint-plugin": "^8.60.0",
+    "@typescript-eslint/parser": "^8.60.0",
+    "eslint": "^10.4.1",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "globals": "^16.5.0",
-    "lefthook": "^2.1.6",
+    "globals": "^17.6.0",
+    "lefthook": "^2.1.9",
     "prettier": "^3.8.3",
-    "typescript": "^5.6.3",
-    "typescript-eslint": "^8.59.0"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.60.0"
   }
 }
