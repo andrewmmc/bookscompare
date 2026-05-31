@@ -13,7 +13,7 @@ This file provides context and guidance for AI assistants working in this reposi
 ## Monorepo Tooling
 
 - **Package manager**: `npm` with workspaces (`apps/*`, `packages/*`)
-- **Node**: `>=20` (see `.nvmrc`)
+- **Node**: `>=22` (see `.nvmrc`)
 - **Linter**: ESLint (config at `eslint.config.mjs`)
 - **Formatter**: Prettier (config at `.prettierrc.json`)
 - **Git hooks**: Lefthook runs Prettier + ESLint on pre-commit and typecheck on pre-push
@@ -223,4 +223,4 @@ Prefer the narrowest check that meaningfully validates the change:
 - `apps/mobile/.env` must exist before running mobile commands; copy from `apps/mobile/.env.example` if needed.
 - Editing Traditional Chinese text can fail if a patch relies on brittle exact multi-byte matches. Prefer smaller hunks with nearby ASCII anchors or inspect bytes/line content before retrying.
 - App Store preview PNGs with alpha channels are rejected. Use `npm run validate:appstore-images` after regenerating previews.
-- Node.js >=20 is required (see `.nvmrc`).
+- Node.js >=22 is required (see `.nvmrc`).
