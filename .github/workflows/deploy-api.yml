@@ -9,8 +9,7 @@ on:
       - apps/api/**
       - packages/contracts/**
       - package.json
-      - pnpm-lock.yaml
-      - pnpm-workspace.yaml
+      - package-lock.json
       - .github/workflows/deploy-api.yml
 
 permissions:
@@ -32,16 +31,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
+          cache: npm
 
       - name: Validate Cloudflare configuration
         run: |
@@ -59,16 +53,16 @@ jobs:
           fi
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Typecheck
-        run: pnpm typecheck
+        run: npm run typecheck
 
       - name: API tests
-        run: pnpm test
+        run: npm run test
 
       - name: API deploy dry-run
-        run: pnpm check:api
+        run: npm run check:api
 
       - name: Deploy API
-        run: pnpm deploy:api
+        run: npm run deploy:api

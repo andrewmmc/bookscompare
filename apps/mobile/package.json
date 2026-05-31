@@ -11,10 +11,10 @@
     "prebuild:ios": "expo prebuild --platform ios",
     "test": "jest --runInBand",
     "coverage": "jest --runInBand --coverage --coverageDirectory=coverage --coverageReporters=text-summary --coverageReporters=text --coverageReporters=json-summary --coverageReporters=lcovonly",
-    "typecheck": "pnpm exec tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@bookscompare/contracts": "workspace:*",
+    "@bookscompare/contracts": "*",
     "@expo/react-native-action-sheet": "^4.1.1",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",

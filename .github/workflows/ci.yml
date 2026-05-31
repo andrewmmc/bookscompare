@@ -22,31 +22,26 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
+          cache: npm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Typecheck
-        run: pnpm typecheck
+        run: npm run typecheck
 
       - name: Lint
-        run: pnpm lint
+        run: npm run lint
 
       - name: API coverage
-        run: pnpm coverage:api | tee api-coverage.txt
+        run: npm run coverage:api | tee api-coverage.txt
 
       - name: Mobile coverage
-        run: pnpm coverage:mobile | tee mobile-coverage.txt
+        run: npm run coverage:mobile | tee mobile-coverage.txt
 
       - name: Publish coverage summary
         if: always()
@@ -118,7 +113,7 @@ jobs:
             apps/mobile/coverage/lcov.info
 
       - name: API deploy dry-run
-        run: pnpm check:api
+        run: npm run check:api
 
       - name: Validate App Store release notes
         run: ./scripts/validate-release-notes.sh

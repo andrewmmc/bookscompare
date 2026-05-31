@@ -1,24 +1,26 @@
 {
   "name": "bookscompare",
   "private": true,
-  "packageManager": "pnpm@9.15.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "engines": {
-    "node": ">=20",
-    "pnpm": "9.15.0"
+    "node": ">=20"
   },
   "scripts": {
-    "dev:api": "pnpm --filter @bookscompare/api dev",
-    "dev:mobile": "pnpm --filter @bookscompare/mobile dev",
-    "deploy:api": "pnpm --filter @bookscompare/api run deploy",
-    "check:api": "pnpm --filter @bookscompare/api check",
-    "ios:mobile": "pnpm --filter @bookscompare/mobile ios",
-    "android:mobile": "pnpm --filter @bookscompare/mobile android",
-    "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm --filter @bookscompare/api test",
-    "test:mobile": "pnpm --filter @bookscompare/mobile test",
-    "coverage:api": "pnpm --filter @bookscompare/api coverage",
-    "coverage:mobile": "pnpm --filter @bookscompare/mobile coverage",
-    "verify": "pnpm typecheck && pnpm lint && pnpm test && pnpm test:mobile && pnpm check:api",
+    "dev:api": "npm run dev -w @bookscompare/api",
+    "dev:mobile": "npm run dev -w @bookscompare/mobile",
+    "deploy:api": "npm run deploy -w @bookscompare/api",
+    "check:api": "npm run check -w @bookscompare/api",
+    "ios:mobile": "npm run ios -w @bookscompare/mobile",
+    "android:mobile": "npm run android -w @bookscompare/mobile",
+    "typecheck": "npm run typecheck -ws --if-present",
+    "test": "npm run test -w @bookscompare/api",
+    "test:mobile": "npm run test -w @bookscompare/mobile",
+    "coverage:api": "npm run coverage -w @bookscompare/api",
+    "coverage:mobile": "npm run coverage -w @bookscompare/mobile",
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run test:mobile && npm run check:api",
     "audit:privacy": "./scripts/audit-privacy.sh",
     "validate:appstore-images": "./scripts/validate-appstore-images.sh",
     "validate:release-notes": "./scripts/validate-release-notes.sh",

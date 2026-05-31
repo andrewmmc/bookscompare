@@ -4,7 +4,7 @@ This file provides context and guidance for AI assistants working in this reposi
 
 ## Project Overview
 
-**BooksCompare** is a pnpm monorepo for a book price comparison app targeting Taiwan bookstores with:
+**BooksCompare** is an npm monorepo for a book price comparison app targeting Taiwan bookstores with:
 
 - `apps/api` — Cloudflare Workers backend (Wrangler, no framework)
 - `apps/mobile` — Expo SDK 54 React Native mobile app (iOS-first)
@@ -12,7 +12,7 @@ This file provides context and guidance for AI assistants working in this reposi
 
 ## Monorepo Tooling
 
-- **Package manager**: `pnpm` 9.15.0 with workspaces (`apps/*`, `packages/*`)
+- **Package manager**: `npm` with workspaces (`apps/*`, `packages/*`)
 - **Node**: `>=20` (see `.nvmrc`)
 - **Linter**: ESLint (config at `eslint.config.mjs`)
 - **Formatter**: Prettier (config at `.prettierrc.json`)
@@ -22,45 +22,45 @@ This file provides context and guidance for AI assistants working in this reposi
 
 ```bash
 # Install dependencies
-pnpm install
+npm install
 
 # Development
-pnpm dev:api          # Start Cloudflare Worker locally (port 8787)
-pnpm dev:mobile       # Start Expo dev server (expo start --clear)
+npm run dev:api          # Start Cloudflare Worker locally (port 8787)
+npm run dev:mobile       # Start Expo dev server (expo start --clear)
 
 # Type checking
-pnpm typecheck         # All packages
-pnpm --filter @bookscompare/api typecheck
-pnpm --filter @bookscompare/mobile typecheck
-pnpm --filter @bookscompare/contracts typecheck
+npm run typecheck         # All packages
+npm run typecheck -w @bookscompare/api
+npm run typecheck -w @bookscompare/mobile
+npm run typecheck -w @bookscompare/contracts
 
 # Linting & formatting
-pnpm lint
-pnpm lint:fix
-pnpm format
-pnpm format:check
+npm run lint
+npm run lint:fix
+npm run format
+npm run format:check
 
 # Testing
-pnpm test             # API tests
-pnpm test:mobile      # Mobile Jest tests
-pnpm --filter @bookscompare/api test
-pnpm --filter @bookscompare/mobile test -- HomeScreen.test.tsx SearchResultScreen.test.tsx
+npm run test             # API tests
+npm run test:mobile      # Mobile Jest tests
+npm run test -w @bookscompare/api
+npm run test -w @bookscompare/mobile -- -- HomeScreen.test.tsx SearchResultScreen.test.tsx
 
 # Full verify pipeline
-pnpm verify           # typecheck + lint + test + test:mobile + check:api
+npm run verify           # typecheck + lint + test + test:mobile + check:api
 
 # Focused audits and assets
-pnpm audit:privacy
-pnpm validate:appstore-images
+npm run audit:privacy
+npm run validate:appstore-images
 ./scripts/generate-appstore-previews.sh
 
 # API deployment
-pnpm check:api        # Dry-run Wrangler deploy
-pnpm deploy:api       # Deploy to Cloudflare Workers
+npm run check:api        # Dry-run Wrangler deploy
+npm run deploy:api       # Deploy to Cloudflare Workers
 
 # Mobile native
-pnpm ios:mobile       # expo run:ios
-pnpm android:mobile   # expo run:android
+npm run ios:mobile       # expo run:ios
+npm run android:mobile   # expo run:android
 ```
 
 ## Project Map
@@ -84,8 +84,8 @@ Use this map to avoid rediscovering common ownership paths.
 Useful focused checks:
 
 ```bash
-pnpm --filter @bookscompare/mobile typecheck
-pnpm --filter @bookscompare/mobile test -- HomeScreen.test.tsx SearchResultScreen.test.tsx
+npm run typecheck -w @bookscompare/mobile
+npm run test -w @bookscompare/mobile -- -- HomeScreen.test.tsx SearchResultScreen.test.tsx
 ```
 
 ### API (`apps/api`)
@@ -102,8 +102,8 @@ pnpm --filter @bookscompare/mobile test -- HomeScreen.test.tsx SearchResultScree
 Useful focused checks:
 
 ```bash
-pnpm --filter @bookscompare/api typecheck
-pnpm --filter @bookscompare/api test
+npm run typecheck -w @bookscompare/api
+npm run test -w @bookscompare/api
 ```
 
 ### Shared contracts (`packages/contracts`)
@@ -114,7 +114,7 @@ pnpm --filter @bookscompare/api test
 Useful focused check:
 
 ```bash
-pnpm --filter @bookscompare/contracts typecheck
+npm run typecheck -w @bookscompare/contracts
 ```
 
 ### App Store preview assets
@@ -128,7 +128,7 @@ Useful checks:
 
 ```bash
 ./scripts/generate-appstore-previews.sh
-pnpm validate:appstore-images
+npm run validate:appstore-images
 ```
 
 ### Release and privacy scripts
@@ -187,18 +187,18 @@ pnpm validate:appstore-images
 Prefer the narrowest check that meaningfully validates the change:
 
 - **Docs/content only**: inspect `git diff`; no typecheck unless code changed.
-- **Root scripts/config**: run the affected script/command plus `pnpm format:check` when formatting may be affected.
-- **API-only change**: run `pnpm --filter @bookscompare/api typecheck` and `pnpm --filter @bookscompare/api test`.
-- **Mobile localized change**: run `pnpm --filter @bookscompare/mobile typecheck` and the nearest focused Jest test(s).
-- **Shared contracts/navigation/cross-package change**: run `pnpm typecheck` plus relevant API/mobile tests.
+- **Root scripts/config**: run the affected script/command plus `npm run format:check` when formatting may be affected.
+- **API-only change**: run `npm run typecheck -w @bookscompare/api` and `npm run test -w @bookscompare/api`.
+- **Mobile localized change**: run `npm run typecheck -w @bookscompare/mobile` and the nearest focused Jest test(s).
+- **Shared contracts/navigation/cross-package change**: run `npm run typecheck` plus relevant API/mobile tests.
 - **Before push**: Lefthook runs Prettier/ESLint on commit and typecheck on push; avoid duplicating the full pipeline unless the change is broad or a focused check failed earlier.
 
 ## Services
 
-| Service                 | Command           | Port | Notes                                                                                  |
-| ----------------------- | ----------------- | ---- | -------------------------------------------------------------------------------------- |
-| API (Cloudflare Worker) | `pnpm dev:api`    | 8787 | Stateless; no DB or external secrets needed locally. Wrangler simulates rate-limiting. |
-| Mobile (Expo)           | `pnpm dev:mobile` | 8081 | Requires iOS Simulator or physical device; not runnable headlessly in Cloud Agent VMs. |
+| Service                 | Command              | Port | Notes                                                                                  |
+| ----------------------- | -------------------- | ---- | -------------------------------------------------------------------------------------- |
+| API (Cloudflare Worker) | `npm run dev:api`    | 8787 | Stateless; no DB or external secrets needed locally. Wrangler simulates rate-limiting. |
+| Mobile (Expo)           | `npm run dev:mobile` | 8081 | Requires iOS Simulator or physical device; not runnable headlessly in Cloud Agent VMs. |
 
 ## Git Workflow Defaults
 
@@ -218,9 +218,9 @@ Prefer the narrowest check that meaningfully validates the change:
 
 ## Known Productivity Gotchas
 
-- `pnpm install` may exit non-zero on first run because `lefthook install` conflicts with existing hook paths. Use `pnpm install --ignore-scripts` if a clean install exit code is required, then run build-related postinstall scripts separately if required (for example, `npx esbuild --version` or `npx wrangler --version` to trigger lazy native installs).
+- `npm install` may exit non-zero on first run because `lefthook install` conflicts with existing hook paths. Use `npm install --ignore-scripts` if a clean install exit code is required, then run build-related postinstall scripts separately if required (for example, `npx esbuild --version` or `npx wrangler --version` to trigger lazy native installs).
 - Mobile simulators/emulators are not available in headless cloud VMs. Mobile Jest tests run headlessly.
 - `apps/mobile/.env` must exist before running mobile commands; copy from `apps/mobile/.env.example` if needed.
 - Editing Traditional Chinese text can fail if a patch relies on brittle exact multi-byte matches. Prefer smaller hunks with nearby ASCII anchors or inspect bytes/line content before retrying.
-- App Store preview PNGs with alpha channels are rejected. Use `pnpm validate:appstore-images` after regenerating previews.
-- Node.js >=20 and pnpm 9.15.0 are required (see `.nvmrc` and `packageManager` in `package.json`).
+- App Store preview PNGs with alpha channels are rejected. Use `npm run validate:appstore-images` after regenerating previews.
+- Node.js >=20 is required (see `.nvmrc`).

@@ -36,22 +36,17 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
+          cache: npm
 
       - name: Set up Expo and EAS
         uses: expo/expo-github-action@v8
         with:
           eas-version: latest
-          packager: pnpm
+          packager: npm
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Validate release configuration
@@ -90,7 +85,7 @@ jobs:
           fi
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Write App Store Connect API key
         env:
