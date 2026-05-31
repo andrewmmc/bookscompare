@@ -2,27 +2,62 @@ name: Deploy API
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-    paths:
-      - apps/api/**
-      - packages/contracts/**
-      - package.json
-      - package-lock.json
-      - .github/workflows/deploy-api.yml
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
-  group: deploy-api-${{ github.ref }}
+  group: deploy-api-${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  changes:
     runs-on: ubuntu-latest
 
+    outputs:
+      api: ${{ steps.trigger.outputs.api }}
+
+    steps:
+      - name: Skip change detection for manual runs
+        if: github.event_name == 'workflow_dispatch'
+        run: true
+
+      - name: Check deploy trigger from CI
+        id: trigger
+        if: github.event_name == 'workflow_run'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+
+            if (run.conclusion !== 'success' || run.event !== 'push' || run.head_branch !== 'master') {
+              core.setOutput('api', 'false');
+              return;
+            }
+
+            const { data } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: run.id,
+            });
+
+            const shouldDeploy = data.artifacts.some(
+              (artifact) => artifact.name === 'deploy-api-trigger' && !artifact.expired
+            );
+
+            core.setOutput('api', shouldDeploy ? 'true' : 'false');
+
+  deploy:
+    needs: changes
+    if: >
+      github.event_name == 'workflow_dispatch' || needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -30,6 +65,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

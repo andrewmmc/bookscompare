@@ -15,7 +15,34 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+
+    outputs:
+      api: ${{ steps.filter.outputs.api || 'false' }}
+
+    steps:
+      - name: Check out repository
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect API-related changes
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+              - 'packages/contracts/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/deploy-api.yml'
+
   validate:
+    needs: changes
     runs-on: ubuntu-latest
 
     steps:
@@ -117,3 +144,21 @@ jobs:
 
       - name: Validate App Store release notes
         run: ./scripts/validate-release-notes.sh
+
+  mark-deploy-api:
+    needs:
+      - changes
+      - validate
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create deploy marker
+        run: touch deploy-api-trigger.txt
+
+      - name: Upload deploy marker
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-api-trigger
+          path: deploy-api-trigger.txt
+          if-no-files-found: error
