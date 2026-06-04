@@ -105,7 +105,7 @@ apps/
       screens/    # 首頁、關於、共用畫面
       theme/
 packages/
-  contracts/  # 兩端共用 TypeScript 型別 (BookOffer, LookupResponse, ApiErrorResponse, ...)
+  contracts/  # 兩端共用 TypeScript 型別 (BookOffer, SearchResponse, BookDetailResponse, ...)
 ```
 
 ### API
@@ -136,7 +136,7 @@ packages/
 ### Contracts
 
 - 純 TypeScript 型別套件，沒有任何 runtime 相依。
-- 主要匯出：`BOOK_SOURCES`、`BookSourceId`、`BookOffer`、`SourceState`、`LookupQuery`、`LookupResponse`、`ApiErrorResponse`。
+- 主要匯出：`BOOK_SOURCES`、`BookSourceId`、`BookOffer`、`BookSummary`、`BookDetail`、`SourceState`、`SearchResponse`、`BookDetailResponse`、`ApiErrorResponse`。
 - 錯誤代碼：`INVALID_ISBN | INVALID_QUERY | METHOD_NOT_ALLOWED | NOT_FOUND`。
 
 ## 開發

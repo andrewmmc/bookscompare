@@ -27,20 +27,20 @@ The mobile app lives here as an Expo SDK 54 workspace app with an iOS-first rele
 From the repository root:
 
 ```bash
-pnpm dev:mobile
-pnpm ios:mobile
-pnpm test:mobile
-pnpm typecheck
+npm run dev:mobile
+npm run ios:mobile
+npm run test:mobile
+npm run typecheck
 ```
 
 From `apps/mobile/` directly:
 
 ```bash
-pnpm dev
-pnpm ios
-pnpm prebuild:ios
-pnpm test
-pnpm typecheck
+npm run dev
+npm run ios
+npm run prebuild:ios
+npm run test
+npm run typecheck
 ```
 
 ## Local development flow
@@ -54,26 +54,26 @@ cp apps/mobile/.env.example apps/mobile/.env
 Start the API in one terminal:
 
 ```bash
-pnpm dev:api
+npm run dev:api
 ```
 
 Start Expo in another terminal — it auto-loads `apps/mobile/.env`:
 
 ```bash
-pnpm dev:mobile
+npm run dev:mobile
 ```
 
 Then launch the iOS app:
 
 ```bash
-pnpm ios:mobile
+npm run ios:mobile
 ```
 
 If you are already in `apps/mobile/`, use:
 
 ```bash
-pnpm dev
-pnpm ios
+npm run dev
+npm run ios
 ```
 
 ## Environment
@@ -91,7 +91,7 @@ Expo loads `apps/mobile/.env` automatically. See `.env.example` for the full lis
 - Bundle identifier: `com.andrewmmc.BookPriceApp`
 - Deployment target: iOS 17.0
 - Locale baseline: `zh_Hant_TW`
-- `pnpm prebuild:ios` successfully generates the native iOS project from the current Expo config
+- `npm run prebuild:ios` successfully generates the native iOS project from the current Expo config
 - `xcodebuild` successfully builds the generated iOS project for `iphonesimulator`
 - CocoaPods must be available locally to finish native dependency installation during prebuild/run flows
 
@@ -150,7 +150,7 @@ A full iOS release runs through two GitHub Actions workflows. Stage 1 ships the 
 
 1. **Open a PR that bumps the release** —
    - bump `version` in [`apps/mobile/package.json`](./package.json)
-   - update **every** locale under [`apps/mobile/fastlane/metadata/<locale>/release_notes.txt`](./fastlane/metadata) (currently `en-US` and `zh-Hant`)
+   - update **every** locale under [`apps/mobile/fastlane/metadata/<locale>/release_notes.txt`](./fastlane/metadata) (currently `zh-Hant`)
    - CI runs [`scripts/validate-release-notes.sh`](../../scripts/validate-release-notes.sh) and fails if any locale is missing, empty, or > 4000 bytes
    - merge to `main`
 2. **Run the TestFlight workflow** — **Actions → [App Store Mobile Release](../../.github/workflows/appstore-mobile.yml) → Run workflow**. Optionally fill `what_to_test`. Wait for EAS to build, submit, and for Apple to finish TestFlight processing (typically 10–30 min). You can confirm the build is ready in App Store Connect → TestFlight.
@@ -201,11 +201,11 @@ When you need to bypass GitHub Actions (e.g. to debug a failing build):
 
 ```bash
 cd apps/mobile
-pnpm exec eas login
-pnpm exec eas build --platform ios --profile production --auto-submit
+npm exec eas login
+npm exec eas build --platform ios --profile production --auto-submit
 # or build only, then submit later
-pnpm exec eas build --platform ios --profile production
-pnpm exec eas submit --platform ios --latest
+npm exec eas build --platform ios --profile production
+npm exec eas submit --platform ios --latest
 ```
 
 The same env vars listed above must be available locally (export them from your shell) for the submit step to find App Store Connect credentials.
