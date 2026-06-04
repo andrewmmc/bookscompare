@@ -1,7 +1,18 @@
-const defaultApiBaseUrl = 'https://bookscompare-api.andrewmmc.workers.dev';
+import Constants from 'expo-constants';
+
+interface AppExtra {
+  apiBaseUrl?: string;
+}
+
+const defaultApiBaseUrl = 'https://bookscompare-api.mmc.dev';
+
+function readConfiguredApiBaseUrl(): string | undefined {
+  const extra = (Constants.expoConfig?.extra ?? {}) as Partial<AppExtra>;
+  return extra.apiBaseUrl || process.env.EXPO_PUBLIC_API_BASE_URL || undefined;
+}
 
 function getApiBaseUrl(): string {
-  return (process.env.EXPO_PUBLIC_API_BASE_URL ?? defaultApiBaseUrl).replace(/\/$/, '');
+  return (readConfiguredApiBaseUrl() ?? defaultApiBaseUrl).replace(/\/$/, '');
 }
 
 export class ApiError extends Error {
