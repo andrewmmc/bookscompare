@@ -1,10 +1,11 @@
-import { Linking } from 'react-native';
+import { Alert, Linking } from 'react-native';
 
 import { openExternalUrl } from './linking';
 
 describe('openExternalUrl', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -28,6 +29,11 @@ describe('openExternalUrl', () => {
 
     expect(canOpenURL).toHaveBeenCalledWith('unsupported://book');
     expect(openURL).not.toHaveBeenCalled();
+    expect(Alert.alert).toHaveBeenCalledWith(
+      '無法開啟連結',
+      '目前無法在裝置上開啟這個連結。請稍後再試。',
+      [{ text: '知道了' }]
+    );
   });
 
   it('returns false when opening the URL fails', async () => {
@@ -35,5 +41,11 @@ describe('openExternalUrl', () => {
     jest.spyOn(Linking, 'openURL').mockRejectedValue(new Error('unavailable'));
 
     await expect(openExternalUrl('https://example.com/book')).resolves.toBe(false);
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      '無法開啟連結',
+      '目前無法在裝置上開啟這個連結。請稍後再試。',
+      [{ text: '知道了' }]
+    );
   });
 });

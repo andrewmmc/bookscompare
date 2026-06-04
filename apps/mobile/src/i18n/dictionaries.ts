@@ -148,6 +148,11 @@ interface Dictionary {
     errorDescription: string;
     errorAction: string;
   };
+  externalLink: {
+    errorTitle: string;
+    errorDescription: string;
+    errorAction: string;
+  };
   loading: {
     defaultLabel: string;
   };
@@ -310,6 +315,11 @@ const zhTW: Dictionary = {
     errorTitle: '未能載入內容',
     errorDescription: '請檢查您的網絡連接。如持續遇到此問題，請稍後再試。',
     errorAction: '在瀏覽器開啟',
+  },
+  externalLink: {
+    errorTitle: '無法開啟連結',
+    errorDescription: '目前無法在裝置上開啟這個連結。請稍後再試。',
+    errorAction: '知道了',
   },
   loading: {
     defaultLabel: '載入中…',
@@ -480,6 +490,12 @@ const en: Dictionary = {
     errorDescription:
       'Please check your internet connection. If the issue persists, please try again later.',
     errorAction: 'Open in browser',
+  },
+  externalLink: {
+    errorTitle: 'Could not open link',
+    errorDescription:
+      'This link could not be opened on your device right now. Please try again later.',
+    errorAction: 'OK',
   },
   loading: {
     defaultLabel: 'Loading…',
