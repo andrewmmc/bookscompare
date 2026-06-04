@@ -70,7 +70,6 @@ export const API_ERROR_CODES = [
   'INVALID_QUERY',
   'METHOD_NOT_ALLOWED',
   'NOT_FOUND',
-  'RATE_LIMITED',
 ] as const;
 
 export type ApiErrorCode = (typeof API_ERROR_CODES)[number];

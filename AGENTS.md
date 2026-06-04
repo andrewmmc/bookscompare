@@ -171,7 +171,7 @@ npm run validate:appstore-images
 
 - Pure TypeScript types shared between API and mobile (no runtime deps)
 - Key exports include `BOOK_SOURCES`, `BookSourceId`, `BookOffer`, `BookSummary`, `BookDetail`, `SourceState`, `SearchResponse`, `BookDetailResponse`, and `ApiErrorResponse`
-- Error codes: `INVALID_ISBN | INVALID_QUERY | METHOD_NOT_ALLOWED | NOT_FOUND | RATE_LIMITED`
+- Error codes: `INVALID_ISBN | INVALID_QUERY | METHOD_NOT_ALLOWED | NOT_FOUND`
 
 ## Key Conventions
 
