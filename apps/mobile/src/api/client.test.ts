@@ -21,6 +21,7 @@ function loadClient(extra?: { apiBaseUrl?: string }, envApiBaseUrl?: string) {
 
 describe('api client configuration', () => {
   afterEach(() => {
+    jest.restoreAllMocks();
     jest.dontMock('expo-constants');
     jest.resetModules();
     if (originalEnvApiBaseUrl === undefined) {
@@ -49,5 +50,46 @@ describe('api client configuration', () => {
     const { getApiBaseUrl } = loadClient();
 
     expect(getApiBaseUrl()).toBe('https://bookscompare-api.mmc.dev');
+  });
+
+  it('preserves structured API error payloads', async () => {
+    const { ApiError, apiGet } = loadClient();
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 400,
+      text: async () =>
+        JSON.stringify({
+          error: {
+            code: 'INVALID_QUERY',
+            message: 'Provide a non-empty search query via ?q=.',
+          },
+        }),
+    } as Response);
+
+    await expect(apiGet('/search')).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 400,
+      code: 'INVALID_QUERY',
+      message: 'Provide a non-empty search query via ?q=.',
+      responseMessage: 'Provide a non-empty search query via ?q=.',
+    });
+    await expect(apiGet('/search')).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('keeps raw body text for non-JSON error responses', async () => {
+    const { apiGet } = loadClient();
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: async () => 'server error',
+    } as Response);
+
+    await expect(apiGet('/isbn/9781402894626')).rejects.toMatchObject({
+      status: 500,
+      body: 'server error',
+      code: undefined,
+      responseMessage: undefined,
+      message: 'API request failed with status 500',
+    });
   });
 });
