@@ -89,7 +89,7 @@ function createStyles(colors: ThemeColors) {
     },
     headerActionText: {
       ...typography.body,
-      color: colors.navigationAction,
+      color: colors.ink,
       fontWeight: '500',
     },
   });
