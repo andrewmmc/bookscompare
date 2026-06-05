@@ -85,6 +85,7 @@ test('parseKingstoneSearchResults throws when announced results cannot be parsed
 test('fetchKingstoneOffers returns every normalized offer', async (t) => {
   const searchHtml = await readFixture('found.html');
   const originalFetch = globalThis.fetch;
+  const requestedUrls: string[] = [];
 
   t.after(() => {
     globalThis.fetch = originalFetch;
@@ -94,7 +95,12 @@ test('fetchKingstoneOffers returns every normalized offer', async (t) => {
     const url =
       typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
 
-    if (url === 'https://www.kingstone.com.tw/search/key/9786267569337/dis/list?') {
+    requestedUrls.push(url);
+
+    if (
+      url === 'https://www.kingstone.com.tw/search/key/9786267569337/zone/book/dis/list?' ||
+      url === 'https://www.kingstone.com.tw/search/key/9786267569337/zone/ebook/dis/list?'
+    ) {
       return new Response(searchHtml, { status: 200 });
     }
 
@@ -104,6 +110,10 @@ test('fetchKingstoneOffers returns every normalized offer', async (t) => {
   const offers = await fetchKingstoneOffers('9786267569337');
   const [firstOffer, secondOffer] = offers;
 
+  assert.deepEqual(requestedUrls, [
+    'https://www.kingstone.com.tw/search/key/9786267569337/zone/book/dis/list?',
+    'https://www.kingstone.com.tw/search/key/9786267569337/zone/ebook/dis/list?',
+  ]);
   assert.equal(offers.length, 2);
   assert.ok(firstOffer);
   assert.ok(secondOffer);

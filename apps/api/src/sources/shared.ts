@@ -56,3 +56,18 @@ export function parseSearchResultRows<Row>({
 
   return results;
 }
+
+export function dedupeOffersBySourceProductId(offers: BookOffer[]): BookOffer[] {
+  const seen = new Set<string>();
+
+  return offers.filter((offer) => {
+    const key = `${offer.sourceId}:${offer.sourceProductId}`;
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+}

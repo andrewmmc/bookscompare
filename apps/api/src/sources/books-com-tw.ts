@@ -10,14 +10,19 @@ import {
   stripTags,
   toAbsoluteUrl,
 } from '../lib/html';
-import { DEFAULT_CURRENCY, parseSearchResultRows, sourceMeta } from './shared';
+import {
+  DEFAULT_CURRENCY,
+  dedupeOffersBySourceProductId,
+  parseSearchResultRows,
+  sourceMeta,
+} from './shared';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
 const BOOKS_COM_TW_SOURCE_ID = 'books-com-tw';
 const BOOKS_COM_TW_SOURCE = sourceMeta(BOOKS_COM_TW_SOURCE_ID);
-const BOOKS_COM_TW_SEARCH_URL =
-  'https://search.books.com.tw/search/query/cat/all/sort/1/v/0/page/1/spell/3/key/';
+const BOOKS_COM_TW_SEARCH_BASE_URL = 'https://search.books.com.tw/search/query/cat/';
+const BOOKS_COM_TW_SEARCH_CATEGORIES = ['001', '6'] as const;
 
 const RESULT_BLOCK_PATTERN = /<tbody id="itemlist_([A-Z0-9]+)">([\s\S]*?)<\/tbody>/g;
 const RESULT_COUNT_PATTERN = /搜尋結果共\s*<span>(\d+)<\/span>\s*筆/;
@@ -220,22 +225,28 @@ export function parseBooksComTwSearchResults(html: string): BookOffer[] {
   return results;
 }
 
+function buildBooksComTwSearchUrl(category: string, keyword: string): string {
+  return `${BOOKS_COM_TW_SEARCH_BASE_URL}${category}/sort/1/v/0/page/1/spell/3/key/${encodeURIComponent(keyword)}`;
+}
+
 export async function fetchBooksComTwOffers(
   keyword: string,
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
-  const html = await fetchHtml(`${BOOKS_COM_TW_SEARCH_URL}${encodeURIComponent(keyword)}`, {
-    headers: {
-      'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
-    },
-    notFoundStatus: 404,
-    errorLabel: 'Books.com.tw',
-    ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
-  });
+  const htmlByCategory = await Promise.all(
+    BOOKS_COM_TW_SEARCH_CATEGORIES.map((category) =>
+      fetchHtml(buildBooksComTwSearchUrl(category, keyword), {
+        headers: {
+          'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
+        },
+        notFoundStatus: 404,
+        errorLabel: 'Books.com.tw',
+        ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
+      })
+    )
+  );
 
-  if (!html) {
-    return [];
-  }
-
-  return parseBooksComTwSearchResults(html);
+  return dedupeOffersBySourceProductId(
+    htmlByCategory.flatMap((html) => (html ? parseBooksComTwSearchResults(html) : []))
+  );
 }

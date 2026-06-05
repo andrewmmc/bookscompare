@@ -9,7 +9,12 @@ import {
   normalizeWhitespace,
   stripTags,
 } from '../lib/html';
-import { DEFAULT_CURRENCY, parseSearchResultRows, sourceMeta } from './shared';
+import {
+  DEFAULT_CURRENCY,
+  dedupeOffersBySourceProductId,
+  parseSearchResultRows,
+  sourceMeta,
+} from './shared';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
@@ -17,6 +22,7 @@ const KINGSTONE_BASE_URL = 'https://www.kingstone.com.tw';
 const KINGSTONE_SOURCE_ID = 'kingstone';
 const KINGSTONE_SOURCE = sourceMeta(KINGSTONE_SOURCE_ID);
 const KINGSTONE_SEARCH_URL = `${KINGSTONE_BASE_URL}/search/key/`;
+const KINGSTONE_SEARCH_ZONES = ['book', 'ebook'] as const;
 
 const NO_RESULTS_PATTERN = /找不到與\s*[^\s]+\s*有關的結果/;
 const RESULT_COUNT_PATTERN = /全館搜尋共計\s*<span>(\d+)<\/span>\s*筆/;
@@ -190,28 +196,28 @@ export function parseKingstoneSearchResults(html: string): BookOffer[] {
   return results;
 }
 
+function buildKingstoneSearchUrl(zone: string, keyword: string): string {
+  return `${KINGSTONE_SEARCH_URL}${encodeURIComponent(keyword)}/zone/${zone}/dis/list?`;
+}
+
 export async function fetchKingstoneOffers(
   keyword: string,
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
-  const html = await fetchHtml(`${KINGSTONE_SEARCH_URL}${encodeURIComponent(keyword)}/dis/list?`, {
-    headers: {
-      'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
-    },
-    notFoundStatus: 404,
-    errorLabel: 'Kingstone',
-    ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
-  });
+  const htmlByZone = await Promise.all(
+    KINGSTONE_SEARCH_ZONES.map((zone) =>
+      fetchHtml(buildKingstoneSearchUrl(zone, keyword), {
+        headers: {
+          'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
+        },
+        notFoundStatus: 404,
+        errorLabel: 'Kingstone',
+        ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
+      })
+    )
+  );
 
-  if (!html) {
-    return [];
-  }
-
-  const searchOffers = parseKingstoneSearchResults(html);
-
-  if (searchOffers.length === 0) {
-    return [];
-  }
-
-  return searchOffers;
+  return dedupeOffersBySourceProductId(
+    htmlByZone.flatMap((html) => (html ? parseKingstoneSearchResults(html) : []))
+  );
 }

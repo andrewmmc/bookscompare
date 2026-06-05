@@ -14,15 +14,26 @@ async function readFixture(name: string): Promise<string> {
 test('fetchBooksComTwOffers returns every parsed result', async (t) => {
   const html = await readFixture('found.html');
   const originalFetch = globalThis.fetch;
+  const requestedUrls: string[] = [];
 
   t.after(() => {
     globalThis.fetch = originalFetch;
   });
 
-  globalThis.fetch = (async () => new Response(html, { status: 200 })) as typeof fetch;
+  globalThis.fetch = (async (input) => {
+    const url =
+      typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+
+    requestedUrls.push(url);
+    return new Response(html, { status: 200 });
+  }) as typeof fetch;
 
   const offers = await fetchBooksComTwOffers('9786267569337');
 
+  assert.deepEqual(requestedUrls, [
+    'https://search.books.com.tw/search/query/cat/001/sort/1/v/0/page/1/spell/3/key/9786267569337',
+    'https://search.books.com.tw/search/query/cat/6/sort/1/v/0/page/1/spell/3/key/9786267569337',
+  ]);
   assert.equal(offers.length, 2);
   assert.deepEqual(
     offers.map((offer) => offer.sourceProductId),
