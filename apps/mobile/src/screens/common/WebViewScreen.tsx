@@ -74,7 +74,7 @@ export function WebViewScreen({ navigation, route }: Props) {
                   pressed && styles.headerButtonPressed,
                 ]}
               >
-                <Ionicons color={colors.navigationAction} name="share-outline" size={22} />
+                <Ionicons color={colors.ink} name="share-outline" size={22} />
               </Pressable>
             ),
           }

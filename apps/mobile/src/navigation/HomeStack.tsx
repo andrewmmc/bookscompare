@@ -50,7 +50,7 @@ export function HomeStack() {
               }}
               style={({ pressed }) => [styles.headerLeft, pressed && styles.headerLeftPressed]}
             >
-              <Ionicons color={colors.navigationAction} name="time-outline" size={24} />
+              <Ionicons color={colors.ink} name="time-outline" size={24} />
             </Pressable>
           ),
         })}
