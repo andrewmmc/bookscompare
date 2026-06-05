@@ -18,6 +18,7 @@ export function sourceMeta(sourceId: BookSourceId): { id: BookSourceId; name: st
 
 interface ParseRowsInput<Row> {
   providerId: BookSourceId;
+  requestUrl?: string | undefined;
   rows: Row[];
   getBlock: (row: Row) => string | undefined;
   parseOffer: (block: string, row: Row) => BookOffer;
@@ -26,6 +27,7 @@ interface ParseRowsInput<Row> {
 
 export function parseSearchResultRows<Row>({
   providerId,
+  requestUrl,
   rows,
   getBlock,
   parseOffer,
@@ -40,6 +42,7 @@ export function parseSearchResultRows<Row>({
       logParseFailure({
         providerId,
         reason: incompleteRowMessage,
+        ...(requestUrl ? { url: requestUrl } : {}),
       });
       continue;
     }
@@ -50,6 +53,7 @@ export function parseSearchResultRows<Row>({
       logParseFailure({
         providerId,
         reason: error instanceof Error ? error.message : String(error),
+        ...(requestUrl ? { url: requestUrl } : {}),
       });
     }
   }

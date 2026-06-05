@@ -70,9 +70,14 @@ test('logFetchAttempt emits info on success and warn when an error is present', 
 test('logParseFailure always emits a warn line', (t) => {
   const captured = captureConsole(t);
 
-  logParseFailure({ providerId: 'eslite', reason: 'missing price' });
+  logParseFailure({
+    providerId: 'eslite',
+    reason: 'missing price',
+    url: 'https://example.com/search?q=book',
+  });
 
   assert.equal(captured[0]?.level, 'warn');
   assert.equal(captured[0]?.payload.event, 'provider.parse_failure');
   assert.equal(captured[0]?.payload.reason, 'missing price');
+  assert.equal(captured[0]?.payload.url, 'https://example.com/search?q=book');
 });

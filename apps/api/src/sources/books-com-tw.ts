@@ -189,7 +189,7 @@ function parseOffer(productId: string, block: string): BookOffer {
   };
 }
 
-export function parseBooksComTwSearchResults(html: string): BookOffer[] {
+export function parseBooksComTwSearchResults(html: string, requestUrl?: string): BookOffer[] {
   if (NO_RESULTS_PATTERN.test(html)) {
     return [];
   }
@@ -208,6 +208,7 @@ export function parseBooksComTwSearchResults(html: string): BookOffer[] {
   const rows = Array.from(resultTable.matchAll(RESULT_BLOCK_PATTERN));
   const results = parseSearchResultRows({
     providerId: BOOKS_COM_TW_SOURCE_ID,
+    ...(requestUrl ? { requestUrl } : {}),
     rows,
     getBlock: (match) => (match[1] && match[2] ? match[2] : undefined),
     parseOffer: (block, match) => parseOffer(match[1]!, block),
@@ -233,20 +234,25 @@ export async function fetchBooksComTwOffers(
   keyword: string,
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
-  const htmlByCategory = await Promise.all(
-    BOOKS_COM_TW_SEARCH_CATEGORIES.map((category) =>
-      fetchHtml(buildBooksComTwSearchUrl(category, keyword), {
+  const resultsByCategory = await Promise.all(
+    BOOKS_COM_TW_SEARCH_CATEGORIES.map(async (category) => {
+      const url = buildBooksComTwSearchUrl(category, keyword);
+      const html = await fetchHtml(url, {
         headers: {
           'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
         },
         notFoundStatus: 404,
         errorLabel: 'Books.com.tw',
         ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
-      })
-    )
+      });
+
+      return { html, url };
+    })
   );
 
   return dedupeOffersBySourceProductId(
-    htmlByCategory.flatMap((html) => (html ? parseBooksComTwSearchResults(html) : []))
+    resultsByCategory.flatMap(({ html, url }) =>
+      html ? parseBooksComTwSearchResults(html, url) : []
+    )
   );
 }

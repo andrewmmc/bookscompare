@@ -173,7 +173,7 @@ function parseCiteOffer(block: string): BookOffer {
   };
 }
 
-export function parseCiteSearchResults(html: string): BookOffer[] {
+export function parseCiteSearchResults(html: string, requestUrl?: string): BookOffer[] {
   const normalizedText = normalizeWhitespace(stripTags(html));
 
   if (NO_RESULTS_PATTERN.test(normalizedText)) {
@@ -189,6 +189,7 @@ export function parseCiteSearchResults(html: string): BookOffer[] {
   const rows = Array.from(resultContainer.matchAll(RESULT_BLOCK_PATTERN));
   const results = parseSearchResultRows({
     providerId: CITE_SOURCE_ID,
+    ...(requestUrl ? { requestUrl } : {}),
     rows,
     getBlock: (match) => match[1],
     parseOffer: parseCiteOffer,
@@ -206,7 +207,8 @@ export async function fetchCiteOffers(
   keyword: string,
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
-  const html = await fetchHtml(`${CITE_SEARCH_URL}${encodeURIComponent(keyword)}`, {
+  const url = `${CITE_SEARCH_URL}${encodeURIComponent(keyword)}`;
+  const html = await fetchHtml(url, {
     headers: {
       'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
       'user-agent': CITE_USER_AGENT,
@@ -220,5 +222,5 @@ export async function fetchCiteOffers(
     return [];
   }
 
-  return parseCiteSearchResults(html);
+  return parseCiteSearchResults(html, url);
 }

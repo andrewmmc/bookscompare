@@ -150,7 +150,10 @@ function parseEsliteOffer(hit: EsliteSearchHit): BookOffer {
   };
 }
 
-export function parseEsliteSearchResults(payload: EsliteSearchResponse): BookOffer[] {
+export function parseEsliteSearchResults(
+  payload: EsliteSearchResponse,
+  requestUrl?: string
+): BookOffer[] {
   const hits = payload.hits?.hit ?? [];
 
   if (hits.length === 0) {
@@ -170,6 +173,7 @@ export function parseEsliteSearchResults(payload: EsliteSearchResponse): BookOff
       logParseFailure({
         providerId: ESLITE_SOURCE_ID,
         reason: error instanceof Error ? error.message : String(error),
+        ...(requestUrl ? { url: requestUrl } : {}),
       });
     }
   }
@@ -186,10 +190,11 @@ export async function fetchEsliteOffers(
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
   let response: Response;
+  const url = `${ESLITE_SEARCH_URL}${encodeURIComponent(keyword)}`;
 
   try {
     response = await fetchWithTimeout(
-      `${ESLITE_SEARCH_URL}${encodeURIComponent(keyword)}`,
+      url,
       {
         headers: {
           accept: 'application/json',
@@ -215,5 +220,5 @@ export async function fetchEsliteOffers(
     throw new Error(`Eslite returned ${response.status}.`);
   }
 
-  return parseEsliteSearchResults((await response.json()) as EsliteSearchResponse);
+  return parseEsliteSearchResults((await response.json()) as EsliteSearchResponse, url);
 }

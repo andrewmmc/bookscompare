@@ -158,7 +158,7 @@ function parseKingstoneSearchOffer(block: string): BookOffer {
   };
 }
 
-export function parseKingstoneSearchResults(html: string): BookOffer[] {
+export function parseKingstoneSearchResults(html: string, requestUrl?: string): BookOffer[] {
   const normalizedText = normalizeWhitespace(stripTags(html));
 
   if (NO_RESULTS_PATTERN.test(normalizedText)) {
@@ -179,6 +179,7 @@ export function parseKingstoneSearchResults(html: string): BookOffer[] {
   const rows = Array.from(resultList.matchAll(RESULT_BLOCK_PATTERN));
   const results = parseSearchResultRows({
     providerId: KINGSTONE_SOURCE_ID,
+    ...(requestUrl ? { requestUrl } : {}),
     rows,
     getBlock: (match) => match[1],
     parseOffer: parseKingstoneSearchOffer,
@@ -204,20 +205,23 @@ export async function fetchKingstoneOffers(
   keyword: string,
   options: ProviderSearchOptions = {}
 ): Promise<BookOffer[]> {
-  const htmlByZone = await Promise.all(
-    KINGSTONE_SEARCH_ZONES.map((zone) =>
-      fetchHtml(buildKingstoneSearchUrl(zone, keyword), {
+  const resultsByZone = await Promise.all(
+    KINGSTONE_SEARCH_ZONES.map(async (zone) => {
+      const url = buildKingstoneSearchUrl(zone, keyword);
+      const html = await fetchHtml(url, {
         headers: {
           'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
         },
         notFoundStatus: 404,
         errorLabel: 'Kingstone',
         ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
-      })
-    )
+      });
+
+      return { html, url };
+    })
   );
 
   return dedupeOffersBySourceProductId(
-    htmlByZone.flatMap((html) => (html ? parseKingstoneSearchResults(html) : []))
+    resultsByZone.flatMap(({ html, url }) => (html ? parseKingstoneSearchResults(html, url) : []))
   );
 }

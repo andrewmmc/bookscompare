@@ -48,6 +48,10 @@ export function logFetchAttempt(fields: {
   emit(fields.error ? 'warn' : 'info', 'fetch.attempt', fields);
 }
 
-export function logParseFailure(fields: { providerId: string; reason: string }): void {
+export function logParseFailure(fields: {
+  providerId: string;
+  reason: string;
+  url?: string | undefined;
+}): void {
   emit('warn', 'provider.parse_failure', fields);
 }
