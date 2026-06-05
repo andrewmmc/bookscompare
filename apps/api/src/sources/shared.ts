@@ -21,6 +21,7 @@ interface ParseRowsInput<Row> {
   requestUrl?: string | undefined;
   rows: Row[];
   getBlock: (row: Row) => string | undefined;
+  shouldSkip?: (block: string, row: Row) => boolean;
   parseOffer: (block: string, row: Row) => BookOffer;
   incompleteRowMessage: string;
 }
@@ -30,6 +31,7 @@ export function parseSearchResultRows<Row>({
   requestUrl,
   rows,
   getBlock,
+  shouldSkip,
   parseOffer,
   incompleteRowMessage,
 }: ParseRowsInput<Row>): BookOffer[] {
@@ -44,6 +46,10 @@ export function parseSearchResultRows<Row>({
         reason: incompleteRowMessage,
         ...(requestUrl ? { url: requestUrl } : {}),
       });
+      continue;
+    }
+
+    if (shouldSkip?.(block, row)) {
       continue;
     }
 

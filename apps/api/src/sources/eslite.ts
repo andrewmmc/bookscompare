@@ -113,8 +113,10 @@ function parseEsliteOffer(hit: EsliteSearchHit): BookOffer {
     throw new Error('Eslite parser could not find the product url.');
   }
 
-  if (!fields.product_photo_url) {
-    throw new Error('Eslite parser could not find the cover image.');
+  const sourceProductId = fields.eslite_sn || fields.isbn || fields.ean || hit.id;
+
+  if (!sourceProductId) {
+    throw new Error('Eslite parser could not determine the product id.');
   }
 
   const publisher = fields.manufacturer?.[0];
@@ -122,10 +124,9 @@ function parseEsliteOffer(hit: EsliteSearchHit): BookOffer {
   if (!publisher) {
     throw new Error('Eslite parser could not find the publisher.');
   }
-  const sourceProductId = fields.eslite_sn ?? fields.isbn ?? fields.ean ?? hit.id;
 
-  if (!sourceProductId) {
-    throw new Error('Eslite parser could not determine the product id.');
+  if (!fields.product_photo_url) {
+    throw new Error('Eslite parser could not find the cover image.');
   }
 
   const badges = fields.status === 'coming_soon_book' ? ['新書尚未入庫'] : [];

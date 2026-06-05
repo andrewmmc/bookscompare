@@ -25,6 +25,7 @@ const BOOKS_COM_TW_SEARCH_BASE_URL = 'https://search.books.com.tw/search/query/c
 const BOOKS_COM_TW_SEARCH_CATEGORIES = ['001', '6'] as const;
 
 const RESULT_BLOCK_PATTERN = /<tbody id="itemlist_([A-Z0-9]+)">([\s\S]*?)<\/tbody>/g;
+const SKIP_PRODUCT_TYPES = new Set(['電子雜誌']);
 const RESULT_COUNT_PATTERN = /搜尋結果共\s*<span>(\d+)<\/span>\s*筆/;
 const RESULT_TABLE_PATTERN = /<table id="itemlist_table"[\s\S]*?>([\s\S]*?)<\/table>/;
 const NO_RESULTS_PATTERN =
@@ -211,6 +212,13 @@ export function parseBooksComTwSearchResults(html: string, requestUrl?: string):
     ...(requestUrl ? { requestUrl } : {}),
     rows,
     getBlock: (match) => (match[1] && match[2] ? match[2] : undefined),
+    shouldSkip: (block) => {
+      const productType = matchFirst(
+        /<ul class="list-date clearfix">[\s\S]*?<span>([^<]+)<\/span>/,
+        block
+      );
+      return productType != null && SKIP_PRODUCT_TYPES.has(stripTags(productType));
+    },
     parseOffer: (block, match) => parseOffer(match[1]!, block),
     incompleteRowMessage: 'Books.com.tw parser found an incomplete result row.',
   });
