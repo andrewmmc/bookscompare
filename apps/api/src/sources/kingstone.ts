@@ -182,6 +182,7 @@ export function parseKingstoneSearchResults(html: string, requestUrl?: string): 
     ...(requestUrl ? { requestUrl } : {}),
     rows,
     getBlock: (match) => match[1],
+    shouldSkip: (block) => /cdn\.kingstone\.com\.tw\/images\/restricted\.[a-z]+/.test(block),
     parseOffer: parseKingstoneSearchOffer,
     incompleteRowMessage: 'Kingstone parser found an incomplete result row.',
   });

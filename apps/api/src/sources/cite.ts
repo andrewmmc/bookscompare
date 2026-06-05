@@ -192,6 +192,7 @@ export function parseCiteSearchResults(html: string, requestUrl?: string): BookO
     ...(requestUrl ? { requestUrl } : {}),
     rows,
     getBlock: (match) => match[1],
+    shouldSkip: (block) => block.includes('/images/adults_only.png'),
     parseOffer: parseCiteOffer,
     incompleteRowMessage: 'Cite parser found an incomplete result row.',
   });

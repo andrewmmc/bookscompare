@@ -29,6 +29,7 @@ interface EsliteSearchHitFields {
   manufacturer?: string[];
   manufacturer_date?: string;
   is_book?: string;
+  restricted?: string;
 }
 
 interface EsliteSearchHit {
@@ -165,6 +166,10 @@ export function parseEsliteSearchResults(
 
   for (const hit of hits) {
     if (hit.fields?.is_book === 'no') {
+      continue;
+    }
+
+    if (hit.fields?.restricted === 'yes') {
       continue;
     }
 
