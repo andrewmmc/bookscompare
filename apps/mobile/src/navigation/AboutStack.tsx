@@ -22,6 +22,7 @@ export function AboutStack() {
       screenOptions={{
         headerShadowVisible: false,
         headerStyle: { backgroundColor: colors.groupedBackground },
+        headerTintColor: colors.navigationAction,
         headerTitleStyle: {
           color: colors.ink,
           fontSize: 17,

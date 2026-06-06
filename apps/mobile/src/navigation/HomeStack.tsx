@@ -23,6 +23,7 @@ export function HomeStack() {
       screenOptions={{
         headerShadowVisible: false,
         headerStyle: { backgroundColor: colors.canvas },
+        headerTintColor: colors.navigationAction,
         headerTitleStyle: {
           color: colors.ink,
           fontSize: 17,
