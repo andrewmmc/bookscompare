@@ -39,9 +39,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        if: startsWith(github.ref, 'refs/tags/v')
       - name: Fail on unsupported ref
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v') }}
         run: |
           echo "App Store Mobile Release must run from a v*.*.* tag ref, got ${GITHUB_REF}" >&2
           exit 1
