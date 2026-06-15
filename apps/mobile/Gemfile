@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-gem 'fastlane', '~> 2.225'
+gem 'fastlane', '~> 2.236'
 gem 'multi_json'
