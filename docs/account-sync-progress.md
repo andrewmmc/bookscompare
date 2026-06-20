@@ -43,7 +43,7 @@ Expo mobile  --auth + sync---->  Supabase (Auth + Postgres, RLS-gated, direct)
 - [x] Env vars: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 - [x] `app.config.ts`: expose extra + add secure-store/web-browser/apple plugins
 - [x] `featureFlags.ts`: add `enableAccounts`
-- [ ] `src/auth/AuthProvider.tsx` + mount in `App.tsx`
+- [x] `src/auth/AuthProvider.tsx` + mount in `App.tsx` (Apple + email OTP, expo-crypto nonce)
 
 ## Phase 2 — Auth UI
 
@@ -75,3 +75,4 @@ Expo mobile  --auth + sync---->  Supabase (Auth + Postgres, RLS-gated, direct)
 - `docs(mobile)`: add account sync progress log
 - `feat(mobile)`: add Supabase schema (history_entries, favourites) + RLS + setup README
 - `feat(mobile)`: add Supabase client, deps, env config, and enableAccounts flag
+- `feat(mobile)`: add AuthProvider (Apple + email OTP) and mount in App

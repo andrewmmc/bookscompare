@@ -9,6 +9,7 @@ import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { initAnalytics, registerAnalyticsProperties } from './analytics';
+import { AuthProvider } from './auth/AuthProvider';
 import { strings } from './i18n/strings';
 import { usePreferencesLoaded } from './lib/preferences';
 import { RootNavigator } from './navigation/RootNavigator';
@@ -91,9 +92,11 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider>
-            <AppContent />
-          </ThemeProvider>
+          <AuthProvider>
+            <ThemeProvider>
+              <AppContent />
+            </ThemeProvider>
+          </AuthProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
