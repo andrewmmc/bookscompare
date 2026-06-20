@@ -29,10 +29,10 @@ Expo mobile  --auth + sync---->  Supabase (Auth + Postgres, RLS-gated, direct)
 ## Phase 0 — Supabase backend setup
 
 - [ ] Create Supabase project (manual, done by maintainer in dashboard)
-- [ ] SQL migration: `history_entries` + `favourites` tables
-- [ ] RLS policies (`user_id = auth.uid()`)
-- [ ] Enable Email OTP provider
-- [ ] Enable Apple provider (Services ID + redirect)
+- [x] SQL migration: `history_entries` + `favourites` tables
+- [x] RLS policies (`user_id = auth.uid()`)
+- [ ] Enable Email OTP provider (manual, dashboard — see supabase/README.md)
+- [ ] Enable Apple provider (manual, dashboard — see supabase/README.md)
 
 ## Phase 1 — Client foundation
 
@@ -72,4 +72,5 @@ Expo mobile  --auth + sync---->  Supabase (Auth + Postgres, RLS-gated, direct)
 
 ## Changelog (per commit)
 
-- _pending_
+- `docs(mobile)`: add account sync progress log
+- `feat(mobile)`: add Supabase schema (history_entries, favourites) + RLS + setup README
