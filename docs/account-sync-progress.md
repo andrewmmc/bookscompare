@@ -55,11 +55,12 @@ Expo mobile  --auth + sync---->  Supabase (Auth + Postgres, RLS-gated, direct)
 
 ## Phase 3 — Sync layer
 
-- [ ] `src/lib/sync/historySync.ts` (pull/merge/push)
-- [ ] `src/lib/sync/favouritesSync.ts`
+- [x] `src/lib/sync/historySync.ts` (pull/merge/push)
+- [x] `src/lib/sync/favouritesSync.ts`
+- [x] `replaceHistory` / `replaceFavourites` + `historyEntryKey` helpers
+- [x] Unit tests for merge logic (`sync/merge.test.ts`, 6 tests)
 - [ ] Refactor `history.ts` / `favourites.ts` write paths for background upsert
 - [ ] React Query hooks: merge on login, invalidate after sync
-- [ ] Unit tests for merge logic
 
 ## Phase 4 — Polish & QA
 
@@ -76,3 +77,4 @@ Expo mobile  --auth + sync---->  Supabase (Auth + Postgres, RLS-gated, direct)
 - `feat(mobile)`: add Supabase schema (history_entries, favourites) + RLS + setup README
 - `feat(mobile)`: add Supabase client, deps, env config, and enableAccounts flag
 - `feat(mobile)`: add AuthProvider (Apple + email OTP) and mount in App
+- `feat(mobile)`: add history/favourites sync merge layer + unit tests
