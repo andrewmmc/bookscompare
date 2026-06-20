@@ -36,13 +36,13 @@ Expo mobile  --auth + sync---->  Supabase (Auth + Postgres, RLS-gated, direct)
 
 ## Phase 1 — Client foundation
 
-- [ ] Add deps: `@supabase/supabase-js`, `react-native-url-polyfill`,
+- [x] Add deps: `@supabase/supabase-js`, `react-native-url-polyfill`,
       `expo-secure-store`, `expo-apple-authentication`, `expo-web-browser`,
       `expo-auth-session`
-- [ ] `src/lib/supabase.ts` client (SecureStore-backed auth storage)
-- [ ] Env vars: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`
-- [ ] `app.config.ts`: expose extra + add `expo-apple-authentication` plugin
-- [ ] `featureFlags.ts`: add `enableAccounts`
+- [x] `src/lib/supabase.ts` client (SecureStore-backed auth storage)
+- [x] Env vars: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+- [x] `app.config.ts`: expose extra + add secure-store/web-browser/apple plugins
+- [x] `featureFlags.ts`: add `enableAccounts`
 - [ ] `src/auth/AuthProvider.tsx` + mount in `App.tsx`
 
 ## Phase 2 — Auth UI
@@ -74,3 +74,4 @@ Expo mobile  --auth + sync---->  Supabase (Auth + Postgres, RLS-gated, direct)
 
 - `docs(mobile)`: add account sync progress log
 - `feat(mobile)`: add Supabase schema (history_entries, favourites) + RLS + setup README
+- `feat(mobile)`: add Supabase client, deps, env config, and enableAccounts flag
