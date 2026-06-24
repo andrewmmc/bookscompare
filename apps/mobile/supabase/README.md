@@ -41,8 +41,13 @@ In _Authentication → Providers_:
   Add the app's redirect/bundle as required. Used via native Sign in with Apple
   (`expo-apple-authentication` → `supabase.auth.signInWithIdToken`).
 
-## 4. (Phase 4) Account deletion
+## 4. Account deletion
 
-Apple requires in-app account deletion. Add a Supabase Edge Function or
-`security definer` RPC that deletes the caller's `auth.users` row (cascades to
-both tables). Tracked in `docs/account-sync-progress.md`.
+Apple requires in-app account deletion. Run `migrations/0002_delete_user.sql`,
+which creates a `security definer` `public.delete_user()` RPC that deletes the
+caller's `auth.users` row. The `on delete cascade` foreign keys on
+`history_entries` and `favourites` clear the synced data automatically.
+
+The mobile app calls this via `supabase.rpc('delete_user')` from the Account
+screen (see `src/auth/AuthProvider.tsx`). Local AsyncStorage data on the device
+is intentionally kept.

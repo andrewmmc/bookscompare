@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { track } from '../analytics';
 import {
   addHistoryEntry,
   clearHistory,
@@ -7,6 +8,8 @@ import {
   type HistoryEntry,
   type HistoryInput,
 } from '../lib/history';
+import { remoteClearHistory, remoteUpsertHistory } from '../lib/sync/historySync';
+import { runBackground } from '../lib/sync/session';
 
 export const HISTORY_QUERY_KEY = ['history'] as const;
 
@@ -24,6 +27,10 @@ export function useAddHistoryEntry() {
     mutationFn: (input: HistoryInput) => addHistoryEntry(input),
     onSuccess: (next) => {
       queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, next);
+      runBackground(
+        () => remoteUpsertHistory(next),
+        () => track('account_sync_error', { op: 'history_upsert' })
+      );
     },
   });
 }
@@ -34,6 +41,10 @@ export function useClearHistory() {
     mutationFn: () => clearHistory(),
     onSuccess: (next) => {
       queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, next);
+      runBackground(
+        () => remoteClearHistory(),
+        () => track('account_sync_error', { op: 'history_clear' })
+      );
     },
   });
 }

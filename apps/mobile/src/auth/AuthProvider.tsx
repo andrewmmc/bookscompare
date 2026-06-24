@@ -27,6 +27,11 @@ export interface AuthContextValue {
   /** Verify the 6-digit email OTP. */
   verifyEmailOtp: (email: string, token: string) => Promise<void>;
   signOut: () => Promise<void>;
+  /**
+   * Permanently delete the signed-in account and all synced data, then sign
+   * out. Requires the `delete_user` RPC (see supabase/migrations).
+   */
+  deleteAccount: () => Promise<void>;
 }
 
 const noopAsync = async () => {
@@ -41,6 +46,7 @@ const AuthContext = createContext<AuthContextValue>({
   requestEmailOtp: noopAsync,
   verifyEmailOtp: noopAsync,
   signOut: async () => {},
+  deleteAccount: noopAsync,
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -151,6 +157,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   }, [supabase]);
 
+  const deleteAccount = useCallback(async () => {
+    if (!supabase) {
+      return noopAsync();
+    }
+    const { error } = await supabase.rpc('delete_user');
+    if (error) {
+      throw error;
+    }
+    // The user row is gone; clear the now-orphaned local session.
+    await supabase.auth.signOut();
+  }, [supabase]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       status,
@@ -160,8 +178,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       requestEmailOtp,
       verifyEmailOtp,
       signOut,
+      deleteAccount,
     }),
-    [status, session, signInWithApple, requestEmailOtp, verifyEmailOtp, signOut]
+    [status, session, signInWithApple, requestEmailOtp, verifyEmailOtp, signOut, deleteAccount]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

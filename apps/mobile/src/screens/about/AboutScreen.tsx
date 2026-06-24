@@ -5,8 +5,11 @@ import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import logo from '../../../assets/logo.png';
 import packageJson from '../../../package.json';
+import { useAuth } from '../../auth/AuthProvider';
 import { ListRow } from '../../components/ListRow';
 import { track } from '../../analytics';
+import { featureFlags } from '../../config/featureFlags';
+import { isSupabaseConfigured } from '../../lib/supabase';
 import { openExternalUrl } from '../../lib/linking';
 import { usePreferences } from '../../lib/preferences';
 import { strings } from '../../i18n/strings';
@@ -44,11 +47,17 @@ const aboutItems = [
   },
 ] as const;
 
+const accountsEnabled = featureFlags.enableAccounts && isSupabaseConfigured();
+
 export function AboutScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { status, user } = useAuth();
   const preferences = usePreferences();
   const tabBarHeight = useBottomTabBarHeight();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const accountValue =
+    status === 'signedIn' ? (user?.email ?? '') : strings.account.entryRowSignedOut;
 
   return (
     <ScrollView
@@ -65,7 +74,23 @@ export function AboutScreen({ navigation }: Props) {
         <Text style={styles.version}>{strings.about.version(appVersion, buildNumber)}</Text>
       </View>
 
-      <View style={styles.group}>
+      {accountsEnabled ? (
+        <View style={styles.group}>
+          <ListRow
+            icon="person-circle-outline"
+            iconBackground={colors.accentDeep}
+            onPress={() => {
+              track('about_open_account');
+              navigation.navigate('Account');
+            }}
+            title={strings.account.navTitle}
+            value={accountValue}
+            isLast
+          />
+        </View>
+      ) : null}
+
+      <View style={[styles.group, accountsEnabled && styles.groupSpaced]}>
         <ListRow
           icon="settings-outline"
           iconBackground={colors.accent}

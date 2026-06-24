@@ -1,4 +1,7 @@
+import { normalizeIsbn } from '@bookscompare/contracts';
+
 import { loadFavourites, replaceFavourites, type Favourite } from '../favourites';
+import { getActiveAccount } from './session';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -74,6 +77,50 @@ export async function pushFavourites(
     favourites.map((fav) => favouriteToRow(userId, fav)),
     { onConflict: 'user_id,isbn' }
   );
+  if (error) {
+    throw error;
+  }
+}
+
+/**
+ * Background upsert of the given favourites for the signed-in user. No-op when
+ * Supabase is not configured or no user is signed in.
+ */
+export async function remoteUpsertFavourites(favourites: Favourite[]): Promise<void> {
+  const account = await getActiveAccount();
+  if (!account) {
+    return;
+  }
+  await pushFavourites(account.supabase, account.userId, favourites);
+}
+
+/** Delete a single favourite by ISBN for the signed-in user. */
+export async function remoteRemoveFavourite(isbn: string): Promise<void> {
+  const account = await getActiveAccount();
+  if (!account) {
+    return;
+  }
+  const normalized = normalizeIsbn(isbn);
+  if (!normalized) {
+    return;
+  }
+  const { error } = await account.supabase
+    .from(TABLE)
+    .delete()
+    .eq('user_id', account.userId)
+    .eq('isbn', normalized);
+  if (error) {
+    throw error;
+  }
+}
+
+/** Delete all of the signed-in user's remote favourites (mirrors clearFavourites). */
+export async function remoteClearFavourites(): Promise<void> {
+  const account = await getActiveAccount();
+  if (!account) {
+    return;
+  }
+  const { error } = await account.supabase.from(TABLE).delete().eq('user_id', account.userId);
   if (error) {
     throw error;
   }

@@ -9,6 +9,7 @@ import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { initAnalytics, registerAnalyticsProperties } from './analytics';
+import { AccountSyncProvider } from './auth/AccountSyncProvider';
 import { AuthProvider } from './auth/AuthProvider';
 import { strings } from './i18n/strings';
 import { usePreferencesLoaded } from './lib/preferences';
@@ -93,9 +94,11 @@ export default function App() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <ThemeProvider>
-              <AppContent />
-            </ThemeProvider>
+            <AccountSyncProvider>
+              <ThemeProvider>
+                <AppContent />
+              </ThemeProvider>
+            </AccountSyncProvider>
           </AuthProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

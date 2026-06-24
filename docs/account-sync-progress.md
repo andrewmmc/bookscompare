@@ -47,11 +47,12 @@ Expo mobile  --auth + sync---->  Supabase (Auth + Postgres, RLS-gated, direct)
 
 ## Phase 2 — Auth UI
 
-- [ ] `SignInScreen` (Apple button + email OTP request)
-- [ ] `VerifyOtpScreen`
-- [ ] `AccountScreen` (signed-in state + sign out + sync now)
-- [ ] Navigation wiring (entry from About/Settings)
-- [ ] i18n strings (zh-TW + en)
+- [x] `AccountScreen` sign-in view (Apple button + email OTP request)
+- [x] `VerifyOtpScreen`
+- [x] `AccountScreen` signed-in state (email, sync now, sign out, delete account)
+- [x] Navigation wiring (Account + VerifyOtp routes; entry row in About,
+      gated by `enableAccounts && isSupabaseConfigured()`)
+- [x] i18n strings (zh-TW + en) under `account`
 
 ## Phase 3 — Sync layer
 
@@ -59,17 +60,30 @@ Expo mobile  --auth + sync---->  Supabase (Auth + Postgres, RLS-gated, direct)
 - [x] `src/lib/sync/favouritesSync.ts`
 - [x] `replaceHistory` / `replaceFavourites` + `historyEntryKey` helpers
 - [x] Unit tests for merge logic (`sync/merge.test.ts`, 6 tests)
-- [ ] Refactor `history.ts` / `favourites.ts` write paths for background upsert
-- [ ] React Query hooks: merge on login, invalidate after sync
+- [x] Background remote write helpers + `getActiveAccount` (`sync/session.ts`,
+      `remote{Upsert,Clear}History`, `remote{Upsert,Remove,Clear}Favourites`)
+- [x] Wire background upsert/delete into the React Query mutation hooks
+      (`api/history.ts`, `api/favourites.ts`), best-effort + analytics on error
+- [x] `AccountSyncProvider`: full reconcile on login + on app foreground,
+      invalidate query keys, expose `syncNow`/`syncing`/`lastSyncedAt`
+- [x] Unit tests for remote write helpers (`sync/remoteWrites.test.ts`, 7 tests)
 
 ## Phase 4 — Polish & QA
 
-- [ ] Account deletion (Apple requirement) via Supabase Edge Function/RPC
-- [ ] Analytics events (sign-in, sync success/fail), no PII
-- [ ] Privacy manifest + App Store data disclosures update
-- [ ] `npm run typecheck -w @bookscompare/mobile`
-- [ ] `npm run test -w @bookscompare/mobile`
-- [ ] Manual 2-device sync verification
+- [x] Account deletion (Apple requirement): `delete_user()` RPC
+      (`migrations/0002_delete_user.sql`) + `deleteAccount` in AuthProvider + UI
+- [x] Analytics events (sign-in, OTP, sync success/fail, sign-out, delete), no PII
+- [ ] Privacy manifest + App Store data disclosures update (now collecting email + user content) — pending
+- [x] `npm run typecheck -w @bookscompare/mobile`
+- [x] `npm run test -w @bookscompare/mobile` (154 passing, incl. new sync tests)
+- [ ] Manual 2-device sync verification (needs a live Supabase project)
+
+## Remaining before ship
+
+- Provision the Supabase project and run both migrations; enable Email OTP +
+  Apple providers (see `supabase/README.md`); set `EXPO_PUBLIC_SUPABASE_*`.
+- Update privacy disclosures (`npm run audit:privacy`, App Store data form).
+- Manual cross-device QA.
 
 ## Changelog (per commit)
 
@@ -78,3 +92,6 @@ Expo mobile  --auth + sync---->  Supabase (Auth + Postgres, RLS-gated, direct)
 - `feat(mobile)`: add Supabase client, deps, env config, and enableAccounts flag
 - `feat(mobile)`: add AuthProvider (Apple + email OTP) and mount in App
 - `feat(mobile)`: add history/favourites sync merge layer + unit tests
+- `feat(mobile)`: wire background remote sync into mutation hooks + AccountSyncProvider
+- `feat(mobile)`: add Account + VerifyOtp screens, About entry, account i18n
+- `feat(mobile)`: add account deletion RPC + deleteAccount flow

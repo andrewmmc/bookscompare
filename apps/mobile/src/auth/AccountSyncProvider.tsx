@@ -68,12 +68,14 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
   }, [queryClient, user?.id]);
 
   // Sync once per signed-in user (also runs the initial login reconcile).
+  // Deferred so the reconcile's setState does not run synchronously in the effect.
   useEffect(() => {
     if (status !== 'signedIn' || !user?.id) {
       return;
     }
     identify(user.id);
-    void syncNow();
+    const timer = setTimeout(() => void syncNow(), 0);
+    return () => clearTimeout(timer);
   }, [status, user?.id, syncNow]);
 
   // Re-pull on app foreground so a change made on another device shows up.

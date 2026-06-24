@@ -5,6 +5,7 @@ import {
   replaceHistory,
   type HistoryEntry,
 } from '../history';
+import { getActiveAccount } from './session';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -103,6 +104,30 @@ export async function pushHistory(
     entries.map((entry) => entryToRow(userId, entry)),
     { onConflict: 'user_id,dedupe_key' }
   );
+  if (error) {
+    throw error;
+  }
+}
+
+/**
+ * Background upsert of the given entries for the signed-in user. No-op when
+ * Supabase is not configured or no user is signed in.
+ */
+export async function remoteUpsertHistory(entries: HistoryEntry[]): Promise<void> {
+  const account = await getActiveAccount();
+  if (!account) {
+    return;
+  }
+  await pushHistory(account.supabase, account.userId, entries);
+}
+
+/** Delete all of the signed-in user's remote history (mirrors clearHistory). */
+export async function remoteClearHistory(): Promise<void> {
+  const account = await getActiveAccount();
+  if (!account) {
+    return;
+  }
+  const { error } = await account.supabase.from(TABLE).delete().eq('user_id', account.userId);
   if (error) {
     throw error;
   }
