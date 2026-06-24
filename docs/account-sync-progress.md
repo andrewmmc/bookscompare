@@ -95,3 +95,4 @@ Expo mobile  --auth + sync---->  Supabase (Auth + Postgres, RLS-gated, direct)
 - `feat(mobile)`: wire background remote sync into mutation hooks + AccountSyncProvider
 - `feat(mobile)`: add Account + VerifyOtp screens, About entry, account i18n
 - `feat(mobile)`: add account deletion RPC + deleteAccount flow
+- `test(mobile)`: add AccountScreen UI tests (sign-in OTP/Apple, sync, sign-out, delete)
