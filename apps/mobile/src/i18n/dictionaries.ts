@@ -110,6 +110,44 @@ interface Dictionary {
       copyright: string;
     };
   };
+  account: {
+    navTitle: string;
+    entryRowSignedOut: string;
+    signInTitle: string;
+    signInLead: string;
+    emailLabel: string;
+    emailPlaceholder: string;
+    sendCodeAction: string;
+    orDivider: string;
+    verifyTitle: string;
+    verifyLead: (email: string) => string;
+    codePlaceholder: string;
+    verifyAction: string;
+    resendAction: string;
+    accountSection: string;
+    signedInAs: string;
+    syncSection: string;
+    syncNowAction: string;
+    syncingLabel: string;
+    lastSynced: (dateText: string) => string;
+    neverSynced: string;
+    syncDescription: string;
+    signOutAction: string;
+    signOutConfirmTitle: string;
+    signOutConfirmMessage: string;
+    signOutConfirmAction: string;
+    dangerSection: string;
+    deleteAccountAction: string;
+    deleteConfirmTitle: string;
+    deleteConfirmMessage: string;
+    deleteConfirmAction: string;
+    cancelAction: string;
+    errorTitle: string;
+    signInErrorMessage: string;
+    otpRequestErrorMessage: string;
+    otpVerifyErrorMessage: string;
+    deleteErrorMessage: string;
+  };
   settings: {
     title: string;
     generalSection: string;
@@ -277,6 +315,45 @@ const zhTW: Dictionary = {
       feedback: '提交意見',
       copyright: '© 2026 Andrew Mok',
     },
+  },
+  account: {
+    navTitle: '帳號',
+    entryRowSignedOut: '登入以同步',
+    signInTitle: '登入好書價',
+    signInLead: '登入後，您的搜尋記錄與收藏會自動在各裝置之間同步。',
+    emailLabel: '電子郵件',
+    emailPlaceholder: 'you@example.com',
+    sendCodeAction: '寄送驗證碼',
+    orDivider: '或',
+    verifyTitle: '輸入驗證碼',
+    verifyLead: (email) => `我們已將 6 位數驗證碼寄到 ${email}，請輸入以完成登入。`,
+    codePlaceholder: '6 位數驗證碼',
+    verifyAction: '驗證並登入',
+    resendAction: '重新寄送驗證碼',
+    accountSection: '帳號',
+    signedInAs: '已登入',
+    syncSection: '同步',
+    syncNowAction: '立即同步',
+    syncingLabel: '同步中…',
+    lastSynced: (dateText) => `上次同步：${dateText}`,
+    neverSynced: '尚未同步',
+    syncDescription: '搜尋記錄與收藏會自動同步，您也可以隨時手動同步。',
+    signOutAction: '登出',
+    signOutConfirmTitle: '登出帳號？',
+    signOutConfirmMessage: '登出後此裝置上的資料會保留，但不會再與其他裝置同步。',
+    signOutConfirmAction: '登出',
+    dangerSection: '危險區域',
+    deleteAccountAction: '刪除帳號',
+    deleteConfirmTitle: '刪除帳號？',
+    deleteConfirmMessage:
+      '此動作無法復原。您的帳號以及雲端的搜尋記錄與收藏都會被永久刪除，此裝置上的本機資料則會保留。',
+    deleteConfirmAction: '刪除帳號',
+    cancelAction: '取消',
+    errorTitle: '發生問題',
+    signInErrorMessage: '登入失敗，請稍後再試。',
+    otpRequestErrorMessage: '無法寄送驗證碼，請確認電子郵件地址後再試。',
+    otpVerifyErrorMessage: '驗證碼不正確或已過期，請重新輸入。',
+    deleteErrorMessage: '刪除帳號失敗，請稍後再試。',
   },
   settings: {
     title: '設定',
@@ -448,6 +525,47 @@ const en: Dictionary = {
       feedback: 'Send feedback',
       copyright: '© 2026 Andrew Mok',
     },
+  },
+  account: {
+    navTitle: 'Account',
+    entryRowSignedOut: 'Sign in to sync',
+    signInTitle: 'Sign in to BooksCompare',
+    signInLead: 'Sign in to keep your history and favourites in sync across your devices.',
+    emailLabel: 'Email',
+    emailPlaceholder: 'you@example.com',
+    sendCodeAction: 'Send code',
+    orDivider: 'or',
+    verifyTitle: 'Enter code',
+    verifyLead: (email) => `We sent a 6-digit code to ${email}. Enter it to finish signing in.`,
+    codePlaceholder: '6-digit code',
+    verifyAction: 'Verify & sign in',
+    resendAction: 'Resend code',
+    accountSection: 'Account',
+    signedInAs: 'Signed in',
+    syncSection: 'Sync',
+    syncNowAction: 'Sync now',
+    syncingLabel: 'Syncing…',
+    lastSynced: (dateText) => `Last synced ${dateText}`,
+    neverSynced: 'Not synced yet',
+    syncDescription:
+      'History and favourites sync automatically. You can also sync manually any time.',
+    signOutAction: 'Sign out',
+    signOutConfirmTitle: 'Sign out?',
+    signOutConfirmMessage:
+      'Your data stays on this device but will no longer sync with your other devices.',
+    signOutConfirmAction: 'Sign out',
+    dangerSection: 'Danger zone',
+    deleteAccountAction: 'Delete account',
+    deleteConfirmTitle: 'Delete account?',
+    deleteConfirmMessage:
+      'This cannot be undone. Your account and all synced history and favourites will be permanently deleted. Local data on this device is kept.',
+    deleteConfirmAction: 'Delete account',
+    cancelAction: 'Cancel',
+    errorTitle: 'Something went wrong',
+    signInErrorMessage: 'Could not sign in. Please try again.',
+    otpRequestErrorMessage: 'Could not send the code. Check your email address and try again.',
+    otpVerifyErrorMessage: 'That code is incorrect or expired. Please try again.',
+    deleteErrorMessage: 'Could not delete your account. Please try again later.',
   },
   settings: {
     title: 'Settings',

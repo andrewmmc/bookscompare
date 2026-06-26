@@ -19,7 +19,10 @@ describe('lookupIsbn', () => {
 
     const response = await lookupIsbn('9781402894626');
 
-    expect(fetchMock).toHaveBeenCalledWith('https://bookscompare-api.mmc.dev/isbn/9781402894626');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://bookscompare-api.mmc.dev/isbn/9781402894626',
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
     expect('isbn' in response.query && response.query.isbn).toBe('9781402894626');
   });
 

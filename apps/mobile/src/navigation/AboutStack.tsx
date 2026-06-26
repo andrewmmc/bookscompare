@@ -1,5 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import { AccountScreen } from '../screens/account/AccountScreen';
+import { VerifyOtpScreen } from '../screens/account/VerifyOtpScreen';
 import { AboutScreen } from '../screens/about/AboutScreen';
 import { BookTypePreferencesScreen } from '../screens/about/BookTypePreferencesScreen';
 import { OpenLinksPreferencesScreen } from '../screens/about/OpenLinksPreferencesScreen';
@@ -39,6 +41,22 @@ export function AboutStack() {
         component={SettingsScreen}
         options={{
           title: strings.navigation.settings,
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      <Stack.Screen
+        name="Account"
+        component={AccountScreen}
+        options={{
+          title: strings.account.navTitle,
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      <Stack.Screen
+        name="VerifyOtp"
+        component={VerifyOtpScreen}
+        options={{
+          title: strings.account.verifyTitle,
           headerBackButtonDisplayMode: 'minimal',
         }}
       />

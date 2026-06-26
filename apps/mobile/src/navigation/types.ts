@@ -24,6 +24,8 @@ export type FavouritesStackParamList = SearchResultRoutes & {
 export type AboutStackParamList = {
   About: undefined;
   Settings: undefined;
+  Account: undefined;
+  VerifyOtp: { email: string };
   OpenLinksPreferences: undefined;
   ThemePreferences: undefined;
   StorePreferences: undefined;

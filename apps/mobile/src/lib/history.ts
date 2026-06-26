@@ -45,6 +45,18 @@ export async function loadHistory(): Promise<HistoryEntry[]> {
   return loadJsonValue(HISTORY_STORAGE_KEY, [], parseHistory);
 }
 
+/** Stable key used for de-duplication across local + remote entries. */
+export function historyEntryKey(entry: HistoryEntry): string {
+  return entry.type === 'isbn' ? `isbn:${entry.isbn}` : `title:${entry.title}`;
+}
+
+/** Overwrite local history (used by the sync layer after a merge). */
+export async function replaceHistory(list: HistoryEntry[]): Promise<HistoryEntry[]> {
+  const next = [...list].sort((a, b) => b.viewedAt - a.viewedAt).slice(0, HISTORY_MAX_ENTRIES);
+  await saveHistory(next);
+  return next;
+}
+
 async function saveHistory(list: HistoryEntry[]): Promise<void> {
   await saveJsonValue(HISTORY_STORAGE_KEY, list);
 }
