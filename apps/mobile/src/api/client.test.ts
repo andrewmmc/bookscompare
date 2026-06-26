@@ -76,6 +76,36 @@ describe('api client configuration', () => {
     await expect(apiGet('/search')).rejects.toBeInstanceOf(ApiError);
   });
 
+  it('passes an abort signal so requests can time out', async () => {
+    const { apiGet } = loadClient();
+    const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    } as Response);
+
+    await apiGet('/health');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const init = fetchSpy.mock.calls[0]?.[1];
+    expect(init?.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('surfaces aborted requests as a timeout ApiError', async () => {
+    const { ApiError, apiGet } = loadClient();
+    jest.spyOn(global, 'fetch').mockImplementation(() => {
+      const abortError = new Error('Aborted');
+      abortError.name = 'AbortError';
+      return Promise.reject(abortError);
+    });
+
+    await expect(apiGet('/health')).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 0,
+      message: 'The request timed out. Please try again.',
+    });
+    await expect(apiGet('/health')).rejects.toBeInstanceOf(ApiError);
+  });
+
   it('keeps raw body text for non-JSON error responses', async () => {
     const { apiGet } = loadClient();
     jest.spyOn(global, 'fetch').mockResolvedValue({

@@ -2,8 +2,9 @@ import 'react-native-url-polyfill/auto';
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
-import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+
+import { chunkedSecureStoreAdapter } from './secureStoreChunked';
 
 interface SupabaseExtra {
   supabaseUrl?: string;
@@ -30,14 +31,6 @@ export function isSupabaseConfigured(): boolean {
   return readSupabaseConfig() !== null;
 }
 
-// SecureStore values are capped at ~2KB; Supabase sessions fit comfortably.
-// On web (not a target, but keeps types/SSR-safe) fall back to in-memory.
-const secureStoreAdapter = {
-  getItem: (key: string) => SecureStore.getItemAsync(key),
-  setItem: (key: string, value: string) => SecureStore.setItemAsync(key, value),
-  removeItem: (key: string) => SecureStore.deleteItemAsync(key),
-};
-
 let client: SupabaseClient | null = null;
 
 /**
@@ -56,7 +49,9 @@ export function getSupabaseClient(): SupabaseClient | null {
 
   client = createClient(config.url, config.anonKey, {
     auth: {
-      storage: Platform.OS === 'web' ? undefined : secureStoreAdapter,
+      // SecureStore caps values at ~2KB; the chunked adapter splits larger
+      // Supabase sessions across keys. Web (not a target) uses default storage.
+      storage: Platform.OS === 'web' ? undefined : chunkedSecureStoreAdapter,
       autoRefreshToken: true,
       persistSession: true,
       // We use native Sign in with Apple + email OTP, not URL-based magic links,

@@ -29,6 +29,9 @@ export interface AccountSyncValue {
   syncNow: () => Promise<void>;
 }
 
+/** Skip a foreground reconcile if one succeeded within this window. */
+const FOREGROUND_SYNC_MIN_INTERVAL_MS = 60_000;
+
 const AccountSyncContext = createContext<AccountSyncValue>({
   syncing: false,
   lastSyncedAt: null,
@@ -42,30 +45,44 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
   // Guard against overlapping reconciles (login + app-focus firing together).
   const inFlight = useRef(false);
+  // Mirror of lastSyncedAt readable inside the throttled foreground callback
+  // without making syncNow depend on (and re-create on) every successful sync.
+  const lastSyncedAtRef = useRef<number | null>(null);
 
-  const syncNow = useCallback(async () => {
-    const supabase = getSupabaseClient();
-    const userId = user?.id;
-    if (!supabase || !userId || inFlight.current) {
-      return;
-    }
+  const syncNow = useCallback(
+    async (options?: { minIntervalMs?: number }) => {
+      const supabase = getSupabaseClient();
+      const userId = user?.id;
+      if (!supabase || !userId || inFlight.current) {
+        return;
+      }
 
-    inFlight.current = true;
-    setSyncing(true);
-    try {
-      await syncHistory(supabase, userId);
-      await syncFavourites(supabase, userId);
-      await queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
-      await queryClient.invalidateQueries({ queryKey: FAVOURITES_QUERY_KEY });
-      setLastSyncedAt(Date.now());
-      track('account_sync_success');
-    } catch {
-      track('account_sync_error', { op: 'reconcile' });
-    } finally {
-      inFlight.current = false;
-      setSyncing(false);
-    }
-  }, [queryClient, user?.id]);
+      const minIntervalMs = options?.minIntervalMs ?? 0;
+      const last = lastSyncedAtRef.current;
+      if (minIntervalMs > 0 && last !== null && Date.now() - last < minIntervalMs) {
+        return;
+      }
+
+      inFlight.current = true;
+      setSyncing(true);
+      try {
+        await syncHistory(supabase, userId);
+        await syncFavourites(supabase, userId);
+        await queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
+        await queryClient.invalidateQueries({ queryKey: FAVOURITES_QUERY_KEY });
+        const now = Date.now();
+        lastSyncedAtRef.current = now;
+        setLastSyncedAt(now);
+        track('account_sync_success');
+      } catch {
+        track('account_sync_error', { op: 'reconcile' });
+      } finally {
+        inFlight.current = false;
+        setSyncing(false);
+      }
+    },
+    [queryClient, user?.id]
+  );
 
   // Sync once per signed-in user (also runs the initial login reconcile).
   // Deferred so the reconcile's setState does not run synchronously in the effect.
@@ -85,7 +102,8 @@ export function AccountSyncProvider({ children }: { children: ReactNode }) {
     }
     const subscription = AppState.addEventListener('change', (next) => {
       if (next === 'active') {
-        void syncNow();
+        // Throttle: avoid a full pull/merge/push on every quick app-switch.
+        void syncNow({ minIntervalMs: FOREGROUND_SYNC_MIN_INTERVAL_MS });
       }
     });
     return () => subscription.remove();

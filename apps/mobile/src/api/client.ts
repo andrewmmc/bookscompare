@@ -8,6 +8,9 @@ interface AppExtra {
 
 const defaultApiBaseUrl = 'https://bookscompare-api.mmc.dev';
 
+/** Abort a request that has not responded within this window (flaky cellular). */
+const REQUEST_TIMEOUT_MS = 15000;
+
 function readConfiguredApiBaseUrl(): string | undefined {
   const extra = (Constants.expoConfig?.extra ?? {}) as Partial<AppExtra>;
   return extra.apiBaseUrl || process.env.EXPO_PUBLIC_API_BASE_URL || undefined;
@@ -51,7 +54,20 @@ function parseApiErrorBody(
 }
 
 export async function apiGet<T>(path: string): Promise<T> {
-  const response = await fetch(`${getApiBaseUrl()}${path}`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBaseUrl()}${path}`, { signal: controller.signal });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new ApiError(0, undefined, undefined, 'The request timed out. Please try again.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const body = await response.text();
