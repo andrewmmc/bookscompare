@@ -29,7 +29,11 @@ export function StorePreferencesScreen(_props: Props) {
       : [...preferredSources, sourceId];
 
     track('settings_change', { key: 'preferredSources', value: next.join(',') });
-    void Promise.resolve(updatePreference('preferredSources', next)).then(syncPreferencesToIcloud);
+    void Promise.resolve(updatePreference('preferredSources', next)).then((updatedPreferences) => {
+      if (updatedPreferences) {
+        void syncPreferencesToIcloud(updatedPreferences);
+      }
+    });
   };
 
   return (

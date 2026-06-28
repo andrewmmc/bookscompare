@@ -25,7 +25,11 @@ export function ThemePreferencesScreen(_props: Props) {
     }
 
     track('settings_change', { key: 'themeMode', value });
-    void Promise.resolve(updatePreference('themeMode', value)).then(syncPreferencesToIcloud);
+    void Promise.resolve(updatePreference('themeMode', value)).then((updatedPreferences) => {
+      if (updatedPreferences) {
+        void syncPreferencesToIcloud(updatedPreferences);
+      }
+    });
   };
 
   return (

@@ -24,7 +24,11 @@ export function OpenLinksPreferencesScreen(_props: Props) {
     }
 
     track('settings_change', { key: 'openLinksIn', value });
-    void Promise.resolve(updatePreference('openLinksIn', value)).then(syncPreferencesToIcloud);
+    void Promise.resolve(updatePreference('openLinksIn', value)).then((updatedPreferences) => {
+      if (updatedPreferences) {
+        void syncPreferencesToIcloud(updatedPreferences);
+      }
+    });
   };
 
   return (

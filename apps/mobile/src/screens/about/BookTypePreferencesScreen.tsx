@@ -28,7 +28,11 @@ export function BookTypePreferencesScreen(_props: Props) {
 
     track('settings_change', { key: 'preferredBookTypes', value: nextPreference.join(',') });
     void Promise.resolve(updatePreference('preferredBookTypes', nextPreference)).then(
-      syncPreferencesToIcloud
+      (updatedPreferences) => {
+        if (updatedPreferences) {
+          void syncPreferencesToIcloud(updatedPreferences);
+        }
+      }
     );
   };
 
