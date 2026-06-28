@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-import { normalizeIsbn } from '@bookscompare/contracts';
+import { BOOK_SOURCES, normalizeIsbn } from '@bookscompare/contracts';
 
 import { loadFavourites, parseFavourites, replaceFavourites, type Favourite } from './favourites';
 import {
@@ -24,16 +24,22 @@ export const ICLOUD_PREFERENCES_KEY = 'bookscompare:icloud:preferences:v1';
 export const ICLOUD_HISTORY_KEY = 'bookscompare:icloud:history:v1';
 export const ICLOUD_FAVOURITES_KEY = 'bookscompare:icloud:favourites:v1';
 
+const validSourceIds = new Set<string>(BOOK_SOURCES.map((source) => source.id));
+
 interface IcloudPayload<T> {
   schemaVersion: 1;
   updatedAt: number;
   value: T;
 }
 
-interface InitialIcloudSyncResult {
+export interface InitialIcloudSyncResult {
   preferences?: Preferences;
   history?: HistoryEntry[];
   favourites?: Favourite[];
+}
+
+interface SyncListOptions {
+  mergeRemote?: boolean;
 }
 
 function canUseIcloudSync(preferences: Preferences): boolean {
@@ -91,16 +97,23 @@ function parseSyncablePreferences(value: unknown): SyncablePreferences {
   }
 
   const record = value as Record<string, unknown>;
+  const preferredBookTypes = Array.isArray(record.preferredBookTypes)
+    ? record.preferredBookTypes.filter((value) => value === 'physical' || value === 'ebook')
+    : [];
+
   return toSyncablePreferences({
     openLinksIn: record.openLinksIn === 'browser' ? 'browser' : 'app',
     themeMode:
       record.themeMode === 'light' || record.themeMode === 'dark' || record.themeMode === 'system'
         ? record.themeMode
         : 'system',
-    preferredSources: Array.isArray(record.preferredSources) ? record.preferredSources : [],
-    preferredBookTypes: Array.isArray(record.preferredBookTypes)
-      ? record.preferredBookTypes.filter((value) => value === 'physical' || value === 'ebook')
+    preferredSources: Array.isArray(record.preferredSources)
+      ? record.preferredSources.filter(
+          (value): value is Preferences['preferredSources'][number] =>
+            typeof value === 'string' && validSourceIds.has(value)
+        )
       : [],
+    preferredBookTypes: Array.from(new Set(preferredBookTypes)),
     icloudSyncEnabled: true,
   } as Preferences);
 }
@@ -173,26 +186,40 @@ export async function syncPreferencesToIcloud(preferences: Preferences): Promise
   writePayload(ICLOUD_PREFERENCES_KEY, updatedAt || Date.now(), toSyncablePreferences(preferences));
 }
 
-export async function syncHistoryToIcloud(history: HistoryEntry[]): Promise<void> {
+export async function syncHistoryToIcloud(
+  history: HistoryEntry[],
+  options: SyncListOptions = {}
+): Promise<HistoryEntry[] | null> {
   const preferences = await loadPreferences();
   if (!canUseIcloudSync(preferences)) {
-    return;
+    return null;
   }
 
-  const remote = parseJsonPayload(getIcloudString(ICLOUD_HISTORY_KEY), parseHistory);
-  const merged = remote ? mergeHistoryEntries(history, remote.value) : history;
-  writePayload(ICLOUD_HISTORY_KEY, Date.now(), merged);
+  const shouldMergeRemote = options.mergeRemote ?? true;
+  const remote = shouldMergeRemote
+    ? parseJsonPayload(getIcloudString(ICLOUD_HISTORY_KEY), parseHistory)
+    : null;
+  const next = remote ? mergeHistoryEntries(history, remote.value) : history;
+  writePayload(ICLOUD_HISTORY_KEY, Date.now(), next);
+  return next;
 }
 
-export async function syncFavouritesToIcloud(favourites: Favourite[]): Promise<void> {
+export async function syncFavouritesToIcloud(
+  favourites: Favourite[],
+  options: SyncListOptions = {}
+): Promise<Favourite[] | null> {
   const preferences = await loadPreferences();
   if (!canUseIcloudSync(preferences)) {
-    return;
+    return null;
   }
 
-  const remote = parseJsonPayload(getIcloudString(ICLOUD_FAVOURITES_KEY), parseFavourites);
-  const merged = remote ? mergeFavourites(favourites, remote.value) : favourites;
-  writePayload(ICLOUD_FAVOURITES_KEY, Date.now(), merged);
+  const shouldMergeRemote = options.mergeRemote ?? true;
+  const remote = shouldMergeRemote
+    ? parseJsonPayload(getIcloudString(ICLOUD_FAVOURITES_KEY), parseFavourites)
+    : null;
+  const next = remote ? mergeFavourites(favourites, remote.value) : favourites;
+  writePayload(ICLOUD_FAVOURITES_KEY, Date.now(), next);
+  return next;
 }
 
 export async function runInitialIcloudSync(): Promise<InitialIcloudSyncResult> {

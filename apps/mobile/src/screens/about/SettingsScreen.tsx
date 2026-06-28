@@ -1,10 +1,14 @@
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { track } from '../../analytics';
+import { FAVOURITES_QUERY_KEY } from '../../api/favourites';
+import { HISTORY_QUERY_KEY } from '../../api/history';
 import { ListRow } from '../../components/ListRow';
 import { strings } from '../../i18n/strings';
+import { runInitialIcloudSync } from '../../lib/icloudSync';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -82,6 +86,7 @@ function SettingsRow({
 export function SettingsScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const preferences = usePreferences();
+  const queryClient = useQueryClient();
   const tabBarHeight = useBottomTabBarHeight();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -94,7 +99,20 @@ export function SettingsScreen({ navigation }: Props) {
   const toggleIcloudSync = () => {
     const next = !preferences.icloudSyncEnabled;
     track('settings_change', { key: 'icloudSyncEnabled', value: String(next) });
-    void updatePreference('icloudSyncEnabled', next);
+    void Promise.resolve(updatePreference('icloudSyncEnabled', next)).then((updatedPreferences) => {
+      if (!updatedPreferences?.icloudSyncEnabled) {
+        return;
+      }
+
+      void runInitialIcloudSync().then((syncResult) => {
+        if (syncResult.history) {
+          queryClient.setQueryData(HISTORY_QUERY_KEY, syncResult.history);
+        }
+        if (syncResult.favourites) {
+          queryClient.setQueryData(FAVOURITES_QUERY_KEY, syncResult.favourites);
+        }
+      });
+    });
   };
 
   return (

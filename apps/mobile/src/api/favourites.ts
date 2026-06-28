@@ -7,6 +7,7 @@ import {
   removeFavourite,
   type Favourite,
 } from '../lib/favourites';
+import { syncFavouritesToIcloud } from '../lib/icloudSync';
 
 import { normalizeIsbn } from '@bookscompare/contracts';
 
@@ -36,6 +37,11 @@ export function useAddFavourite() {
     mutationFn: (input: { isbn: string; title: string }) => addFavourite(input),
     onSuccess: (next) => {
       queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, next);
+      void syncFavouritesToIcloud(next).then((synced) => {
+        if (synced) {
+          queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, synced);
+        }
+      });
     },
   });
 }
@@ -46,6 +52,7 @@ export function useRemoveFavourite() {
     mutationFn: (isbn: string) => removeFavourite(isbn),
     onSuccess: (next) => {
       queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, next);
+      void syncFavouritesToIcloud(next, { mergeRemote: false });
     },
   });
 }
@@ -56,6 +63,7 @@ export function useClearFavourites() {
     mutationFn: () => clearFavourites(),
     onSuccess: (next) => {
       queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, next);
+      void syncFavouritesToIcloud(next, { mergeRemote: false });
     },
   });
 }
