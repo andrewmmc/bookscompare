@@ -64,12 +64,10 @@ function AppContent() {
 
   useEffect(() => {
     if (!preferencesLoaded) {
-      setIcloudSyncReady(false);
       return;
     }
 
     let cancelled = false;
-    setIcloudSyncReady(false);
     void runInitialIcloudSync()
       .then((syncResult) => {
         if (cancelled) {

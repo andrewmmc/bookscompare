@@ -10,7 +10,8 @@ export type HistoryEntry =
   | { type: 'title'; title: string; viewedAt: number };
 
 export type HistoryInput =
-  { type: 'isbn'; isbn: string; title?: string } | { type: 'title'; title: string };
+  | { type: 'isbn'; isbn: string; title?: string }
+  | { type: 'title'; title: string };
 
 export function parseHistory(value: unknown): HistoryEntry[] {
   if (!Array.isArray(value)) {
