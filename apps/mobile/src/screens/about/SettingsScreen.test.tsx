@@ -1,4 +1,5 @@
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 
 import { SettingsScreen, shouldShowIcloudSyncSetting } from './SettingsScreen';
 import { renderWithProviders } from '../../test/test-utils';
@@ -9,6 +10,8 @@ const mockUpdatePreference = jest.fn();
 const mockTrack = jest.fn();
 const mockSetQueryData = jest.fn();
 const mockRunInitialIcloudSync = jest.fn();
+const mockClearIcloudData = jest.fn();
+const mockResetAppData = jest.fn();
 
 const mockGetPreferences = jest.fn<Preferences, []>(() => ({
   openLinksIn: 'app',
@@ -28,7 +31,12 @@ jest.mock('../../analytics', () => ({
 }));
 
 jest.mock('../../lib/icloudSync', () => ({
+  clearIcloudData: (...args: unknown[]) => mockClearIcloudData(...args),
   runInitialIcloudSync: (...args: unknown[]) => mockRunInitialIcloudSync(...args),
+}));
+
+jest.mock('../../lib/appData', () => ({
+  resetAppData: (...args: unknown[]) => mockResetAppData(...args),
 }));
 
 jest.mock('@tanstack/react-query', () => {
@@ -43,8 +51,13 @@ jest.mock('@tanstack/react-query', () => {
 });
 
 describe('SettingsScreen', () => {
+  const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
+
   beforeEach(() => {
+    alertSpy.mockClear();
     mockTrack.mockClear();
+    mockClearIcloudData.mockClear();
+    mockResetAppData.mockClear();
     mockUpdatePreference.mockClear();
     mockSetQueryData.mockClear();
     mockRunInitialIcloudSync.mockClear();
@@ -54,6 +67,17 @@ describe('SettingsScreen', () => {
       preferredSources: [],
       preferredBookTypes: [],
       icloudSyncEnabled: true,
+    });
+    mockResetAppData.mockResolvedValue({
+      preferences: {
+        openLinksIn: 'app',
+        themeMode: 'system',
+        preferredSources: [],
+        preferredBookTypes: [],
+        icloudSyncEnabled: true,
+      },
+      history: [],
+      favourites: [],
     });
   });
 
@@ -226,5 +250,45 @@ describe('SettingsScreen', () => {
     expect(shouldShowIcloudSyncSetting('ios')).toBe(true);
     expect(shouldShowIcloudSyncSetting('android')).toBe(false);
     expect(shouldShowIcloudSyncSetting('web')).toBe(false);
+  });
+
+  it('shows a warning alert before resetting all data', () => {
+    const screen = renderWithProviders(
+      <SettingsScreen
+        navigation={{} as never}
+        route={{ key: 'Settings', name: 'Settings' } as never}
+      />
+    );
+
+    fireEvent.press(screen.getByText('重設所有資料'));
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      '重設所有資料？',
+      '此動作無法復原，所有本機設定、搜尋記錄與收藏都會被移除，並同時清除 iCloud 上的同步資料。',
+      expect.any(Array)
+    );
+  });
+
+  it('resets local data and clears iCloud data after confirmation', async () => {
+    const screen = renderWithProviders(
+      <SettingsScreen
+        navigation={{} as never}
+        route={{ key: 'Settings', name: 'Settings' } as never}
+      />
+    );
+
+    fireEvent.press(screen.getByText('重設所有資料'));
+
+    const buttons = alertSpy.mock.calls[0]?.[2];
+    const confirmButton = buttons?.[1];
+    expect(confirmButton).toBeDefined();
+    confirmButton?.onPress?.();
+
+    await waitFor(() => {
+      expect(mockClearIcloudData).toHaveBeenCalledTimes(1);
+      expect(mockResetAppData).toHaveBeenCalledTimes(1);
+      expect(mockSetQueryData).toHaveBeenCalledWith(['history'], []);
+      expect(mockSetQueryData).toHaveBeenCalledWith(['favourites'], []);
+    });
   });
 });

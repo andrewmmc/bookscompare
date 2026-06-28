@@ -18,7 +18,12 @@ import {
   type Preferences,
   type SyncablePreferences,
 } from './preferences';
-import { getIcloudString, isIcloudStorageAvailable, setIcloudString } from './icloudStorage';
+import {
+  getIcloudString,
+  isIcloudStorageAvailable,
+  removeIcloudValue,
+  setIcloudString,
+} from './icloudStorage';
 
 export const ICLOUD_PREFERENCES_KEY = 'bookscompare:icloud:preferences:v1';
 export const ICLOUD_HISTORY_KEY = 'bookscompare:icloud:history:v1';
@@ -220,6 +225,12 @@ export async function syncFavouritesToIcloud(
   const next = remote ? mergeFavourites(favourites, remote.value) : favourites;
   writePayload(ICLOUD_FAVOURITES_KEY, Date.now(), next);
   return next;
+}
+
+export async function clearIcloudData(): Promise<void> {
+  removeIcloudValue(ICLOUD_PREFERENCES_KEY);
+  removeIcloudValue(ICLOUD_HISTORY_KEY);
+  removeIcloudValue(ICLOUD_FAVOURITES_KEY);
 }
 
 export async function runInitialIcloudSync(): Promise<InitialIcloudSyncResult> {

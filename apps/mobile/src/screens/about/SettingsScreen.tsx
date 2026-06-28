@@ -1,14 +1,15 @@
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { track } from '../../analytics';
 import { FAVOURITES_QUERY_KEY } from '../../api/favourites';
 import { HISTORY_QUERY_KEY } from '../../api/history';
 import { ListRow } from '../../components/ListRow';
 import { strings } from '../../i18n/strings';
-import { runInitialIcloudSync } from '../../lib/icloudSync';
+import { resetAppData } from '../../lib/appData';
+import { clearIcloudData, runInitialIcloudSync } from '../../lib/icloudSync';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -95,6 +96,19 @@ export function SettingsScreen({ navigation }: Props) {
       ? strings.storePreferences.settingsRowValueAll
       : strings.storePreferences.settingsRowValue(preferences.preferredSources.length);
   const showIcloudSync = shouldShowIcloudSyncSetting();
+  const resetAllData = useMutation({
+    mutationFn: async () => {
+      if (preferences.icloudSyncEnabled) {
+        await clearIcloudData();
+      }
+
+      return resetAppData();
+    },
+    onSuccess: (result) => {
+      queryClient.setQueryData(HISTORY_QUERY_KEY, result.history);
+      queryClient.setQueryData(FAVOURITES_QUERY_KEY, result.favourites);
+    },
+  });
 
   const toggleIcloudSync = () => {
     const next = !preferences.icloudSyncEnabled;
@@ -113,6 +127,27 @@ export function SettingsScreen({ navigation }: Props) {
         }
       });
     });
+  };
+
+  const confirmResetAllData = () => {
+    track('settings_click_reset_all_data');
+    Alert.alert(
+      strings.settings.resetAllDataConfirmTitle,
+      preferences.icloudSyncEnabled
+        ? strings.settings.resetAllDataConfirmMessageWithIcloud
+        : strings.settings.resetAllDataConfirmMessage,
+      [
+        { text: strings.settings.cancelAction, style: 'cancel' },
+        {
+          text: strings.settings.resetAllDataConfirmAction,
+          style: 'destructive',
+          onPress: () => {
+            track('settings_reset_all_data_confirm');
+            resetAllData.mutate();
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -192,6 +227,20 @@ export function SettingsScreen({ navigation }: Props) {
           </View>
         </>
       ) : null}
+
+      <Text style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>
+        {strings.settings.dataSection}
+      </Text>
+      <View style={styles.group}>
+        <ListRow
+          icon="trash-outline"
+          title={strings.settings.resetAllData}
+          onPress={confirmResetAllData}
+          destructive
+          hideChevron
+          isLast
+        />
+      </View>
     </ScrollView>
   );
 }

@@ -27,7 +27,7 @@ type PreferenceKey = keyof Preferences;
 
 const validSourceIds = new Set<string>(BOOK_SOURCES.map((s) => s.id));
 
-const defaultPreferences: Preferences = {
+export const DEFAULT_PREFERENCES: Preferences = {
   openLinksIn: 'app',
   themeMode: 'system',
   preferredSources: [],
@@ -50,7 +50,7 @@ const validators: {
   icloudSyncEnabled: (value): value is boolean => typeof value === 'boolean',
 };
 
-let currentPreferences = defaultPreferences;
+let currentPreferences = DEFAULT_PREFERENCES;
 let preferencesLoaded = false;
 const listeners = new Set<(preferences: Preferences) => void>();
 const loadedListeners = new Set<(loaded: boolean) => void>();
@@ -70,16 +70,16 @@ function parseTimestamp(value: unknown): number {
 
 function parsePreferences(value: unknown): Preferences {
   if (!value || typeof value !== 'object') {
-    return defaultPreferences;
+    return DEFAULT_PREFERENCES;
   }
 
   const record = value as Record<string, unknown>;
-  return (Object.keys(defaultPreferences) as PreferenceKey[]).reduce<Preferences>(
+  return (Object.keys(DEFAULT_PREFERENCES) as PreferenceKey[]).reduce<Preferences>(
     (preferences, key) => ({
       ...preferences,
-      [key]: validators[key](record[key]) ? record[key] : defaultPreferences[key],
+      [key]: validators[key](record[key]) ? record[key] : DEFAULT_PREFERENCES[key],
     }),
-    defaultPreferences
+    DEFAULT_PREFERENCES
   );
 }
 
@@ -107,7 +107,7 @@ export async function loadPreferences(): Promise<Preferences> {
     try {
       const preferences = await loadJsonValue(
         PREFERENCES_STORAGE_KEY,
-        defaultPreferences,
+        DEFAULT_PREFERENCES,
         parsePreferences
       );
       emit(preferences);

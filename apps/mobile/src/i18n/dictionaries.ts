@@ -116,6 +116,7 @@ interface Dictionary {
     appearanceSection: string;
     contentSection: string;
     syncSection: string;
+    dataSection: string;
     openLinksIn: string;
     openLinksDescription: string;
     openLinksInApp: string;
@@ -133,6 +134,11 @@ interface Dictionary {
     icloudSync: string;
     icloudSyncOn: string;
     icloudSyncOff: string;
+    resetAllData: string;
+    resetAllDataConfirmTitle: string;
+    resetAllDataConfirmMessage: string;
+    resetAllDataConfirmMessageWithIcloud: string;
+    resetAllDataConfirmAction: string;
     cancelAction: string;
   };
   storePreferences: {
@@ -288,6 +294,7 @@ const zhTW: Dictionary = {
     appearanceSection: '外觀',
     contentSection: '內容',
     syncSection: '同步',
+    dataSection: '資料',
     openLinksIn: '開啟連結',
     openLinksDescription: '選擇點開書店連結時要在 App 內顯示，還是交由瀏覽器開啟。',
     openLinksInApp: '在 App 內開啟',
@@ -305,6 +312,12 @@ const zhTW: Dictionary = {
     icloudSync: 'iCloud 同步',
     icloudSyncOn: '開啟',
     icloudSyncOff: '關閉',
+    resetAllData: '重設所有資料',
+    resetAllDataConfirmTitle: '重設所有資料？',
+    resetAllDataConfirmMessage: '此動作無法復原，所有本機設定、搜尋記錄與收藏都會被移除。',
+    resetAllDataConfirmMessageWithIcloud:
+      '此動作無法復原，所有本機設定、搜尋記錄與收藏都會被移除，並同時清除 iCloud 上的同步資料。',
+    resetAllDataConfirmAction: '重設',
     cancelAction: '取消',
   },
   storePreferences: {
@@ -463,6 +476,7 @@ const en: Dictionary = {
     appearanceSection: 'Appearance',
     contentSection: 'Content',
     syncSection: 'Sync',
+    dataSection: 'Data',
     openLinksIn: 'Open links',
     openLinksDescription: 'Choose whether bookstore links open inside the app or in your browser.',
     openLinksInApp: 'In app',
@@ -481,6 +495,13 @@ const en: Dictionary = {
     icloudSync: 'iCloud Sync',
     icloudSyncOn: 'On',
     icloudSyncOff: 'Off',
+    resetAllData: 'Reset all data',
+    resetAllDataConfirmTitle: 'Reset all data?',
+    resetAllDataConfirmMessage:
+      'This cannot be undone. All local settings, history, and favourites will be removed.',
+    resetAllDataConfirmMessageWithIcloud:
+      'This cannot be undone. All local settings, history, and favourites will be removed, and synced iCloud data will be deleted too.',
+    resetAllDataConfirmAction: 'Reset',
     cancelAction: 'Cancel',
   },
   storePreferences: {
