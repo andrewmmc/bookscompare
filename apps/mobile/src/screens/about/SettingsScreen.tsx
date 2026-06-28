@@ -105,10 +105,10 @@ export function SettingsScreen({ navigation }: Props) {
       }
 
       void runInitialIcloudSync().then((syncResult) => {
-        if (syncResult.history) {
+        if (syncResult.history !== undefined) {
           queryClient.setQueryData(HISTORY_QUERY_KEY, syncResult.history);
         }
-        if (syncResult.favourites) {
+        if (syncResult.favourites !== undefined) {
           queryClient.setQueryData(FAVOURITES_QUERY_KEY, syncResult.favourites);
         }
       });

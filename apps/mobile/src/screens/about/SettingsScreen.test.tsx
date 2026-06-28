@@ -1,4 +1,4 @@
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 
 import { SettingsScreen, shouldShowIcloudSyncSetting } from './SettingsScreen';
 import { renderWithProviders } from '../../test/test-utils';
@@ -7,6 +7,8 @@ import type { Preferences } from '../../lib/preferences';
 
 const mockUpdatePreference = jest.fn();
 const mockTrack = jest.fn();
+const mockSetQueryData = jest.fn();
+const mockRunInitialIcloudSync = jest.fn();
 
 const mockGetPreferences = jest.fn<Preferences, []>(() => ({
   openLinksIn: 'app',
@@ -25,10 +27,27 @@ jest.mock('../../analytics', () => ({
   track: (...args: unknown[]) => mockTrack(...args),
 }));
 
+jest.mock('../../lib/icloudSync', () => ({
+  runInitialIcloudSync: (...args: unknown[]) => mockRunInitialIcloudSync(...args),
+}));
+
+jest.mock('@tanstack/react-query', () => {
+  const actual = jest.requireActual('@tanstack/react-query');
+
+  return {
+    ...actual,
+    useQueryClient: () => ({
+      setQueryData: (...args: unknown[]) => mockSetQueryData(...args),
+    }),
+  };
+});
+
 describe('SettingsScreen', () => {
   beforeEach(() => {
     mockTrack.mockClear();
     mockUpdatePreference.mockClear();
+    mockSetQueryData.mockClear();
+    mockRunInitialIcloudSync.mockClear();
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
       themeMode: 'system',
@@ -169,6 +188,38 @@ describe('SettingsScreen', () => {
       value: 'false',
     });
     expect(mockUpdatePreference).toHaveBeenCalledWith('icloudSyncEnabled', false);
+  });
+
+  it('applies empty synced history and favourites results', async () => {
+    mockGetPreferences.mockReturnValue({
+      openLinksIn: 'app',
+      themeMode: 'system',
+      preferredSources: [],
+      preferredBookTypes: [],
+      icloudSyncEnabled: false,
+    });
+    mockUpdatePreference.mockResolvedValue({
+      openLinksIn: 'app',
+      themeMode: 'system',
+      preferredSources: [],
+      preferredBookTypes: [],
+      icloudSyncEnabled: true,
+    });
+    mockRunInitialIcloudSync.mockResolvedValue({ history: [], favourites: [] });
+
+    const screen = renderWithProviders(
+      <SettingsScreen
+        navigation={{} as never}
+        route={{ key: 'Settings', name: 'Settings' } as never}
+      />
+    );
+
+    fireEvent.press(screen.getByText('iCloud 同步'));
+
+    await waitFor(() => {
+      expect(mockSetQueryData).toHaveBeenCalledWith(['history'], []);
+      expect(mockSetQueryData).toHaveBeenCalledWith(['favourites'], []);
+    });
   });
 
   it('only shows the iCloud sync setting on iOS', () => {
