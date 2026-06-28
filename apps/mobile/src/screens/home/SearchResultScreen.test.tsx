@@ -23,6 +23,7 @@ const mockGetPreferences = jest.fn<Preferences, []>(() => ({
   themeMode: 'system',
   preferredSources: [],
   preferredBookTypes: [],
+  icloudSyncEnabled: true,
 }));
 
 jest.mock('../../analytics', () => ({
@@ -142,6 +143,7 @@ describe('SearchResultScreen', () => {
       themeMode: 'system',
       preferredSources: [],
       preferredBookTypes: [],
+      icloudSyncEnabled: true,
     });
     mockUseFavourites.mockReturnValue({ data: [], isLoading: false });
     mockUseIsFavourite.mockReturnValue(false);
@@ -359,6 +361,7 @@ describe('SearchResultScreen', () => {
       themeMode: 'system',
       preferredSources: [],
       preferredBookTypes: ['physical'],
+      icloudSyncEnabled: true,
     });
     mockUseTitleSearch.mockReturnValue({
       data: createTitleData([
@@ -435,6 +438,7 @@ describe('SearchResultScreen', () => {
       themeMode: 'system',
       preferredSources: ['eslite', 'books-com-tw'],
       preferredBookTypes: [],
+      icloudSyncEnabled: true,
     });
     mockUseTitleSearch.mockReturnValue({
       data: createTitleData([
@@ -532,6 +536,7 @@ describe('SearchResultScreen', () => {
       themeMode: 'system',
       preferredSources: [],
       preferredBookTypes: ['ebook'],
+      icloudSyncEnabled: true,
     });
     mockUseTitleSearch.mockReturnValue({
       data: createTitleData([createOffer({ productType: '中文書' })]),
@@ -559,6 +564,7 @@ describe('SearchResultScreen', () => {
       themeMode: 'system',
       preferredSources: [],
       preferredBookTypes: [],
+      icloudSyncEnabled: true,
     });
     mockUseTitleSearch.mockReturnValue({
       data: createTitleData([createOffer({ url: 'https://example.com/browser-book' })]),

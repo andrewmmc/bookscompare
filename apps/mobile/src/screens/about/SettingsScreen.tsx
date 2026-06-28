@@ -1,10 +1,11 @@
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { track } from '../../analytics';
 import { ListRow } from '../../components/ListRow';
 import { strings } from '../../i18n/strings';
-import { usePreferences } from '../../lib/preferences';
+import { updatePreference, usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
@@ -15,6 +16,10 @@ import type { ThemeColors } from '../../theme/colors';
 import type { AboutStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AboutStackParamList, 'Settings'>;
+
+export function shouldShowIcloudSyncSetting(platformOS = Platform.OS): boolean {
+  return platformOS === 'ios';
+}
 
 function openLinksLabel(value: OpenLinksIn): string {
   return value === 'app' ? strings.settings.openLinksInApp : strings.settings.openLinksInBrowser;
@@ -48,6 +53,7 @@ interface SettingsRowProps {
   title: string;
   value: string;
   onPress: () => void;
+  hideChevron?: boolean;
   isLast?: boolean;
 }
 
@@ -57,6 +63,7 @@ function SettingsRow({
   title,
   value,
   onPress,
+  hideChevron = false,
   isLast = true,
 }: SettingsRowProps) {
   return (
@@ -66,6 +73,7 @@ function SettingsRow({
       title={title}
       value={value}
       onPress={onPress}
+      hideChevron={hideChevron}
       isLast={isLast}
     />
   );
@@ -81,6 +89,13 @@ export function SettingsScreen({ navigation }: Props) {
     preferences.preferredSources.length === 0
       ? strings.storePreferences.settingsRowValueAll
       : strings.storePreferences.settingsRowValue(preferences.preferredSources.length);
+  const showIcloudSync = shouldShowIcloudSyncSetting();
+
+  const toggleIcloudSync = () => {
+    const next = !preferences.icloudSyncEnabled;
+    track('settings_change', { key: 'icloudSyncEnabled', value: String(next) });
+    void updatePreference('icloudSyncEnabled', next);
+  };
 
   return (
     <ScrollView
@@ -136,6 +151,29 @@ export function SettingsScreen({ navigation }: Props) {
           isLast
         />
       </View>
+
+      {showIcloudSync ? (
+        <>
+          <Text style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>
+            {strings.settings.syncSection}
+          </Text>
+          <View style={styles.group}>
+            <SettingsRow
+              icon="cloud-outline"
+              iconBackground={colors.accentDeep}
+              title={strings.settings.icloudSync}
+              value={
+                preferences.icloudSyncEnabled
+                  ? strings.settings.icloudSyncOn
+                  : strings.settings.icloudSyncOff
+              }
+              onPress={toggleIcloudSync}
+              hideChevron
+              isLast
+            />
+          </View>
+        </>
+      ) : null}
     </ScrollView>
   );
 }

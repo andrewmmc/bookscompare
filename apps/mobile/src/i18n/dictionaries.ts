@@ -115,6 +115,7 @@ interface Dictionary {
     generalSection: string;
     appearanceSection: string;
     contentSection: string;
+    syncSection: string;
     openLinksIn: string;
     openLinksDescription: string;
     openLinksInApp: string;
@@ -129,6 +130,9 @@ interface Dictionary {
     bookTypeAll: string;
     bookTypePhysical: string;
     bookTypeEbook: string;
+    icloudSync: string;
+    icloudSyncOn: string;
+    icloudSyncOff: string;
     cancelAction: string;
   };
   storePreferences: {
@@ -283,6 +287,7 @@ const zhTW: Dictionary = {
     generalSection: '一般',
     appearanceSection: '外觀',
     contentSection: '內容',
+    syncSection: '同步',
     openLinksIn: '開啟連結',
     openLinksDescription: '選擇點開書店連結時要在 App 內顯示，還是交由瀏覽器開啟。',
     openLinksInApp: '在 App 內開啟',
@@ -297,6 +302,9 @@ const zhTW: Dictionary = {
     bookTypeAll: '全部',
     bookTypePhysical: '實體書',
     bookTypeEbook: '電子書',
+    icloudSync: 'iCloud 同步',
+    icloudSyncOn: '開啟',
+    icloudSyncOff: '關閉',
     cancelAction: '取消',
   },
   storePreferences: {
@@ -454,6 +462,7 @@ const en: Dictionary = {
     generalSection: 'General',
     appearanceSection: 'Appearance',
     contentSection: 'Content',
+    syncSection: 'Sync',
     openLinksIn: 'Open links',
     openLinksDescription: 'Choose whether bookstore links open inside the app or in your browser.',
     openLinksInApp: 'In app',
@@ -469,6 +478,9 @@ const en: Dictionary = {
     bookTypeAll: 'All',
     bookTypePhysical: 'Physical books',
     bookTypeEbook: 'eBooks',
+    icloudSync: 'iCloud Sync',
+    icloudSyncOn: 'On',
+    icloudSyncOff: 'Off',
     cancelAction: 'Cancel',
   },
   storePreferences: {

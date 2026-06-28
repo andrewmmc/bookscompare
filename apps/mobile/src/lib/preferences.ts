@@ -17,6 +17,7 @@ export interface Preferences {
   themeMode: ThemeMode;
   preferredSources: BookSourceId[];
   preferredBookTypes: BookTypePreference[];
+  icloudSyncEnabled: boolean;
 }
 
 type PreferenceKey = keyof Preferences;
@@ -28,6 +29,7 @@ const defaultPreferences: Preferences = {
   themeMode: 'system',
   preferredSources: [],
   preferredBookTypes: [],
+  icloudSyncEnabled: true,
 };
 
 const validators: {
@@ -42,6 +44,7 @@ const validators: {
     Array.isArray(value) &&
     value.every((v) => v === 'physical' || v === 'ebook') &&
     new Set(value).size === value.length,
+  icloudSyncEnabled: (value): value is boolean => typeof value === 'boolean',
 };
 
 let currentPreferences = defaultPreferences;
