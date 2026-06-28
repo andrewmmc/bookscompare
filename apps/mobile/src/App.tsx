@@ -2,14 +2,17 @@ import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { initAnalytics, registerAnalyticsProperties } from './analytics';
+import { FAVOURITES_QUERY_KEY } from './api/favourites';
+import { HISTORY_QUERY_KEY } from './api/history';
 import { strings } from './i18n/strings';
+import { runInitialIcloudSync } from './lib/icloudSync';
 import { usePreferencesLoaded } from './lib/preferences';
 import { RootNavigator } from './navigation/RootNavigator';
 import { spacing } from './theme/spacing';
@@ -52,11 +55,41 @@ function AppContent() {
   const { colors, scheme } = useTheme();
   const paperTheme = scheme === 'dark' ? paperThemeDark : paperThemeLight;
   const preferencesLoaded = usePreferencesLoaded();
+  const [icloudSyncReady, setIcloudSyncReady] = useState(false);
 
   useEffect(() => {
     initAnalytics();
     registerAnalyticsProperties({ themeScheme: scheme });
   }, [scheme]);
+
+  useEffect(() => {
+    if (!preferencesLoaded) {
+      return;
+    }
+
+    let cancelled = false;
+    void runInitialIcloudSync()
+      .then((syncResult) => {
+        if (cancelled) {
+          return;
+        }
+        if (syncResult.history !== undefined) {
+          queryClient.setQueryData(HISTORY_QUERY_KEY, syncResult.history);
+        }
+        if (syncResult.favourites !== undefined) {
+          queryClient.setQueryData(FAVOURITES_QUERY_KEY, syncResult.favourites);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIcloudSyncReady(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [preferencesLoaded]);
 
   const navigationTheme = useMemo(
     () => ({
@@ -79,7 +112,7 @@ function AppContent() {
       <ActionSheetProvider>
         <NavigationContainer theme={navigationTheme}>
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-          {preferencesLoaded ? <RootNavigator /> : <AppStartupSkeleton />}
+          {preferencesLoaded && icloudSyncReady ? <RootNavigator /> : <AppStartupSkeleton />}
         </NavigationContainer>
       </ActionSheetProvider>
     </PaperProvider>

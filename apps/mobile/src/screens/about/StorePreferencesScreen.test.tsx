@@ -16,6 +16,7 @@ const mockGetPreferences = jest.fn<Preferences, []>(() => ({
   themeMode: 'system',
   preferredSources: [],
   preferredBookTypes: [],
+  icloudSyncEnabled: true,
 }));
 
 jest.mock('../../lib/preferences', () => ({
@@ -32,6 +33,7 @@ describe('StorePreferencesScreen', () => {
       themeMode: 'system',
       preferredSources: [],
       preferredBookTypes: [],
+      icloudSyncEnabled: true,
     });
   });
 
@@ -84,6 +86,7 @@ describe('StorePreferencesScreen', () => {
       themeMode: 'system',
       preferredSources: ['books-com-tw', 'eslite'],
       preferredBookTypes: [],
+      icloudSyncEnabled: true,
     });
 
     const screen = renderWithProviders(
@@ -104,6 +107,7 @@ describe('StorePreferencesScreen', () => {
       themeMode: 'system',
       preferredSources: ['kingstone'],
       preferredBookTypes: [],
+      icloudSyncEnabled: true,
     });
 
     const screen = renderWithProviders(

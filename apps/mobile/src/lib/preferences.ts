@@ -7,6 +7,7 @@ import { loadJsonValue, saveJsonValue } from './jsonStorage';
 import type { BookSourceId } from '@bookscompare/contracts';
 
 export const PREFERENCES_STORAGE_KEY = 'bookscompare:preferences:v1';
+export const PREFERENCES_UPDATED_AT_STORAGE_KEY = 'bookscompare:preferences-updated-at:v1';
 
 export type OpenLinksIn = 'app' | 'browser';
 export type ThemeMode = 'system' | 'light' | 'dark';
@@ -17,17 +18,21 @@ export interface Preferences {
   themeMode: ThemeMode;
   preferredSources: BookSourceId[];
   preferredBookTypes: BookTypePreference[];
+  icloudSyncEnabled: boolean;
 }
+
+export type SyncablePreferences = Omit<Preferences, 'icloudSyncEnabled'>;
 
 type PreferenceKey = keyof Preferences;
 
 const validSourceIds = new Set<string>(BOOK_SOURCES.map((s) => s.id));
 
-const defaultPreferences: Preferences = {
+export const DEFAULT_PREFERENCES: Preferences = {
   openLinksIn: 'app',
   themeMode: 'system',
   preferredSources: [],
   preferredBookTypes: [],
+  icloudSyncEnabled: true,
 };
 
 const validators: {
@@ -42,25 +47,39 @@ const validators: {
     Array.isArray(value) &&
     value.every((v) => v === 'physical' || v === 'ebook') &&
     new Set(value).size === value.length,
+  icloudSyncEnabled: (value): value is boolean => typeof value === 'boolean',
 };
 
-let currentPreferences = defaultPreferences;
+let currentPreferences = DEFAULT_PREFERENCES;
 let preferencesLoaded = false;
 const listeners = new Set<(preferences: Preferences) => void>();
 const loadedListeners = new Set<(loaded: boolean) => void>();
 
+export function toSyncablePreferences(preferences: Preferences): SyncablePreferences {
+  return {
+    openLinksIn: preferences.openLinksIn,
+    themeMode: preferences.themeMode,
+    preferredSources: preferences.preferredSources,
+    preferredBookTypes: preferences.preferredBookTypes,
+  };
+}
+
+function parseTimestamp(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
 function parsePreferences(value: unknown): Preferences {
   if (!value || typeof value !== 'object') {
-    return defaultPreferences;
+    return DEFAULT_PREFERENCES;
   }
 
   const record = value as Record<string, unknown>;
-  return (Object.keys(defaultPreferences) as PreferenceKey[]).reduce<Preferences>(
+  return (Object.keys(DEFAULT_PREFERENCES) as PreferenceKey[]).reduce<Preferences>(
     (preferences, key) => ({
       ...preferences,
-      [key]: validators[key](record[key]) ? record[key] : defaultPreferences[key],
+      [key]: validators[key](record[key]) ? record[key] : DEFAULT_PREFERENCES[key],
     }),
-    defaultPreferences
+    DEFAULT_PREFERENCES
   );
 }
 
@@ -88,7 +107,7 @@ export async function loadPreferences(): Promise<Preferences> {
     try {
       const preferences = await loadJsonValue(
         PREFERENCES_STORAGE_KEY,
-        defaultPreferences,
+        DEFAULT_PREFERENCES,
         parsePreferences
       );
       emit(preferences);
@@ -105,8 +124,24 @@ export async function loadPreferences(): Promise<Preferences> {
 // render has the best chance of having the user's saved theme ready.
 void loadPreferences();
 
-async function savePreferences(preferences: Preferences): Promise<void> {
-  await saveJsonValue(PREFERENCES_STORAGE_KEY, preferences);
+export async function loadPreferencesUpdatedAt(): Promise<number> {
+  return loadJsonValue(PREFERENCES_UPDATED_AT_STORAGE_KEY, 0, parseTimestamp);
+}
+
+async function savePreferences(preferences: Preferences, updatedAt = Date.now()): Promise<void> {
+  await Promise.all([
+    saveJsonValue(PREFERENCES_STORAGE_KEY, preferences),
+    saveJsonValue(PREFERENCES_UPDATED_AT_STORAGE_KEY, updatedAt),
+  ]);
+}
+
+export async function replacePreferences(
+  preferences: Preferences,
+  updatedAt = Date.now()
+): Promise<Preferences> {
+  await savePreferences(preferences, updatedAt);
+  emit(preferences);
+  return preferences;
 }
 
 export async function updatePreference<Key extends PreferenceKey>(

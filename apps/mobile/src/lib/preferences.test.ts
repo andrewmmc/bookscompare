@@ -30,6 +30,7 @@ describe('preferences storage', () => {
       themeMode: 'system',
       preferredSources: [],
       preferredBookTypes: [],
+      icloudSyncEnabled: true,
     });
   });
 
@@ -39,6 +40,7 @@ describe('preferences storage', () => {
       themeMode: 'dark',
       preferredSources: ['books-com-tw', 'kingstone'],
       preferredBookTypes: ['physical', 'ebook'],
+      icloudSyncEnabled: false,
     };
     await AsyncStorage.setItem('bookscompare:preferences:v1', JSON.stringify(stored));
 
@@ -55,6 +57,7 @@ describe('preferences storage', () => {
         themeMode: 'light',
         preferredSources: ['books-com-tw', 'unknown-source'],
         preferredBookTypes: ['ebook', 'ebook'],
+        icloudSyncEnabled: 'yes',
       })
     );
 
@@ -65,6 +68,7 @@ describe('preferences storage', () => {
       themeMode: 'light',
       preferredSources: [],
       preferredBookTypes: [],
+      icloudSyncEnabled: true,
     });
   });
 
@@ -78,6 +82,7 @@ describe('preferences storage', () => {
       themeMode: 'system',
       preferredSources: [],
       preferredBookTypes: [],
+      icloudSyncEnabled: true,
     });
   });
 

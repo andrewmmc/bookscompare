@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { track } from '../../analytics';
 import { ToggleListScreen } from '../../components/PreferenceListScreen';
 import { strings } from '../../i18n/strings';
+import { syncPreferencesToIcloud } from '../../lib/icloudSync';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -26,7 +27,13 @@ export function BookTypePreferencesScreen(_props: Props) {
       : [...preferredBookTypes, nextValue];
 
     track('settings_change', { key: 'preferredBookTypes', value: nextPreference.join(',') });
-    void updatePreference('preferredBookTypes', nextPreference);
+    void Promise.resolve(updatePreference('preferredBookTypes', nextPreference)).then(
+      (updatedPreferences) => {
+        if (updatedPreferences) {
+          void syncPreferencesToIcloud(updatedPreferences);
+        }
+      }
+    );
   };
 
   return (

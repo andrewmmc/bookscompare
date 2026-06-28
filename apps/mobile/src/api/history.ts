@@ -7,6 +7,7 @@ import {
   type HistoryEntry,
   type HistoryInput,
 } from '../lib/history';
+import { syncHistoryToIcloud } from '../lib/icloudSync';
 
 export const HISTORY_QUERY_KEY = ['history'] as const;
 
@@ -24,6 +25,11 @@ export function useAddHistoryEntry() {
     mutationFn: (input: HistoryInput) => addHistoryEntry(input),
     onSuccess: (next) => {
       queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, next);
+      void syncHistoryToIcloud(next).then((synced) => {
+        if (synced) {
+          queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, synced);
+        }
+      });
     },
   });
 }
@@ -34,6 +40,7 @@ export function useClearHistory() {
     mutationFn: () => clearHistory(),
     onSuccess: (next) => {
       queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, next);
+      void syncHistoryToIcloud(next, { mergeRemote: false });
     },
   });
 }

@@ -1,6 +1,7 @@
 import { track } from '../../analytics';
 import { SelectionListScreen } from '../../components/PreferenceListScreen';
 import { strings } from '../../i18n/strings';
+import { syncPreferencesToIcloud } from '../../lib/icloudSync';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -24,7 +25,11 @@ export function ThemePreferencesScreen(_props: Props) {
     }
 
     track('settings_change', { key: 'themeMode', value });
-    void updatePreference('themeMode', value);
+    void Promise.resolve(updatePreference('themeMode', value)).then((updatedPreferences) => {
+      if (updatedPreferences) {
+        void syncPreferencesToIcloud(updatedPreferences);
+      }
+    });
   };
 
   return (

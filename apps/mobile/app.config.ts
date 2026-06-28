@@ -39,6 +39,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: 'com.andrewmmc.BookPriceApp',
     buildNumber: iosBuildNumber,
     supportsTablet: false,
+    entitlements: {
+      'com.apple.developer.ubiquity-kvstore-identifier':
+        '$(TeamIdentifierPrefix)$(CFBundleIdentifier)',
+    },
     infoPlist: {
       CFBundleDevelopmentRegion: 'zh_Hant_TW',
       ITSAppUsesNonExemptEncryption: false,

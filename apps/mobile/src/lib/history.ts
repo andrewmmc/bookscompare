@@ -13,7 +13,7 @@ export type HistoryInput =
   | { type: 'isbn'; isbn: string; title?: string }
   | { type: 'title'; title: string };
 
-function parseHistory(value: unknown): HistoryEntry[] {
+export function parseHistory(value: unknown): HistoryEntry[] {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -47,6 +47,11 @@ export async function loadHistory(): Promise<HistoryEntry[]> {
 
 async function saveHistory(list: HistoryEntry[]): Promise<void> {
   await saveJsonValue(HISTORY_STORAGE_KEY, list);
+}
+
+export async function replaceHistory(list: HistoryEntry[]): Promise<HistoryEntry[]> {
+  await saveHistory(list);
+  return list;
 }
 
 function isSameEntry(a: HistoryEntry, b: HistoryEntry): boolean {

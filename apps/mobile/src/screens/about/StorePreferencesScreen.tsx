@@ -5,6 +5,7 @@ import { BOOK_SOURCES } from '@bookscompare/contracts';
 import { track } from '../../analytics';
 import { ToggleListScreen } from '../../components/PreferenceListScreen';
 import { strings } from '../../i18n/strings';
+import { syncPreferencesToIcloud } from '../../lib/icloudSync';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -28,7 +29,11 @@ export function StorePreferencesScreen(_props: Props) {
       : [...preferredSources, sourceId];
 
     track('settings_change', { key: 'preferredSources', value: next.join(',') });
-    void updatePreference('preferredSources', next);
+    void Promise.resolve(updatePreference('preferredSources', next)).then((updatedPreferences) => {
+      if (updatedPreferences) {
+        void syncPreferencesToIcloud(updatedPreferences);
+      }
+    });
   };
 
   return (
