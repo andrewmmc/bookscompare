@@ -7,6 +7,7 @@ import { loadJsonValue, saveJsonValue } from './jsonStorage';
 import type { BookSourceId } from '@bookscompare/contracts';
 
 export const PREFERENCES_STORAGE_KEY = 'bookscompare:preferences:v1';
+export const PREFERENCES_UPDATED_AT_STORAGE_KEY = 'bookscompare:preferences-updated-at:v1';
 
 export type OpenLinksIn = 'app' | 'browser';
 export type ThemeMode = 'system' | 'light' | 'dark';
@@ -19,6 +20,8 @@ export interface Preferences {
   preferredBookTypes: BookTypePreference[];
   icloudSyncEnabled: boolean;
 }
+
+export type SyncablePreferences = Omit<Preferences, 'icloudSyncEnabled'>;
 
 type PreferenceKey = keyof Preferences;
 
@@ -51,6 +54,19 @@ let currentPreferences = defaultPreferences;
 let preferencesLoaded = false;
 const listeners = new Set<(preferences: Preferences) => void>();
 const loadedListeners = new Set<(loaded: boolean) => void>();
+
+export function toSyncablePreferences(preferences: Preferences): SyncablePreferences {
+  return {
+    openLinksIn: preferences.openLinksIn,
+    themeMode: preferences.themeMode,
+    preferredSources: preferences.preferredSources,
+    preferredBookTypes: preferences.preferredBookTypes,
+  };
+}
+
+function parseTimestamp(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
 
 function parsePreferences(value: unknown): Preferences {
   if (!value || typeof value !== 'object') {
@@ -108,8 +124,24 @@ export async function loadPreferences(): Promise<Preferences> {
 // render has the best chance of having the user's saved theme ready.
 void loadPreferences();
 
-async function savePreferences(preferences: Preferences): Promise<void> {
-  await saveJsonValue(PREFERENCES_STORAGE_KEY, preferences);
+export async function loadPreferencesUpdatedAt(): Promise<number> {
+  return loadJsonValue(PREFERENCES_UPDATED_AT_STORAGE_KEY, 0, parseTimestamp);
+}
+
+async function savePreferences(preferences: Preferences, updatedAt = Date.now()): Promise<void> {
+  await Promise.all([
+    saveJsonValue(PREFERENCES_STORAGE_KEY, preferences),
+    saveJsonValue(PREFERENCES_UPDATED_AT_STORAGE_KEY, updatedAt),
+  ]);
+}
+
+export async function replacePreferences(
+  preferences: Preferences,
+  updatedAt = Date.now()
+): Promise<Preferences> {
+  await savePreferences(preferences, updatedAt);
+  emit(preferences);
+  return preferences;
 }
 
 export async function updatePreference<Key extends PreferenceKey>(

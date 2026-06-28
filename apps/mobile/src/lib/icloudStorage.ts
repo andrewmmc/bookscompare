@@ -52,7 +52,11 @@ export function isIcloudStorageAvailable(): boolean {
 }
 
 export function getIcloudString(key: string): string | null {
-  return loadStorage()?.getString(key) ?? null;
+  try {
+    return loadStorage()?.getString(key) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export function setIcloudString(key: string, value: string): boolean {
@@ -61,8 +65,12 @@ export function setIcloudString(key: string, value: string): boolean {
     return false;
   }
 
-  storage.set(key, value);
-  return true;
+  try {
+    storage.set(key, value);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function removeIcloudValue(key: string): boolean {
@@ -71,6 +79,10 @@ export function removeIcloudValue(key: string): boolean {
     return false;
   }
 
-  storage.remove(key);
-  return true;
+  try {
+    storage.remove(key);
+    return true;
+  } catch {
+    return false;
+  }
 }

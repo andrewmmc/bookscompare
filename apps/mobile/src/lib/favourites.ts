@@ -28,7 +28,7 @@ function isFavourite(value: unknown): value is Favourite {
   );
 }
 
-function parseFavourites(value: unknown): Favourite[] {
+export function parseFavourites(value: unknown): Favourite[] {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -42,6 +42,11 @@ export async function loadFavourites(): Promise<Favourite[]> {
 
 async function saveFavourites(list: Favourite[]): Promise<void> {
   await saveJsonValue(FAVOURITES_STORAGE_KEY, list);
+}
+
+export async function replaceFavourites(list: Favourite[]): Promise<Favourite[]> {
+  await saveFavourites(list);
+  return list;
 }
 
 export async function addFavourite(input: FavouriteInput): Promise<Favourite[]> {
