@@ -19,7 +19,8 @@ describe('searchByTitle', () => {
     const response = await searchByTitle('哈利波特 & magic');
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://bookscompare-api.mmc.dev/search?q=%E5%93%88%E5%88%A9%E6%B3%A2%E7%89%B9%20%26%20magic'
+      'https://bookscompare-api.mmc.dev/search?q=%E5%93%88%E5%88%A9%E6%B3%A2%E7%89%B9%20%26%20magic',
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
     );
     expect('title' in response.query && response.query.title).toBe('哈利波特 & magic');
   });

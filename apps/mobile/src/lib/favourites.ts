@@ -44,6 +44,13 @@ async function saveFavourites(list: Favourite[]): Promise<void> {
   await saveJsonValue(FAVOURITES_STORAGE_KEY, list);
 }
 
+/** Overwrite local favourites (used by the sync layer after a merge). */
+export async function replaceFavourites(list: Favourite[]): Promise<Favourite[]> {
+  const next = [...list].sort((a, b) => b.addedAt - a.addedAt);
+  await saveFavourites(next);
+  return next;
+}
+
 export async function addFavourite(input: FavouriteInput): Promise<Favourite[]> {
   const isbn = normalizeIsbn(input.isbn);
   const title = input.title.trim();

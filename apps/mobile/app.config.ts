@@ -82,10 +82,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? defaultApiBaseUrl,
     posthogKey: process.env.EXPO_PUBLIC_POSTHOG_KEY ?? '',
     posthogHost: process.env.EXPO_PUBLIC_POSTHOG_HOST ?? '',
+    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
+    supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
     ...(easProjectId ? { eas: { projectId: easProjectId } } : {}),
   },
   plugins: [
     'expo-font',
+    'expo-secure-store',
+    'expo-web-browser',
+    'expo-apple-authentication',
     [
       'expo-build-properties',
       {
