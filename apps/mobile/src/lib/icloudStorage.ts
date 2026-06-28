@@ -1,3 +1,4 @@
+import { requireOptionalNativeModule } from 'expo';
 import { Platform } from 'react-native';
 
 interface IcloudStorageModule {
@@ -6,16 +7,6 @@ interface IcloudStorageModule {
   remove(key: string): void;
   getAllKeys(): string[];
 }
-
-interface IcloudStorageModuleImport {
-  default?: IcloudStorageModule;
-  set?: IcloudStorageModule['set'];
-  getString?: IcloudStorageModule['getString'];
-  remove?: IcloudStorageModule['remove'];
-  getAllKeys?: IcloudStorageModule['getAllKeys'];
-}
-
-declare const require: (id: string) => IcloudStorageModuleImport;
 
 let cachedStorage: IcloudStorageModule | null | undefined;
 
@@ -29,22 +20,12 @@ function loadStorage(): IcloudStorageModule | null {
   }
 
   try {
-    const module = require('expo-icloud-storage');
-    cachedStorage = module.default ?? (isIcloudStorageModule(module) ? module : null);
+    cachedStorage = requireOptionalNativeModule<IcloudStorageModule>('ExpoAppleCloudStorage');
   } catch {
     cachedStorage = null;
   }
 
   return cachedStorage ?? null;
-}
-
-function isIcloudStorageModule(value: IcloudStorageModuleImport): value is IcloudStorageModule {
-  return (
-    typeof value.set === 'function' &&
-    typeof value.getString === 'function' &&
-    typeof value.remove === 'function' &&
-    typeof value.getAllKeys === 'function'
-  );
 }
 
 export function isIcloudStorageAvailable(): boolean {
