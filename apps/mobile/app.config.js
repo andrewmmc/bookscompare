@@ -40,6 +40,7 @@ module.exports = ({ config }) => {
       bundleIdentifier: 'com.andrewmmc.BookPriceApp',
       buildNumber: iosBuildNumber,
       supportsTablet: false,
+      usesIcloudStorage: true,
       entitlements: {
         'com.apple.developer.ubiquity-kvstore-identifier':
           '$(TeamIdentifierPrefix)$(CFBundleIdentifier)',
