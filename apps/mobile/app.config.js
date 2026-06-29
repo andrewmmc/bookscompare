@@ -93,9 +93,6 @@ module.exports = ({ config }) => {
     },
     plugins: [
       'expo-font',
-      'expo-secure-store',
-      'expo-web-browser',
-      'expo-apple-authentication',
       [
         'expo-build-properties',
         {
