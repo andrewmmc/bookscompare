@@ -1,6 +1,16 @@
 {
   "expo": {
     "name": "BooksCompare",
-    "slug": "bookscompare-mobile"
+    "slug": "bookscompare-mobile",
+    "extra": {
+      "apiBaseUrl": "http://localhost:8787",
+      "posthogKey": "",
+      "posthogHost": "",
+      "supabaseUrl": "",
+      "supabaseAnonKey": "",
+      "eas": {
+        "projectId": "647381a8-91d5-4d1b-b868-f4ad7f95b895"
+      }
+    }
   }
 }
