@@ -42,6 +42,8 @@ module.exports = ({ config }) => {
       supportsTablet: false,
       usesIcloudStorage: true,
       entitlements: {
+        'com.apple.developer.icloud-container-identifiers': ['iCloud.com.andrewmmc.BookPriceApp'],
+        'com.apple.developer.icloud-services': ['CloudKit'],
         'com.apple.developer.ubiquity-kvstore-identifier':
           '$(TeamIdentifierPrefix)$(CFBundleIdentifier)',
       },
