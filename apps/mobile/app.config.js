@@ -1,5 +1,4 @@
-import type { ExpoConfig, ConfigContext } from 'expo/config';
-import pkg from './package.json' with { type: 'json' };
+const pkg = require('./package.json');
 
 const defaultApiBaseUrl = 'http://localhost:8787';
 const expoOwner = process.env.EXPO_OWNER || undefined;
@@ -7,7 +6,8 @@ const iosBuildNumber = process.env.IOS_BUILD_NUMBER || '1';
 const androidVersionCodeRaw = process.env.ANDROID_VERSION_CODE;
 const androidVersionCode = androidVersionCodeRaw ? Number(androidVersionCodeRaw) : 1;
 
-export default ({ config }: ConfigContext): ExpoConfig => {
+/** @param {{ config: import('expo/config').ExpoConfig }} params */
+module.exports = ({ config }) => {
   const easProjectId = process.env.EXPO_PROJECT_ID || config.extra?.eas?.projectId || undefined;
 
   return {
