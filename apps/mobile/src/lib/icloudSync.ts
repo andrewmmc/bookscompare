@@ -11,6 +11,7 @@ import {
   type HistoryEntry,
 } from './history';
 import {
+  DEFAULT_PREFERENCES,
   loadPreferences,
   loadPreferencesUpdatedAt,
   replacePreferences,
@@ -41,6 +42,7 @@ export interface InitialIcloudSyncResult {
   preferences?: Preferences;
   history?: HistoryEntry[];
   favourites?: Favourite[];
+  pendingRemoteData?: boolean;
 }
 
 interface SyncListOptions {
@@ -241,55 +243,87 @@ export async function runInitialIcloudSync(): Promise<InitialIcloudSyncResult> {
 
   const result: InitialIcloudSyncResult = {};
   const localPreferencesUpdatedAt = await loadPreferencesUpdatedAt();
+  const localSyncablePreferences = toSyncablePreferences(preferences);
   const remotePreferences = parseJsonPayload(
     getIcloudString(ICLOUD_PREFERENCES_KEY),
     parseSyncablePreferences
   );
-  const nextPreferences =
-    remotePreferences && remotePreferences.updatedAt > localPreferencesUpdatedAt
-      ? { ...remotePreferences.value, icloudSyncEnabled: preferences.icloudSyncEnabled }
-      : preferences;
-  const nextPreferencesUpdatedAt = Math.max(
-    localPreferencesUpdatedAt,
-    remotePreferences?.updatedAt ?? 0,
-    Date.now()
-  );
-
-  if (!hasSameJsonValue(nextPreferences, preferences)) {
-    result.preferences = await replacePreferences(nextPreferences, nextPreferencesUpdatedAt);
-  }
-  writePayload(
-    ICLOUD_PREFERENCES_KEY,
-    nextPreferencesUpdatedAt,
-    toSyncablePreferences(nextPreferences)
-  );
-
   const localHistory = await loadHistory();
   const remoteHistory = parseJsonPayload(getIcloudString(ICLOUD_HISTORY_KEY), parseHistory);
-  const nextHistory = remoteHistory
-    ? mergeHistoryEntries(localHistory, remoteHistory.value)
-    : localHistory;
-  if (!hasSameJsonValue(nextHistory, localHistory)) {
-    result.history = await replaceHistory(nextHistory);
-  } else {
-    result.history = nextHistory;
-  }
-  writePayload(ICLOUD_HISTORY_KEY, Date.now(), nextHistory);
-
   const localFavourites = await loadFavourites();
   const remoteFavourites = parseJsonPayload(
     getIcloudString(ICLOUD_FAVOURITES_KEY),
     parseFavourites
   );
-  const nextFavourites = remoteFavourites
-    ? mergeFavourites(localFavourites, remoteFavourites.value)
-    : localFavourites;
-  if (!hasSameJsonValue(nextFavourites, localFavourites)) {
-    result.favourites = await replaceFavourites(nextFavourites);
+
+  if (remotePreferences) {
+    const nextPreferences =
+      remotePreferences.updatedAt > localPreferencesUpdatedAt
+        ? { ...remotePreferences.value, icloudSyncEnabled: preferences.icloudSyncEnabled }
+        : preferences;
+    const nextPreferencesUpdatedAt = Math.max(
+      localPreferencesUpdatedAt,
+      remotePreferences.updatedAt,
+      Date.now()
+    );
+
+    if (!hasSameJsonValue(nextPreferences, preferences)) {
+      result.preferences = await replacePreferences(nextPreferences, nextPreferencesUpdatedAt);
+    }
+    writePayload(
+      ICLOUD_PREFERENCES_KEY,
+      nextPreferencesUpdatedAt,
+      toSyncablePreferences(nextPreferences)
+    );
   } else {
-    result.favourites = nextFavourites;
+    const hasLocalPreferenceChanges = !hasSameJsonValue(
+      localSyncablePreferences,
+      toSyncablePreferences(DEFAULT_PREFERENCES)
+    );
+    if (localPreferencesUpdatedAt > 0 || hasLocalPreferenceChanges) {
+      writePayload(
+        ICLOUD_PREFERENCES_KEY,
+        localPreferencesUpdatedAt || Date.now(),
+        localSyncablePreferences
+      );
+    } else {
+      result.pendingRemoteData = true;
+    }
   }
-  writePayload(ICLOUD_FAVOURITES_KEY, Date.now(), nextFavourites);
+
+  if (remoteHistory) {
+    const nextHistory = mergeHistoryEntries(localHistory, remoteHistory.value);
+    if (!hasSameJsonValue(nextHistory, localHistory)) {
+      result.history = await replaceHistory(nextHistory);
+    } else {
+      result.history = nextHistory;
+    }
+    writePayload(ICLOUD_HISTORY_KEY, Date.now(), nextHistory);
+  } else {
+    result.history = localHistory;
+    if (localHistory.length > 0) {
+      writePayload(ICLOUD_HISTORY_KEY, Date.now(), localHistory);
+    } else {
+      result.pendingRemoteData = true;
+    }
+  }
+
+  if (remoteFavourites) {
+    const nextFavourites = mergeFavourites(localFavourites, remoteFavourites.value);
+    if (!hasSameJsonValue(nextFavourites, localFavourites)) {
+      result.favourites = await replaceFavourites(nextFavourites);
+    } else {
+      result.favourites = nextFavourites;
+    }
+    writePayload(ICLOUD_FAVOURITES_KEY, Date.now(), nextFavourites);
+  } else {
+    result.favourites = localFavourites;
+    if (localFavourites.length > 0) {
+      writePayload(ICLOUD_FAVOURITES_KEY, Date.now(), localFavourites);
+    } else {
+      result.pendingRemoteData = true;
+    }
+  }
 
   return result;
 }

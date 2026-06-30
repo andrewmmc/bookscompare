@@ -2,8 +2,8 @@ import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AppState, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -12,7 +12,7 @@ import { initAnalytics, registerAnalyticsProperties } from './analytics';
 import { FAVOURITES_QUERY_KEY } from './api/favourites';
 import { HISTORY_QUERY_KEY } from './api/history';
 import { strings } from './i18n/strings';
-import { runInitialIcloudSync } from './lib/icloudSync';
+import { runInitialIcloudSync, type InitialIcloudSyncResult } from './lib/icloudSync';
 import { usePreferencesLoaded } from './lib/preferences';
 import { RootNavigator } from './navigation/RootNavigator';
 import { spacing } from './theme/spacing';
@@ -56,6 +56,14 @@ function AppContent() {
   const paperTheme = scheme === 'dark' ? paperThemeDark : paperThemeLight;
   const preferencesLoaded = usePreferencesLoaded();
   const [icloudSyncReady, setIcloudSyncReady] = useState(false);
+  const applyIcloudSyncResult = useCallback((syncResult: InitialIcloudSyncResult) => {
+    if (syncResult.history !== undefined) {
+      queryClient.setQueryData(HISTORY_QUERY_KEY, syncResult.history);
+    }
+    if (syncResult.favourites !== undefined) {
+      queryClient.setQueryData(FAVOURITES_QUERY_KEY, syncResult.favourites);
+    }
+  }, []);
 
   useEffect(() => {
     initAnalytics();
@@ -68,28 +76,45 @@ function AppContent() {
     }
 
     let cancelled = false;
-    void runInitialIcloudSync()
-      .then((syncResult) => {
-        if (cancelled) {
-          return;
-        }
-        if (syncResult.history !== undefined) {
-          queryClient.setQueryData(HISTORY_QUERY_KEY, syncResult.history);
-        }
-        if (syncResult.favourites !== undefined) {
-          queryClient.setQueryData(FAVOURITES_QUERY_KEY, syncResult.favourites);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setIcloudSyncReady(true);
-        }
-      });
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+    let retriedPendingRemoteData = false;
+
+    const syncFromIcloud = async (isInitialRun = false): Promise<void> => {
+      const syncResult = await runInitialIcloudSync();
+      if (cancelled) {
+        return;
+      }
+
+      applyIcloudSyncResult(syncResult);
+
+      if (isInitialRun && syncResult.pendingRemoteData && !retriedPendingRemoteData) {
+        retriedPendingRemoteData = true;
+        retryTimeout = setTimeout(() => {
+          void syncFromIcloud();
+        }, 5000);
+      }
+    };
+
+    const appStateSubscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        void syncFromIcloud();
+      }
+    });
+
+    void syncFromIcloud(true).finally(() => {
+      if (!cancelled) {
+        setIcloudSyncReady(true);
+      }
+    });
 
     return () => {
       cancelled = true;
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
+      appStateSubscription.remove();
     };
-  }, [preferencesLoaded]);
+  }, [applyIcloudSyncResult, preferencesLoaded]);
 
   const navigationTheme = useMemo(
     () => ({
