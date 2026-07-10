@@ -82,24 +82,42 @@ jobs:
           echo "$EXPO_ASC_API_KEY_BASE64" | base64 --decode > apps/mobile/.tmp/AuthKey.p8
           echo "EXPO_ASC_API_KEY_PATH=${{ github.workspace }}/apps/mobile/.tmp/AuthKey.p8" >> "$GITHUB_ENV"
 
-      - name: Resolve release version
+      - name: Resolve and validate release inputs
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_BUILD_NUMBER: ${{ inputs.build_number }}
         run: |
-          if [ -n "${{ inputs.version }}" ]; then
-            echo "value=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          if [ -n "$INPUT_VERSION" ]; then
+            version="$INPUT_VERSION"
           else
-            v="$(node -p "require('./apps/mobile/package.json').version")"
-            echo "value=$v" >> "$GITHUB_OUTPUT"
+            version="$(node -p "require('./apps/mobile/package.json').version")"
           fi
+
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release version must use X.Y.Z format, got $version" >&2
+            exit 1
+          fi
+          if [[ -n "$INPUT_BUILD_NUMBER" && ! "$INPUT_BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "Build number must contain only digits, got $INPUT_BUILD_NUMBER" >&2
+            exit 1
+          fi
+
+          printf 'value=%s\n' "$version" >> "$GITHUB_OUTPUT"
 
       - name: Push App Store metadata
         working-directory: apps/mobile
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.value }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
+          SUBMIT_FOR_REVIEW: ${{ inputs.submit_for_review }}
         run: |
           args=(ios release_appstore)
-          args+=(version:"${{ steps.version.outputs.value }}")
-          if [ -n "${{ inputs.build_number }}" ]; then
-            args+=(build_number:"${{ inputs.build_number }}")
+          args+=(version:"$RELEASE_VERSION")
+          if [ -n "$BUILD_NUMBER" ]; then
+            args+=(build_number:"$BUILD_NUMBER")
           fi
-          args+=(release_type:"${{ inputs.release_type }}")
-          args+=(submit_for_review:"${{ inputs.submit_for_review }}")
+          args+=(release_type:"$RELEASE_TYPE")
+          args+=(submit_for_review:"$SUBMIT_FOR_REVIEW")
           bundle exec fastlane "${args[@]}"
