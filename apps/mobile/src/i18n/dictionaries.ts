@@ -48,6 +48,7 @@ interface Dictionary {
     permissionRequiredTitle: string;
     permissionRequiredDescription: string;
     permissionRequiredAction: string;
+    permissionSettingsAction: string;
     helpText: string;
   };
   searchResult: {
@@ -217,6 +218,7 @@ const zhTW: Dictionary = {
     permissionRequiredTitle: '需要相機權限',
     permissionRequiredDescription: '請允許相機存取，才能直接掃描書本背面的 ISBN 條碼。',
     permissionRequiredAction: '允許相機權限',
+    permissionSettingsAction: '前往設定',
     helpText: '請將國際標準書號 (ISBN 碼) 放進掃描框內。',
   },
   searchResult: {
@@ -397,6 +399,7 @@ const en: Dictionary = {
     permissionRequiredDescription:
       'Allow camera access so we can scan the ISBN barcode on the back cover.',
     permissionRequiredAction: 'Grant camera permission',
+    permissionSettingsAction: 'Open settings',
     helpText: 'Position the ISBN barcode inside the frame.',
   },
   searchResult: {

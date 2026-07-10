@@ -1,4 +1,5 @@
 import { fireEvent } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 
 import { BarcodeScannerScreen } from './BarcodeScannerScreen';
 import { strings } from '../../i18n/strings';
@@ -42,6 +43,10 @@ describe('BarcodeScannerScreen', () => {
     mockUseCameraPermissions.mockReset();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('navigates to results after a valid isbn scan', () => {
     mockUseCameraPermissions.mockReturnValue([{ granted: true }, jest.fn()]);
 
@@ -67,7 +72,10 @@ describe('BarcodeScannerScreen', () => {
 
   it('prompts to grant permission and requests it when the action is pressed', () => {
     const requestPermission = jest.fn();
-    mockUseCameraPermissions.mockReturnValue([{ granted: false }, requestPermission]);
+    mockUseCameraPermissions.mockReturnValue([
+      { granted: false, canAskAgain: true },
+      requestPermission,
+    ]);
 
     const screen = renderScanner({});
 
@@ -75,6 +83,22 @@ describe('BarcodeScannerScreen', () => {
     fireEvent.press(screen.getByText(strings.scanner.permissionRequiredAction));
 
     expect(requestPermission).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens settings when camera permission cannot be requested again', () => {
+    const requestPermission = jest.fn();
+    const openSettings = jest.spyOn(Linking, 'openSettings').mockResolvedValue();
+    mockUseCameraPermissions.mockReturnValue([
+      { granted: false, canAskAgain: false },
+      requestPermission,
+    ]);
+
+    const screen = renderScanner({});
+
+    fireEvent.press(screen.getByText(strings.scanner.permissionSettingsAction));
+
+    expect(openSettings).toHaveBeenCalledTimes(1);
+    expect(requestPermission).not.toHaveBeenCalled();
   });
 
   it('ignores an invalid barcode without navigating', () => {

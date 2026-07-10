@@ -1,7 +1,7 @@
 import { BlurView } from 'expo-blur';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Linking, StyleSheet, Text, View } from 'react-native';
 
 import { track } from '../../analytics';
 import { strings } from '../../i18n/strings';
@@ -41,8 +41,14 @@ export function BarcodeScannerScreen({ navigation }: Props) {
         icon="camera"
         title={strings.scanner.permissionRequiredTitle}
         description={strings.scanner.permissionRequiredDescription}
-        actionLabel={strings.scanner.permissionRequiredAction}
-        onAction={() => void requestPermission()}
+        actionLabel={
+          permission.canAskAgain
+            ? strings.scanner.permissionRequiredAction
+            : strings.scanner.permissionSettingsAction
+        }
+        onAction={() =>
+          void (permission.canAskAgain ? requestPermission() : Linking.openSettings())
+        }
         containerStyle={{ backgroundColor: colors.groupedBackground }}
       />
     );
