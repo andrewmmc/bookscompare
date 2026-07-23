@@ -45,6 +45,10 @@ export async function loadHistory(): Promise<HistoryEntry[]> {
   return loadJsonValue(HISTORY_STORAGE_KEY, [], parseHistory);
 }
 
+export function getHistoryEntryId(entry: HistoryEntry): string {
+  return entry.type === 'isbn' ? `isbn:${entry.isbn}` : `title:${entry.title}`;
+}
+
 async function saveHistory(list: HistoryEntry[]): Promise<void> {
   await saveJsonValue(HISTORY_STORAGE_KEY, list);
 }
@@ -95,6 +99,25 @@ export async function addHistoryEntry(input: HistoryInput): Promise<HistoryEntry
 
   const filtered = current.filter((item) => !isSameEntry(item, entry));
   const next = [entry, ...filtered].slice(0, HISTORY_MAX_ENTRIES);
+  await saveHistory(next);
+  return next;
+}
+
+export async function removeHistoryEntry(entry: HistoryEntry): Promise<HistoryEntry[]> {
+  const entryId = getHistoryEntryId(entry);
+  const current = await loadHistory();
+  const next = current.filter((item) => getHistoryEntryId(item) !== entryId);
+  await saveHistory(next);
+  return next;
+}
+
+export async function restoreHistoryEntry(entry: HistoryEntry): Promise<HistoryEntry[]> {
+  const entryId = getHistoryEntryId(entry);
+  const current = await loadHistory();
+  const next = parseHistory([
+    entry,
+    ...current.filter((item) => getHistoryEntryId(item) !== entryId),
+  ]).slice(0, HISTORY_MAX_ENTRIES);
   await saveHistory(next);
   return next;
 }

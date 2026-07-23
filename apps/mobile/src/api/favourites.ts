@@ -5,6 +5,7 @@ import {
   clearFavourites,
   loadFavourites,
   removeFavourite,
+  restoreFavourite,
   type Favourite,
 } from '../lib/favourites';
 import { syncFavouritesToIcloud } from '../lib/icloudSync';
@@ -50,6 +51,17 @@ export function useRemoveFavourite() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (isbn: string) => removeFavourite(isbn),
+    onSuccess: (next) => {
+      queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, next);
+      void syncFavouritesToIcloud(next, { mergeRemote: false });
+    },
+  });
+}
+
+export function useRestoreFavourite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (favourite: Favourite) => restoreFavourite(favourite),
     onSuccess: (next) => {
       queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, next);
       void syncFavouritesToIcloud(next, { mergeRemote: false });

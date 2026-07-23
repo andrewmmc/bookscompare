@@ -37,6 +37,9 @@ interface Dictionary {
     emptyDescription: string;
     viewedOn: (dateText: string) => string;
     isbnLabel: (isbn: string) => string;
+    deleteAction: string;
+    deleteAccessibilityLabel: string;
+    deletedUndoHint: string;
     clearAllAction: string;
     clearAllConfirmTitle: string;
     clearAllConfirmMessage: string;
@@ -95,6 +98,7 @@ interface Dictionary {
     removeAction: string;
     addAccessibilityLabel: string;
     removeAccessibilityLabel: string;
+    deletedUndoHint: string;
     clearAllAction: string;
     clearAllConfirmTitle: string;
     clearAllConfirmMessage: string;
@@ -207,6 +211,9 @@ const zhTW: Dictionary = {
     emptyDescription: '搜尋或掃描過的書本會出現在這裡，方便您再次查看。',
     viewedOn: (dateText) => `${dateText} 查看`,
     isbnLabel: (isbn) => `ISBN ${isbn}`,
+    deleteAction: '刪除',
+    deleteAccessibilityLabel: '刪除搜尋記錄',
+    deletedUndoHint: '已刪除。搖動手機即可還原。',
     clearAllAction: '全部清除',
     clearAllConfirmTitle: '清除所有搜尋記錄？',
     clearAllConfirmMessage: '此動作無法復原，所有搜尋記錄都會被移除。',
@@ -272,6 +279,7 @@ const zhTW: Dictionary = {
     removeAction: '移除',
     addAccessibilityLabel: '加入收藏',
     removeAccessibilityLabel: '從收藏中移除',
+    deletedUndoHint: '已從收藏移除。搖動手機即可還原。',
     clearAllAction: '全部清除',
     clearAllConfirmTitle: '清除所有收藏？',
     clearAllConfirmMessage: '此動作無法復原，所有已收藏的書本都會被移除。',
@@ -387,6 +395,9 @@ const en: Dictionary = {
     emptyDescription: 'Books you search or scan will appear here for quick access.',
     viewedOn: (dateText) => `Viewed on ${dateText}`,
     isbnLabel: (isbn) => `ISBN ${isbn}`,
+    deleteAction: 'Delete',
+    deleteAccessibilityLabel: 'Delete history entry',
+    deletedUndoHint: 'Deleted. Shake your phone to undo.',
     clearAllAction: 'Clear all',
     clearAllConfirmTitle: 'Clear all history?',
     clearAllConfirmMessage: 'This cannot be undone. All search and scan history will be removed.',
@@ -455,6 +466,7 @@ const en: Dictionary = {
     removeAction: 'Remove',
     addAccessibilityLabel: 'Add to favourites',
     removeAccessibilityLabel: 'Remove from favourites',
+    deletedUndoHint: 'Removed from favourites. Shake your phone to undo.',
     clearAllAction: 'Clear all',
     clearAllConfirmTitle: 'Clear all favourites?',
     clearAllConfirmMessage: 'This cannot be undone. All saved books will be removed.',

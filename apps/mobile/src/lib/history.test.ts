@@ -6,6 +6,8 @@ import {
   HISTORY_MAX_ENTRIES,
   HISTORY_STORAGE_KEY,
   loadHistory,
+  removeHistoryEntry,
+  restoreHistoryEntry,
 } from './history';
 
 describe('history storage', () => {
@@ -90,6 +92,16 @@ describe('history storage', () => {
   it('ignores invalid input', async () => {
     expect(await addHistoryEntry({ type: 'isbn', isbn: '' })).toEqual([]);
     expect(await addHistoryEntry({ type: 'title', title: '   ' })).toEqual([]);
+  });
+
+  it('removes and restores one entry with its original timestamp and order', async () => {
+    const older = { type: 'title' as const, title: 'older', viewedAt: 1000 };
+    const newer = { type: 'title' as const, title: 'newer', viewedAt: 2000 };
+    await restoreHistoryEntry(older);
+    await restoreHistoryEntry(newer);
+
+    expect(await removeHistoryEntry(newer)).toEqual([older]);
+    expect(await restoreHistoryEntry(newer)).toEqual([newer, older]);
   });
 
   it('clears history', async () => {

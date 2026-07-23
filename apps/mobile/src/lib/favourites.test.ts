@@ -5,6 +5,7 @@ import {
   FAVOURITES_STORAGE_KEY,
   loadFavourites,
   removeFavourite,
+  restoreFavourite,
 } from './favourites';
 
 describe('favourites storage', () => {
@@ -58,6 +59,18 @@ describe('favourites storage', () => {
 
     const remaining = await removeFavourite('978-1402894626');
     expect(remaining.map((f) => f.isbn)).toEqual(['9789861336275']);
+  });
+
+  it('restores a removed favourite with its original timestamp and order', async () => {
+    const removed = { isbn: '9781402894626', title: 'Book A', addedAt: 1000 };
+    await restoreFavourite({ isbn: '9789861336275', title: 'Book B', addedAt: 2000 });
+    await restoreFavourite(removed);
+    await removeFavourite(removed.isbn);
+
+    expect(await restoreFavourite(removed)).toEqual([
+      { isbn: '9789861336275', title: 'Book B', addedAt: 2000 },
+      removed,
+    ]);
   });
 
   it('returns an empty list when stored payload is corrupt', async () => {

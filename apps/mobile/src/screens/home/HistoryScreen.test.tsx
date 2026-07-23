@@ -6,17 +6,26 @@ import { HistoryScreen } from './HistoryScreen';
 import { renderWithProviders } from '../../test/test-utils';
 
 const mockUseHistory = jest.fn();
+const mockRemoveMutate = jest.fn();
+const mockRestoreMutate = jest.fn();
 const mockClearMutate = jest.fn();
 
 jest.mock('../../api/history', () => ({
   useHistory: (...args: unknown[]) => mockUseHistory(...args),
+  useRemoveHistoryEntry: () => ({ mutate: mockRemoveMutate }),
+  useRestoreHistoryEntry: () => ({ mutate: mockRestoreMutate }),
   useClearHistory: () => ({ mutate: mockClearMutate }),
 }));
 
 describe('HistoryScreen', () => {
   beforeEach(() => {
     mockUseHistory.mockReset();
+    mockRemoveMutate.mockReset();
+    mockRestoreMutate.mockReset();
     mockClearMutate.mockReset();
+    mockRemoveMutate.mockImplementation((_entry: unknown, options?: { onSuccess?: () => void }) =>
+      options?.onSuccess?.()
+    );
   });
 
   it('shows empty state when there is no history', () => {
@@ -68,6 +77,27 @@ describe('HistoryScreen', () => {
     expect(navigation.navigate).toHaveBeenLastCalledWith('SearchResult', {
       title: '哈利波特',
     });
+  });
+
+  it('deletes one history entry without confirmation', () => {
+    const entry = { type: 'title' as const, title: '哈利波特', viewedAt: 2000 };
+    mockUseHistory.mockReturnValue({ data: [entry], isLoading: false });
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+
+    const screen = renderWithProviders(
+      <HistoryScreen
+        navigation={{ navigate: jest.fn(), setOptions: jest.fn() } as never}
+        route={{ key: 'History', name: 'History', params: undefined } as never}
+      />
+    );
+
+    fireEvent.press(screen.getByLabelText('刪除搜尋記錄'));
+
+    expect(mockRemoveMutate).toHaveBeenCalledWith(entry, expect.any(Object));
+    expect(alertSpy).not.toHaveBeenCalled();
+    expect(screen.getByText('已刪除。搖動手機即可還原。')).toBeOnTheScreen();
+
+    alertSpy.mockRestore();
   });
 
   it('confirms before clearing all history', () => {

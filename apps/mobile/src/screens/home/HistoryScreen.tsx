@@ -1,14 +1,23 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Snackbar } from 'react-native-paper';
 
 import { track } from '../../analytics';
-import { useClearHistory, useHistory } from '../../api/history';
+import {
+  useClearHistory,
+  useHistory,
+  useRemoveHistoryEntry,
+  useRestoreHistoryEntry,
+} from '../../api/history';
 import { useClearAllHeaderAction } from '../../components/ClearAllHeaderButton';
 import { EmptyState } from '../../components/EmptyState';
+import { SwipeToDeleteRow } from '../../components/SwipeToDeleteRow';
+import { useShakeToUndo } from '../../hooks/useShakeToUndo';
 import { strings } from '../../i18n/strings';
 import { formatDateTime } from '../../lib/datetime';
+import { getHistoryEntryId } from '../../lib/history';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
@@ -20,16 +29,17 @@ import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'History'>;
 
-function getEntryId(entry: HistoryEntry): string {
-  return entry.type === 'isbn' ? `isbn:${entry.isbn}` : `title:${entry.title}`;
-}
-
 export function HistoryScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const tabBarHeight = useBottomTabBarHeight();
   const { data, isLoading } = useHistory();
+  const removeHistoryEntry = useRemoveHistoryEntry();
+  const restoreHistoryEntry = useRestoreHistoryEntry();
   const clearHistory = useClearHistory();
+  const [openItemId, setOpenItemId] = useState<string | null>(null);
+  const [undoCandidate, setUndoCandidate] = useState<HistoryEntry | null>(null);
+  const [showUndoHint, setShowUndoHint] = useState(false);
 
   const hasHistory = (data?.length ?? 0) > 0;
   const entries = data ?? [];
@@ -43,6 +53,27 @@ export function HistoryScreen({ navigation }: Props) {
     }
   };
 
+  const handleRemove = (entry: HistoryEntry) => {
+    track('history_remove_entry', { type: entry.type, source: 'history_swipe' });
+    removeHistoryEntry.mutate(entry, {
+      onSuccess: () => {
+        setUndoCandidate(entry);
+        setShowUndoHint(true);
+      },
+    });
+  };
+
+  useShakeToUndo(() => {
+    if (!undoCandidate) {
+      return;
+    }
+    const entry = undoCandidate;
+    setUndoCandidate(null);
+    setShowUndoHint(false);
+    track('history_remove_undo', { type: entry.type, method: 'shake' });
+    restoreHistoryEntry.mutate(entry);
+  }, undoCandidate !== null);
+
   useClearAllHeaderAction({
     navigation,
     visible: hasHistory,
@@ -52,23 +83,17 @@ export function HistoryScreen({ navigation }: Props) {
     onConfirm: () => clearHistory.mutate(),
   });
 
-  if (!isLoading && (!data || data.length === 0)) {
-    return (
-      <View style={styles.container}>
-        <EmptyState
-          icon="time-outline"
-          title={strings.history.emptyTitle}
-          description={strings.history.emptyDescription}
-        />
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
+  const content =
+    !isLoading && (!data || data.length === 0) ? (
+      <EmptyState
+        icon="time-outline"
+        title={strings.history.emptyTitle}
+        description={strings.history.emptyDescription}
+      />
+    ) : (
       <FlatList
         data={entries}
-        keyExtractor={getEntryId}
+        keyExtractor={getHistoryEntryId}
         contentContainerStyle={[styles.listContent, { paddingBottom: tabBarHeight + spacing.xl }]}
         contentInsetAdjustmentBehavior="automatic"
         ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -79,50 +104,76 @@ export function HistoryScreen({ navigation }: Props) {
           const isbnLine = hasIsbnTitle ? strings.history.isbnLabel(item.isbn) : null;
           const isFirst = index === 0;
           const isLast = index === entries.length - 1;
+          const itemId = getHistoryEntryId(item);
           return (
-            <Pressable
-              accessibilityRole="button"
-              android_ripple={{ color: colors.rowPressed }}
-              onPress={() => openEntry(item)}
-              style={({ pressed }) => [
-                styles.row,
-                isFirst && styles.rowFirst,
-                isLast && styles.rowLast,
-                pressed && styles.rowPressed,
-              ]}
+            <SwipeToDeleteRow
+              deleteAccessibilityLabel={strings.history.deleteAccessibilityLabel}
+              deleteLabel={strings.history.deleteAction}
+              isFirst={isFirst}
+              isLast={isLast}
+              isOpen={openItemId === itemId}
+              itemId={itemId}
+              onClose={(closedItemId) => {
+                setOpenItemId((current) => (current === closedItemId ? null : current));
+              }}
+              onDelete={() => handleRemove(item)}
+              onOpen={setOpenItemId}
             >
-              <View
-                style={[
-                  styles.iconTile,
-                  {
-                    backgroundColor: item.type === 'isbn' ? colors.accent : colors.accentDeep,
-                  },
-                ]}
+              <Pressable
+                accessibilityRole="button"
+                android_ripple={{ color: colors.rowPressed }}
+                onPress={() => openEntry(item)}
+                style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
               >
-                <Ionicons
-                  color="#ffffff"
-                  name={item.type === 'isbn' ? 'barcode' : 'search'}
-                  size={16}
-                />
-              </View>
-              <View style={styles.body}>
-                <Text style={styles.title} numberOfLines={2}>
-                  {primaryText}
-                </Text>
-                {isbnLine ? (
-                  <Text style={styles.isbn} numberOfLines={1}>
-                    {isbnLine}
+                <View
+                  style={[
+                    styles.iconTile,
+                    {
+                      backgroundColor: item.type === 'isbn' ? colors.accent : colors.accentDeep,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    color="#ffffff"
+                    name={item.type === 'isbn' ? 'barcode' : 'search'}
+                    size={16}
+                  />
+                </View>
+                <View style={styles.body}>
+                  <Text style={styles.title} numberOfLines={2}>
+                    {primaryText}
                   </Text>
-                ) : null}
-                <Text style={styles.meta} numberOfLines={1}>
-                  {strings.history.viewedOn(formatDateTime(item.viewedAt))}
-                </Text>
-              </View>
-              <Ionicons color={colors.inkMuted} name="chevron-forward" size={16} />
-            </Pressable>
+                  {isbnLine ? (
+                    <Text style={styles.isbn} numberOfLines={1}>
+                      {isbnLine}
+                    </Text>
+                  ) : null}
+                  <Text style={styles.meta} numberOfLines={1}>
+                    {strings.history.viewedOn(formatDateTime(item.viewedAt))}
+                  </Text>
+                </View>
+                <Ionicons color={colors.inkMuted} name="chevron-forward" size={16} />
+              </Pressable>
+            </SwipeToDeleteRow>
           );
         }}
       />
+    );
+
+  return (
+    <View style={styles.container}>
+      {content}
+      <Snackbar
+        duration={Snackbar.DURATION_LONG}
+        onDismiss={() => {
+          setShowUndoHint(false);
+          setUndoCandidate(null);
+        }}
+        visible={showUndoHint}
+        wrapperStyle={{ bottom: tabBarHeight }}
+      >
+        {strings.history.deletedUndoHint}
+      </Snackbar>
     </View>
   );
 }
@@ -149,14 +200,6 @@ const createStyles = (colors: ThemeColors) =>
       paddingVertical: spacing.sm + 2,
       backgroundColor: colors.surface,
       gap: spacing.sm,
-    },
-    rowFirst: {
-      borderTopLeftRadius: 14,
-      borderTopRightRadius: 14,
-    },
-    rowLast: {
-      borderBottomLeftRadius: 14,
-      borderBottomRightRadius: 14,
     },
     rowPressed: {
       backgroundColor: colors.rowPressed,

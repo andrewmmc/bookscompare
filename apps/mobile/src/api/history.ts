@@ -4,6 +4,8 @@ import {
   addHistoryEntry,
   clearHistory,
   loadHistory,
+  removeHistoryEntry,
+  restoreHistoryEntry,
   type HistoryEntry,
   type HistoryInput,
 } from '../lib/history';
@@ -30,6 +32,28 @@ export function useAddHistoryEntry() {
           queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, synced);
         }
       });
+    },
+  });
+}
+
+export function useRemoveHistoryEntry() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (entry: HistoryEntry) => removeHistoryEntry(entry),
+    onSuccess: (next) => {
+      queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, next);
+      void syncHistoryToIcloud(next, { mergeRemote: false });
+    },
+  });
+}
+
+export function useRestoreHistoryEntry() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (entry: HistoryEntry) => restoreHistoryEntry(entry),
+    onSuccess: (next) => {
+      queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, next);
+      void syncHistoryToIcloud(next, { mergeRemote: false });
     },
   });
 }

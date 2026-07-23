@@ -8,6 +8,7 @@ import { renderWithProviders } from '../../test/test-utils';
 
 const mockUseFavourites = jest.fn();
 const mockMutate = jest.fn();
+const mockRestoreMutate = jest.fn();
 const mockClearMutate = jest.fn();
 
 jest.mock('../../analytics', () => ({
@@ -17,6 +18,7 @@ jest.mock('../../analytics', () => ({
 jest.mock('../../api/favourites', () => ({
   useFavourites: (...args: unknown[]) => mockUseFavourites(...args),
   useRemoveFavourite: () => ({ mutate: mockMutate }),
+  useRestoreFavourite: () => ({ mutate: mockRestoreMutate }),
   useClearFavourites: () => ({ mutate: mockClearMutate }),
 }));
 
@@ -25,7 +27,11 @@ describe('FavouritesScreen', () => {
     jest.clearAllMocks();
     mockUseFavourites.mockReset();
     mockMutate.mockReset();
+    mockRestoreMutate.mockReset();
     mockClearMutate.mockReset();
+    mockMutate.mockImplementation((_isbn: string, options?: { onSuccess?: () => void }) =>
+      options?.onSuccess?.()
+    );
   });
 
   it('shows empty state when there are no favourites', () => {
@@ -68,6 +74,27 @@ describe('FavouritesScreen', () => {
       isbn: '9789861336275',
     });
     expect(track).toHaveBeenCalledWith('favourites_open_book', { isbn: '9789861336275' });
+  });
+
+  it('removes one favourite without confirmation', () => {
+    const favourite = { isbn: '9789861336275', title: '我的最愛之書', addedAt: 2000 };
+    mockUseFavourites.mockReturnValue({ data: [favourite], isLoading: false });
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+
+    const screen = renderWithProviders(
+      <FavouritesScreen
+        navigation={{ navigate: jest.fn(), setOptions: jest.fn() } as never}
+        route={{ key: 'Favourites', name: 'Favourites', params: undefined } as never}
+      />
+    );
+
+    fireEvent.press(screen.getByLabelText('從收藏中移除'));
+
+    expect(mockMutate).toHaveBeenCalledWith('9789861336275', expect.any(Object));
+    expect(alertSpy).not.toHaveBeenCalled();
+    expect(screen.getByText('已從收藏移除。搖動手機即可還原。')).toBeOnTheScreen();
+
+    alertSpy.mockRestore();
   });
 
   it('confirms before clearing all favourites', () => {

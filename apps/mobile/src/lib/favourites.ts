@@ -72,6 +72,16 @@ export async function removeFavourite(isbn: string): Promise<Favourite[]> {
   return next;
 }
 
+export async function restoreFavourite(favourite: Favourite): Promise<Favourite[]> {
+  const current = await loadFavourites();
+  const next = parseFavourites([
+    favourite,
+    ...current.filter((item) => item.isbn !== favourite.isbn),
+  ]);
+  await saveFavourites(next);
+  return next;
+}
+
 export async function clearFavourites(): Promise<Favourite[]> {
   await saveFavourites([]);
   return [];
