@@ -18,6 +18,7 @@ import { useShakeToUndo } from '../../hooks/useShakeToUndo';
 import { strings } from '../../i18n/strings';
 import { formatDateTime } from '../../lib/datetime';
 import { getHistoryEntryId } from '../../lib/history';
+import { updatePreference, usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
@@ -37,12 +38,21 @@ export function HistoryScreen({ navigation }: Props) {
   const removeHistoryEntry = useRemoveHistoryEntry();
   const restoreHistoryEntry = useRestoreHistoryEntry();
   const clearHistory = useClearHistory();
+  const { addedTimeSortDirection = 'desc' } = usePreferences();
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [undoCandidate, setUndoCandidate] = useState<HistoryEntry | null>(null);
   const [showUndoHint, setShowUndoHint] = useState(false);
 
   const hasHistory = (data?.length ?? 0) > 0;
-  const entries = data ?? [];
+  const entries = useMemo(
+    () =>
+      (data ?? [])
+        .slice()
+        .sort((a, b) =>
+          addedTimeSortDirection === 'desc' ? b.viewedAt - a.viewedAt : a.viewedAt - b.viewedAt
+        ),
+    [addedTimeSortDirection, data]
+  );
 
   const openEntry = (entry: HistoryEntry) => {
     track('history_open_entry', { type: entry.type });
@@ -81,6 +91,11 @@ export function HistoryScreen({ navigation }: Props) {
     clickEvent: 'history_click_clear_all',
     confirmEvent: 'history_clear_all_confirm',
     onConfirm: () => clearHistory.mutate(),
+    sortDirection: addedTimeSortDirection,
+    onSortDirectionChange: (direction) => {
+      track('history_change_sort', { direction });
+      void updatePreference('addedTimeSortDirection', direction);
+    },
   });
 
   const content =

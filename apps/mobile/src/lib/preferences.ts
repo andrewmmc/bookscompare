@@ -12,6 +12,7 @@ export const PREFERENCES_UPDATED_AT_STORAGE_KEY = 'bookscompare:preferences-upda
 export type OpenLinksIn = 'app' | 'browser';
 export type ThemeMode = 'system' | 'light' | 'dark';
 export type BookTypePreference = 'physical' | 'ebook';
+export type AddedTimeSortDirection = 'desc' | 'asc';
 
 export interface Preferences {
   openLinksIn: OpenLinksIn;
@@ -19,6 +20,7 @@ export interface Preferences {
   preferredSources: BookSourceId[];
   preferredBookTypes: BookTypePreference[];
   icloudSyncEnabled: boolean;
+  addedTimeSortDirection?: AddedTimeSortDirection;
 }
 
 export type SyncablePreferences = Omit<Preferences, 'icloudSyncEnabled'>;
@@ -33,6 +35,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   preferredSources: [],
   preferredBookTypes: [],
   icloudSyncEnabled: true,
+  addedTimeSortDirection: 'desc',
 };
 
 const validators: {
@@ -48,6 +51,8 @@ const validators: {
     value.every((v) => v === 'physical' || v === 'ebook') &&
     new Set(value).size === value.length,
   icloudSyncEnabled: (value): value is boolean => typeof value === 'boolean',
+  addedTimeSortDirection: (value): value is AddedTimeSortDirection =>
+    value === 'desc' || value === 'asc',
 };
 
 let currentPreferences = DEFAULT_PREFERENCES;
@@ -61,6 +66,9 @@ export function toSyncablePreferences(preferences: Preferences): SyncablePrefere
     themeMode: preferences.themeMode,
     preferredSources: preferences.preferredSources,
     preferredBookTypes: preferences.preferredBookTypes,
+    ...(preferences.addedTimeSortDirection
+      ? { addedTimeSortDirection: preferences.addedTimeSortDirection }
+      : {}),
   };
 }
 

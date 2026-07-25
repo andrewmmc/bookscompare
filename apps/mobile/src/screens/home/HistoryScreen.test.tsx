@@ -1,6 +1,6 @@
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
-import { Alert } from 'react-native';
+import { Alert, FlatList } from 'react-native';
 
 import { HistoryScreen } from './HistoryScreen';
 import { renderWithProviders } from '../../test/test-utils';
@@ -100,6 +100,39 @@ describe('HistoryScreen', () => {
     alertSpy.mockRestore();
   });
 
+  it('sorts by time and changes direction from the header menu', async () => {
+    mockUseHistory.mockReturnValue({
+      data: [
+        { type: 'title', title: '較舊', viewedAt: 1000 },
+        { type: 'title', title: '較新', viewedAt: 2000 },
+      ],
+      isLoading: false,
+    });
+    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
+    const screen = renderWithProviders(
+      <HistoryScreen
+        navigation={navigation as never}
+        route={{ key: 'History', name: 'History', params: undefined } as never}
+      />
+    );
+
+    expect(
+      screen.UNSAFE_getByType(FlatList).props.data.map((item: { title: string }) => item.title)
+    ).toEqual(['較新', '較舊']);
+
+    const headerRight = (navigation.setOptions as jest.Mock).mock.calls.at(-1)?.[0]
+      ?.headerRight as () => ReactElement;
+    const header = renderWithProviders(headerRight());
+    fireEvent.press(header.getByLabelText('排序'));
+    fireEvent.press(await header.findByText('最舊優先'));
+
+    await waitFor(() =>
+      expect(
+        screen.UNSAFE_getByType(FlatList).props.data.map((item: { title: string }) => item.title)
+      ).toEqual(['較舊', '較新'])
+    );
+  });
+
   it('confirms before clearing all history', () => {
     mockUseHistory.mockReturnValue({
       data: [{ type: 'title', title: '哈利波特', viewedAt: 2000 }],
@@ -122,7 +155,8 @@ describe('HistoryScreen', () => {
     expect(headerRight).toBeDefined();
     const headerNode = headerRight!();
     expect(headerNode).not.toBeNull();
-    headerNode!.props.onPress();
+    const header = renderWithProviders(headerNode!);
+    fireEvent.press(header.getByLabelText('全部清除'));
 
     expect(alertSpy).toHaveBeenCalledWith(
       '清除所有搜尋記錄？',

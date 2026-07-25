@@ -17,6 +17,7 @@ import { SwipeToDeleteRow } from '../../components/SwipeToDeleteRow';
 import { useShakeToUndo } from '../../hooks/useShakeToUndo';
 import { strings } from '../../i18n/strings';
 import { formatDate } from '../../lib/datetime';
+import { updatePreference, usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
@@ -36,12 +37,21 @@ export function FavouritesScreen({ navigation }: Props) {
   const removeFavourite = useRemoveFavourite();
   const restoreFavourite = useRestoreFavourite();
   const clearFavourites = useClearFavourites();
+  const { addedTimeSortDirection = 'desc' } = usePreferences();
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [undoCandidate, setUndoCandidate] = useState<Favourite | null>(null);
   const [showUndoHint, setShowUndoHint] = useState(false);
 
   const hasFavourites = (data?.length ?? 0) > 0;
-  const entries = data ?? [];
+  const entries = useMemo(
+    () =>
+      (data ?? [])
+        .slice()
+        .sort((a, b) =>
+          addedTimeSortDirection === 'desc' ? b.addedAt - a.addedAt : a.addedAt - b.addedAt
+        ),
+    [addedTimeSortDirection, data]
+  );
 
   const openBook = (item: Favourite) => {
     track('favourites_open_book', { isbn: item.isbn });
@@ -76,6 +86,11 @@ export function FavouritesScreen({ navigation }: Props) {
     clickEvent: 'favourites_click_clear_all',
     confirmEvent: 'favourites_clear_all_confirm',
     onConfirm: () => clearFavourites.mutate(),
+    sortDirection: addedTimeSortDirection,
+    onSortDirectionChange: (direction) => {
+      track('favourites_change_sort', { direction });
+      void updatePreference('addedTimeSortDirection', direction);
+    },
   });
 
   const content =

@@ -1,6 +1,6 @@
 import { fireEvent } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
-import { Alert } from 'react-native';
+import { Alert, FlatList } from 'react-native';
 
 import { FavouritesScreen } from './FavouritesScreen';
 import { track } from '../../analytics';
@@ -76,6 +76,26 @@ describe('FavouritesScreen', () => {
     expect(track).toHaveBeenCalledWith('favourites_open_book', { isbn: '9789861336275' });
   });
 
+  it('sorts favourites newest-first by default', () => {
+    mockUseFavourites.mockReturnValue({
+      data: [
+        { isbn: '1', title: '較舊', addedAt: 1000 },
+        { isbn: '2', title: '較新', addedAt: 2000 },
+      ],
+      isLoading: false,
+    });
+    const screen = renderWithProviders(
+      <FavouritesScreen
+        navigation={{ navigate: jest.fn(), setOptions: jest.fn() } as never}
+        route={{ key: 'Favourites', name: 'Favourites', params: undefined } as never}
+      />
+    );
+
+    expect(
+      screen.UNSAFE_getByType(FlatList).props.data.map((item: { title: string }) => item.title)
+    ).toEqual(['較新', '較舊']);
+  });
+
   it('removes one favourite without confirmation', () => {
     const favourite = { isbn: '9789861336275', title: '我的最愛之書', addedAt: 2000 };
     mockUseFavourites.mockReturnValue({ data: [favourite], isLoading: false });
@@ -119,7 +139,8 @@ describe('FavouritesScreen', () => {
     expect(headerRight).toBeDefined();
     const headerNode = headerRight!();
     expect(headerNode).not.toBeNull();
-    headerNode!.props.onPress();
+    const header = renderWithProviders(headerNode!);
+    fireEvent.press(header.getByLabelText('全部清除'));
 
     expect(alertSpy).toHaveBeenCalledWith(
       '清除所有收藏？',

@@ -45,6 +45,9 @@ interface Dictionary {
     clearAllConfirmMessage: string;
     clearAllConfirmAction: string;
     cancelAction: string;
+    sortAction: string;
+    newestFirstAction: string;
+    oldestFirstAction: string;
   };
   scanner: {
     permissionCheckingLabel: string;
@@ -104,6 +107,9 @@ interface Dictionary {
     clearAllConfirmMessage: string;
     clearAllConfirmAction: string;
     cancelAction: string;
+    sortAction: string;
+    newestFirstAction: string;
+    oldestFirstAction: string;
   };
   about: {
     title: string;
@@ -219,6 +225,9 @@ const zhTW: Dictionary = {
     clearAllConfirmMessage: '此動作無法復原，所有搜尋記錄都會被移除。',
     clearAllConfirmAction: '全部清除',
     cancelAction: '取消',
+    sortAction: '排序',
+    newestFirstAction: '最新優先',
+    oldestFirstAction: '最舊優先',
   },
   scanner: {
     permissionCheckingLabel: '正在檢查相機權限…',
@@ -285,6 +294,9 @@ const zhTW: Dictionary = {
     clearAllConfirmMessage: '此動作無法復原，所有已收藏的書本都會被移除。',
     clearAllConfirmAction: '全部清除',
     cancelAction: '取消',
+    sortAction: '排序',
+    newestFirstAction: '最新優先',
+    oldestFirstAction: '最舊優先',
   },
   about: {
     title: '好書價 BooksCompare',
@@ -403,6 +415,9 @@ const en: Dictionary = {
     clearAllConfirmMessage: 'This cannot be undone. All search and scan history will be removed.',
     clearAllConfirmAction: 'Clear all',
     cancelAction: 'Cancel',
+    sortAction: 'Sort',
+    newestFirstAction: 'Newest first',
+    oldestFirstAction: 'Oldest first',
   },
   scanner: {
     permissionCheckingLabel: 'Checking camera permission…',
@@ -472,6 +487,9 @@ const en: Dictionary = {
     clearAllConfirmMessage: 'This cannot be undone. All saved books will be removed.',
     clearAllConfirmAction: 'Clear all',
     cancelAction: 'Cancel',
+    sortAction: 'Sort',
+    newestFirstAction: 'Newest first',
+    oldestFirstAction: 'Oldest first',
   },
   about: {
     title: 'BooksCompare',
