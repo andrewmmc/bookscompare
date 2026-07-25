@@ -38,7 +38,7 @@ export function HistoryScreen({ navigation }: Props) {
   const removeHistoryEntry = useRemoveHistoryEntry();
   const restoreHistoryEntry = useRestoreHistoryEntry();
   const clearHistory = useClearHistory();
-  const { addedTimeSortDirection = 'desc' } = usePreferences();
+  const { historySortDirection = 'desc' } = usePreferences();
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [undoCandidate, setUndoCandidate] = useState<HistoryEntry | null>(null);
   const [showUndoHint, setShowUndoHint] = useState(false);
@@ -49,9 +49,9 @@ export function HistoryScreen({ navigation }: Props) {
       (data ?? [])
         .slice()
         .sort((a, b) =>
-          addedTimeSortDirection === 'desc' ? b.viewedAt - a.viewedAt : a.viewedAt - b.viewedAt
+          historySortDirection === 'desc' ? b.viewedAt - a.viewedAt : a.viewedAt - b.viewedAt
         ),
-    [addedTimeSortDirection, data]
+    [historySortDirection, data]
   );
 
   const openEntry = (entry: HistoryEntry) => {
@@ -91,10 +91,10 @@ export function HistoryScreen({ navigation }: Props) {
     clickEvent: 'history_click_clear_all',
     confirmEvent: 'history_clear_all_confirm',
     onConfirm: () => clearHistory.mutate(),
-    sortDirection: addedTimeSortDirection,
+    sortDirection: historySortDirection,
     onSortDirectionChange: (direction) => {
       track('history_change_sort', { direction });
-      void updatePreference('addedTimeSortDirection', direction);
+      void updatePreference('historySortDirection', direction);
     },
   });
 

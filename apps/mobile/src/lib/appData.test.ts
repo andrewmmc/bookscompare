@@ -13,7 +13,8 @@ describe('app data reset', () => {
   it('resets preferences, history, and favourites to defaults', async () => {
     await updatePreference('openLinksIn', 'browser');
     await updatePreference('themeMode', 'dark');
-    await updatePreference('addedTimeSortDirection', 'asc');
+    await updatePreference('favouritesSortDirection', 'asc');
+    await updatePreference('historySortDirection', 'asc');
     await addHistoryEntry({ type: 'title', title: '設計模式' });
     await addFavourite({ isbn: '9786264560092', title: '重構' });
 
@@ -24,7 +25,8 @@ describe('app data reset', () => {
         preferredSources: [],
         preferredBookTypes: [],
         icloudSyncEnabled: true,
-        addedTimeSortDirection: 'desc',
+        favouritesSortDirection: 'desc',
+        historySortDirection: 'desc',
       },
       history: [],
       favourites: [],
@@ -36,7 +38,8 @@ describe('app data reset', () => {
       preferredSources: [],
       preferredBookTypes: [],
       icloudSyncEnabled: true,
-      addedTimeSortDirection: 'desc',
+      favouritesSortDirection: 'desc',
+      historySortDirection: 'desc',
     });
     await expect(loadHistory()).resolves.toEqual([]);
     await expect(loadFavourites()).resolves.toEqual([]);

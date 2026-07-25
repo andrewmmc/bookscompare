@@ -20,7 +20,8 @@ export interface Preferences {
   preferredSources: BookSourceId[];
   preferredBookTypes: BookTypePreference[];
   icloudSyncEnabled: boolean;
-  addedTimeSortDirection?: AddedTimeSortDirection;
+  favouritesSortDirection?: AddedTimeSortDirection;
+  historySortDirection?: AddedTimeSortDirection;
 }
 
 export type SyncablePreferences = Omit<Preferences, 'icloudSyncEnabled'>;
@@ -35,7 +36,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   preferredSources: [],
   preferredBookTypes: [],
   icloudSyncEnabled: true,
-  addedTimeSortDirection: 'desc',
+  favouritesSortDirection: 'desc',
+  historySortDirection: 'desc',
 };
 
 const validators: {
@@ -51,7 +53,9 @@ const validators: {
     value.every((v) => v === 'physical' || v === 'ebook') &&
     new Set(value).size === value.length,
   icloudSyncEnabled: (value): value is boolean => typeof value === 'boolean',
-  addedTimeSortDirection: (value): value is AddedTimeSortDirection =>
+  favouritesSortDirection: (value): value is AddedTimeSortDirection =>
+    value === 'desc' || value === 'asc',
+  historySortDirection: (value): value is AddedTimeSortDirection =>
     value === 'desc' || value === 'asc',
 };
 
@@ -66,8 +70,11 @@ export function toSyncablePreferences(preferences: Preferences): SyncablePrefere
     themeMode: preferences.themeMode,
     preferredSources: preferences.preferredSources,
     preferredBookTypes: preferences.preferredBookTypes,
-    ...(preferences.addedTimeSortDirection
-      ? { addedTimeSortDirection: preferences.addedTimeSortDirection }
+    ...(preferences.favouritesSortDirection
+      ? { favouritesSortDirection: preferences.favouritesSortDirection }
+      : {}),
+    ...(preferences.historySortDirection
+      ? { historySortDirection: preferences.historySortDirection }
       : {}),
   };
 }

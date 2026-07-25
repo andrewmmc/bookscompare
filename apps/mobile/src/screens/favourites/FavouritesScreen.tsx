@@ -37,7 +37,7 @@ export function FavouritesScreen({ navigation }: Props) {
   const removeFavourite = useRemoveFavourite();
   const restoreFavourite = useRestoreFavourite();
   const clearFavourites = useClearFavourites();
-  const { addedTimeSortDirection = 'desc' } = usePreferences();
+  const { favouritesSortDirection = 'desc' } = usePreferences();
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [undoCandidate, setUndoCandidate] = useState<Favourite | null>(null);
   const [showUndoHint, setShowUndoHint] = useState(false);
@@ -48,9 +48,9 @@ export function FavouritesScreen({ navigation }: Props) {
       (data ?? [])
         .slice()
         .sort((a, b) =>
-          addedTimeSortDirection === 'desc' ? b.addedAt - a.addedAt : a.addedAt - b.addedAt
+          favouritesSortDirection === 'desc' ? b.addedAt - a.addedAt : a.addedAt - b.addedAt
         ),
-    [addedTimeSortDirection, data]
+    [favouritesSortDirection, data]
   );
 
   const openBook = (item: Favourite) => {
@@ -86,10 +86,10 @@ export function FavouritesScreen({ navigation }: Props) {
     clickEvent: 'favourites_click_clear_all',
     confirmEvent: 'favourites_clear_all_confirm',
     onConfirm: () => clearFavourites.mutate(),
-    sortDirection: addedTimeSortDirection,
+    sortDirection: favouritesSortDirection,
     onSortDirectionChange: (direction) => {
       track('favourites_change_sort', { direction });
-      void updatePreference('addedTimeSortDirection', direction);
+      void updatePreference('favouritesSortDirection', direction);
     },
   });
 

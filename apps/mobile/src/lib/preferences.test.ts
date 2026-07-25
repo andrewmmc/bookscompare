@@ -31,7 +31,8 @@ describe('preferences storage', () => {
       preferredSources: [],
       preferredBookTypes: [],
       icloudSyncEnabled: true,
-      addedTimeSortDirection: 'desc',
+      favouritesSortDirection: 'desc',
+      historySortDirection: 'desc',
     });
   });
 
@@ -42,7 +43,8 @@ describe('preferences storage', () => {
       preferredSources: ['books-com-tw', 'kingstone'],
       preferredBookTypes: ['physical', 'ebook'],
       icloudSyncEnabled: false,
-      addedTimeSortDirection: 'asc',
+      favouritesSortDirection: 'asc',
+      historySortDirection: 'asc',
     };
     await AsyncStorage.setItem('bookscompare:preferences:v1', JSON.stringify(stored));
 
@@ -71,7 +73,8 @@ describe('preferences storage', () => {
       preferredSources: [],
       preferredBookTypes: [],
       icloudSyncEnabled: true,
-      addedTimeSortDirection: 'desc',
+      favouritesSortDirection: 'desc',
+      historySortDirection: 'desc',
     });
   });
 
@@ -86,7 +89,8 @@ describe('preferences storage', () => {
       preferredSources: [],
       preferredBookTypes: [],
       icloudSyncEnabled: true,
-      addedTimeSortDirection: 'desc',
+      favouritesSortDirection: 'desc',
+      historySortDirection: 'desc',
     });
   });
 
