@@ -97,7 +97,7 @@ function HeaderSortAction({
       onPress={handleSortPress}
       style={({ pressed }) => [styles.sortAction, pressed && styles.headerActionPressed]}
     >
-      <Ionicons color={colors.navigationAction} name="swap-vertical" size={20} />
+      <Ionicons color={colors.ink} name="swap-vertical" size={20} />
     </Pressable>
   );
 }
