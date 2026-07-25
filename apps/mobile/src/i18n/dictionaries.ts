@@ -48,6 +48,7 @@ interface Dictionary {
     sortAction: string;
     newestFirstAction: string;
     oldestFirstAction: string;
+    backAction: string;
   };
   scanner: {
     permissionCheckingLabel: string;
@@ -110,6 +111,7 @@ interface Dictionary {
     sortAction: string;
     newestFirstAction: string;
     oldestFirstAction: string;
+    backAction: string;
   };
   about: {
     title: string;
@@ -228,6 +230,7 @@ const zhTW: Dictionary = {
     sortAction: '排序',
     newestFirstAction: '最新優先',
     oldestFirstAction: '最舊優先',
+    backAction: '返回',
   },
   scanner: {
     permissionCheckingLabel: '正在檢查相機權限…',
@@ -297,6 +300,7 @@ const zhTW: Dictionary = {
     sortAction: '排序',
     newestFirstAction: '最新優先',
     oldestFirstAction: '最舊優先',
+    backAction: '返回',
   },
   about: {
     title: '好書價 BooksCompare',
@@ -418,6 +422,7 @@ const en: Dictionary = {
     sortAction: 'Sort',
     newestFirstAction: 'Newest first',
     oldestFirstAction: 'Oldest first',
+    backAction: 'Back',
   },
   scanner: {
     permissionCheckingLabel: 'Checking camera permission…',
@@ -490,6 +495,7 @@ const en: Dictionary = {
     sortAction: 'Sort',
     newestFirstAction: 'Newest first',
     oldestFirstAction: 'Oldest first',
+    backAction: 'Back',
   },
   about: {
     title: 'BooksCompare',

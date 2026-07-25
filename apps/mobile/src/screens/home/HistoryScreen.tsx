@@ -96,6 +96,8 @@ export function HistoryScreen({ navigation }: Props) {
       track('history_change_sort', { direction });
       void updatePreference('addedTimeSortDirection', direction);
     },
+    showBackButton: true,
+    onBack: () => navigation.goBack(),
   });
 
   const content =

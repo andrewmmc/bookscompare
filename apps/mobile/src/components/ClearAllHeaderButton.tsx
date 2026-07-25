@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useActionSheet } from '@expo/react-native-action-sheet';
+import { useLayoutEffect, useMemo } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Menu } from 'react-native-paper';
 
 import { track } from '../analytics';
 import { spacing } from '../theme/spacing';
@@ -12,7 +12,7 @@ import type { ReactNode } from 'react';
 import type { ThemeColors } from '../theme/colors';
 
 interface NavigationLike {
-  setOptions: (options: { headerRight?: () => ReactNode }) => void;
+  setOptions: (options: { headerLeft?: () => ReactNode; headerRight?: () => ReactNode }) => void;
 }
 
 export interface ClearAllStrings {
@@ -24,6 +24,7 @@ export interface ClearAllStrings {
   sortAction: string;
   newestFirstAction: string;
   oldestFirstAction: string;
+  backAction: string;
 }
 
 type SortDirection = 'desc' | 'asc';
@@ -37,30 +38,100 @@ interface UseClearAllHeaderActionOptions {
   onConfirm: () => void;
   sortDirection: SortDirection;
   onSortDirectionChange: (direction: SortDirection) => void;
+  showBackButton?: boolean;
+  onBack?: () => void;
 }
 
-interface HeaderActionsProps extends Omit<UseClearAllHeaderActionOptions, 'navigation'> {
+interface HeaderSortActionProps {
+  strings: ClearAllStrings;
+  sortDirection: SortDirection;
+  onSortDirectionChange: (direction: SortDirection) => void;
+  showBackButton?: boolean;
+  onBack?: () => void;
+  colors: ThemeColors;
+  scheme: 'light' | 'dark';
+}
+
+interface HeaderClearActionProps {
+  strings: ClearAllStrings;
+  clickEvent: string;
+  confirmEvent: string;
+  onConfirm: () => void;
   colors: ThemeColors;
 }
 
-function HeaderActions({
-  visible,
+function HeaderSortAction({
+  strings,
+  sortDirection,
+  onSortDirectionChange,
+  showBackButton,
+  onBack,
+  colors,
+  scheme,
+}: HeaderSortActionProps) {
+  const { showActionSheetWithOptions } = useActionSheet();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const handleSortPress = () => {
+    const selectedPrefix = '✓ ';
+    showActionSheetWithOptions(
+      {
+        title: strings.sortAction,
+        options: [
+          `${sortDirection === 'desc' ? selectedPrefix : ''}${strings.newestFirstAction}`,
+          `${sortDirection === 'asc' ? selectedPrefix : ''}${strings.oldestFirstAction}`,
+          strings.cancelAction,
+        ],
+        cancelButtonIndex: 2,
+        tintColor: colors.navigationAction,
+        userInterfaceStyle: scheme,
+      },
+      (selectedIndex) => {
+        if (selectedIndex === 0) {
+          onSortDirectionChange('desc');
+        } else if (selectedIndex === 1) {
+          onSortDirectionChange('asc');
+        }
+      }
+    );
+  };
+
+  return (
+    <View style={styles.headerLeftActions}>
+      {showBackButton ? (
+        <Pressable
+          accessibilityLabel={strings.backAction}
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={onBack}
+          style={({ pressed }) => [styles.backAction, pressed && styles.headerActionPressed]}
+        >
+          <Ionicons color={colors.navigationAction} name="chevron-back" size={26} />
+        </Pressable>
+      ) : null}
+      <Pressable
+        accessibilityLabel={strings.sortAction}
+        accessibilityRole="button"
+        hitSlop={8}
+        onPress={handleSortPress}
+        style={({ pressed }) => [styles.sortAction, pressed && styles.headerActionPressed]}
+      >
+        <Ionicons color={colors.navigationAction} name="swap-vertical" size={20} />
+      </Pressable>
+    </View>
+  );
+}
+
+function HeaderClearAction({
   strings,
   clickEvent,
   confirmEvent,
   onConfirm,
-  sortDirection,
-  onSortDirectionChange,
   colors,
-}: HeaderActionsProps) {
-  const [sortMenuVisible, setSortMenuVisible] = useState(false);
+}: HeaderClearActionProps) {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  if (!visible) {
-    return null;
-  }
-
-  const handleClearPress = () => {
+  const handlePress = () => {
     track(clickEvent);
     Alert.alert(strings.clearAllConfirmTitle, strings.clearAllConfirmMessage, [
       { text: strings.cancelAction, style: 'cancel' },
@@ -75,50 +146,16 @@ function HeaderActions({
     ]);
   };
 
-  const selectSortDirection = (direction: SortDirection) => {
-    setSortMenuVisible(false);
-    onSortDirectionChange(direction);
-  };
-
   return (
-    <View style={styles.headerActions}>
-      <Menu
-        anchor={
-          <Pressable
-            accessibilityLabel={strings.sortAction}
-            accessibilityRole="button"
-            hitSlop={8}
-            onPress={() => setSortMenuVisible(true)}
-            style={({ pressed }) => [styles.sortAction, pressed && styles.headerActionPressed]}
-          >
-            <Ionicons color={colors.ink} name="swap-vertical" size={20} />
-          </Pressable>
-        }
-        anchorPosition="bottom"
-        onDismiss={() => setSortMenuVisible(false)}
-        visible={sortMenuVisible}
-      >
-        <Menu.Item
-          {...(sortDirection === 'desc' ? { leadingIcon: 'check' } : {})}
-          onPress={() => selectSortDirection('desc')}
-          title={strings.newestFirstAction}
-        />
-        <Menu.Item
-          {...(sortDirection === 'asc' ? { leadingIcon: 'check' } : {})}
-          onPress={() => selectSortDirection('asc')}
-          title={strings.oldestFirstAction}
-        />
-      </Menu>
-      <Pressable
-        accessibilityLabel={strings.clearAllAction}
-        accessibilityRole="button"
-        hitSlop={8}
-        onPress={handleClearPress}
-        style={({ pressed }) => [styles.headerAction, pressed && styles.headerActionPressed]}
-      >
-        <Text style={styles.headerActionText}>{strings.clearAllAction}</Text>
-      </Pressable>
-    </View>
+    <Pressable
+      accessibilityLabel={strings.clearAllAction}
+      accessibilityRole="button"
+      hitSlop={8}
+      onPress={handlePress}
+      style={({ pressed }) => [styles.headerAction, pressed && styles.headerActionPressed]}
+    >
+      <Text style={styles.headerActionText}>{strings.clearAllAction}</Text>
+    </Pressable>
   );
 }
 
@@ -135,22 +172,32 @@ export function useClearAllHeaderAction({
   onConfirm,
   sortDirection,
   onSortDirectionChange,
+  showBackButton,
+  onBack,
 }: UseClearAllHeaderActionOptions): void {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
 
   useLayoutEffect(() => {
     navigation.setOptions({
+      headerLeft: () => (
+        <HeaderSortAction
+          colors={colors}
+          {...(onBack ? { onBack } : {})}
+          onSortDirectionChange={onSortDirectionChange}
+          scheme={scheme}
+          showBackButton={showBackButton ?? false}
+          sortDirection={sortDirection}
+          strings={strings}
+        />
+      ),
       headerRight: () =>
         visible ? (
-          <HeaderActions
+          <HeaderClearAction
             clickEvent={clickEvent}
             colors={colors}
             confirmEvent={confirmEvent}
             onConfirm={onConfirm}
-            onSortDirectionChange={onSortDirectionChange}
-            sortDirection={sortDirection}
             strings={strings}
-            visible={visible}
           />
         ) : null,
     });
@@ -163,16 +210,23 @@ export function useClearAllHeaderAction({
     onConfirm,
     sortDirection,
     onSortDirectionChange,
+    showBackButton,
+    onBack,
     colors,
+    scheme,
   ]);
 }
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    headerActions: {
+    headerLeftActions: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.xs,
+    },
+    backAction: {
+      marginLeft: -spacing.sm,
+      paddingVertical: spacing.xxs,
     },
     sortAction: {
       padding: spacing.xxs,

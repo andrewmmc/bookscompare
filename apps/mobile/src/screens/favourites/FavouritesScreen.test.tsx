@@ -133,14 +133,22 @@ describe('FavouritesScreen', () => {
     );
 
     const setOptions = navigation.setOptions as jest.Mock;
+    const headerLeft = setOptions.mock.calls.at(-1)?.[0]?.headerLeft as
+      | (() => ReactElement)
+      | undefined;
     const headerRight = setOptions.mock.calls.at(-1)?.[0]?.headerRight as
       | (() => ReactElement<{ onPress: () => void }> | null)
       | undefined;
+    expect(headerLeft).toBeDefined();
     expect(headerRight).toBeDefined();
+    const sortHeader = renderWithProviders(headerLeft!());
+    expect(sortHeader.getByLabelText('排序')).toBeOnTheScreen();
+    expect(sortHeader.queryByLabelText('全部清除')).toBeNull();
     const headerNode = headerRight!();
     expect(headerNode).not.toBeNull();
     const header = renderWithProviders(headerNode!);
     fireEvent.press(header.getByLabelText('全部清除'));
+    expect(header.queryByLabelText('排序')).toBeNull();
 
     expect(alertSpy).toHaveBeenCalledWith(
       '清除所有收藏？',

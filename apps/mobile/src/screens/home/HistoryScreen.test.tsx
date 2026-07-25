@@ -9,6 +9,15 @@ const mockUseHistory = jest.fn();
 const mockRemoveMutate = jest.fn();
 const mockRestoreMutate = jest.fn();
 const mockClearMutate = jest.fn();
+const mockShowActionSheet = jest.fn();
+
+jest.mock('@expo/react-native-action-sheet', () => {
+  const actual = jest.requireActual('@expo/react-native-action-sheet');
+  return {
+    ...actual,
+    useActionSheet: () => ({ showActionSheetWithOptions: mockShowActionSheet }),
+  };
+});
 
 jest.mock('../../api/history', () => ({
   useHistory: (...args: unknown[]) => mockUseHistory(...args),
@@ -23,6 +32,7 @@ describe('HistoryScreen', () => {
     mockRemoveMutate.mockReset();
     mockRestoreMutate.mockReset();
     mockClearMutate.mockReset();
+    mockShowActionSheet.mockReset();
     mockRemoveMutate.mockImplementation((_entry: unknown, options?: { onSuccess?: () => void }) =>
       options?.onSuccess?.()
     );
@@ -31,7 +41,7 @@ describe('HistoryScreen', () => {
   it('shows empty state when there is no history', () => {
     mockUseHistory.mockReturnValue({ data: [], isLoading: false });
 
-    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
+    const navigation = { navigate: jest.fn(), goBack: jest.fn(), setOptions: jest.fn() };
     const screen = renderWithProviders(
       <HistoryScreen
         navigation={navigation as never}
@@ -52,7 +62,7 @@ describe('HistoryScreen', () => {
       isLoading: false,
     });
 
-    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
+    const navigation = { navigate: jest.fn(), goBack: jest.fn(), setOptions: jest.fn() };
     const screen = renderWithProviders(
       <HistoryScreen
         navigation={navigation as never}
@@ -108,7 +118,7 @@ describe('HistoryScreen', () => {
       ],
       isLoading: false,
     });
-    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
+    const navigation = { navigate: jest.fn(), goBack: jest.fn(), setOptions: jest.fn() };
     const screen = renderWithProviders(
       <HistoryScreen
         navigation={navigation as never}
@@ -120,11 +130,25 @@ describe('HistoryScreen', () => {
       screen.UNSAFE_getByType(FlatList).props.data.map((item: { title: string }) => item.title)
     ).toEqual(['較新', '較舊']);
 
-    const headerRight = (navigation.setOptions as jest.Mock).mock.calls.at(-1)?.[0]
-      ?.headerRight as () => ReactElement;
-    const header = renderWithProviders(headerRight());
+    const headerLeft = (navigation.setOptions as jest.Mock).mock.calls.at(-1)?.[0]
+      ?.headerLeft as () => ReactElement;
+    const header = renderWithProviders(headerLeft());
+    fireEvent.press(header.getByLabelText('返回'));
+    expect(navigation.goBack).toHaveBeenCalled();
+    mockShowActionSheet.mockImplementation(
+      (_options: unknown, callback: (selectedIndex?: number) => void) => callback(1)
+    );
     fireEvent.press(header.getByLabelText('排序'));
-    fireEvent.press(await header.findByText('最舊優先'));
+
+    expect(mockShowActionSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: '排序',
+        options: ['✓ 最新優先', '最舊優先', '取消'],
+        cancelButtonIndex: 2,
+        userInterfaceStyle: 'light',
+      }),
+      expect.any(Function)
+    );
 
     await waitFor(() =>
       expect(
@@ -192,5 +216,9 @@ describe('HistoryScreen', () => {
       | undefined;
     expect(headerRight).toBeDefined();
     expect(headerRight!()).toBeNull();
+    const headerLeft = setOptions.mock.calls.at(-1)?.[0]?.headerLeft as
+      | (() => ReactElement)
+      | undefined;
+    expect(headerLeft).toBeDefined();
   });
 });
