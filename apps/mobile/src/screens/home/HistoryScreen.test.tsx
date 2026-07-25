@@ -41,7 +41,7 @@ describe('HistoryScreen', () => {
   it('shows empty state when there is no history', () => {
     mockUseHistory.mockReturnValue({ data: [], isLoading: false });
 
-    const navigation = { navigate: jest.fn(), goBack: jest.fn(), setOptions: jest.fn() };
+    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
     const screen = renderWithProviders(
       <HistoryScreen
         navigation={navigation as never}
@@ -62,7 +62,7 @@ describe('HistoryScreen', () => {
       isLoading: false,
     });
 
-    const navigation = { navigate: jest.fn(), goBack: jest.fn(), setOptions: jest.fn() };
+    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
     const screen = renderWithProviders(
       <HistoryScreen
         navigation={navigation as never}
@@ -118,7 +118,7 @@ describe('HistoryScreen', () => {
       ],
       isLoading: false,
     });
-    const navigation = { navigate: jest.fn(), goBack: jest.fn(), setOptions: jest.fn() };
+    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
     const screen = renderWithProviders(
       <HistoryScreen
         navigation={navigation as never}
@@ -130,11 +130,9 @@ describe('HistoryScreen', () => {
       screen.UNSAFE_getByType(FlatList).props.data.map((item: { title: string }) => item.title)
     ).toEqual(['較新', '較舊']);
 
-    const headerLeft = (navigation.setOptions as jest.Mock).mock.calls.at(-1)?.[0]
-      ?.headerLeft as () => ReactElement;
-    const header = renderWithProviders(headerLeft());
-    fireEvent.press(header.getByLabelText('返回'));
-    expect(navigation.goBack).toHaveBeenCalled();
+    const headerRight = (navigation.setOptions as jest.Mock).mock.calls.at(-1)?.[0]
+      ?.headerRight as () => ReactElement;
+    const header = renderWithProviders(headerRight());
     mockShowActionSheet.mockImplementation(
       (_options: unknown, callback: (selectedIndex?: number) => void) => callback(1)
     );
@@ -199,7 +197,7 @@ describe('HistoryScreen', () => {
     alertSpy.mockRestore();
   });
 
-  it('hides the clear-all action when history is empty', () => {
+  it('keeps sort and hides the clear-all action when history is empty', () => {
     mockUseHistory.mockReturnValue({ data: [], isLoading: false });
 
     const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
@@ -212,13 +210,11 @@ describe('HistoryScreen', () => {
 
     const setOptions = navigation.setOptions as jest.Mock;
     const headerRight = setOptions.mock.calls.at(-1)?.[0]?.headerRight as
-      | (() => ReactElement | null)
-      | undefined;
-    expect(headerRight).toBeDefined();
-    expect(headerRight!()).toBeNull();
-    const headerLeft = setOptions.mock.calls.at(-1)?.[0]?.headerLeft as
       | (() => ReactElement)
       | undefined;
-    expect(headerLeft).toBeDefined();
+    expect(headerRight).toBeDefined();
+    const header = renderWithProviders(headerRight!());
+    expect(header.getByLabelText('排序')).toBeOnTheScreen();
+    expect(header.queryByLabelText('全部清除')).toBeNull();
   });
 });

@@ -133,22 +133,15 @@ describe('FavouritesScreen', () => {
     );
 
     const setOptions = navigation.setOptions as jest.Mock;
-    const headerLeft = setOptions.mock.calls.at(-1)?.[0]?.headerLeft as
-      | (() => ReactElement)
-      | undefined;
     const headerRight = setOptions.mock.calls.at(-1)?.[0]?.headerRight as
       | (() => ReactElement<{ onPress: () => void }> | null)
       | undefined;
-    expect(headerLeft).toBeDefined();
     expect(headerRight).toBeDefined();
-    const sortHeader = renderWithProviders(headerLeft!());
-    expect(sortHeader.getByLabelText('排序')).toBeOnTheScreen();
-    expect(sortHeader.queryByLabelText('全部清除')).toBeNull();
     const headerNode = headerRight!();
     expect(headerNode).not.toBeNull();
     const header = renderWithProviders(headerNode!);
+    expect(header.getByLabelText('排序')).toBeOnTheScreen();
     fireEvent.press(header.getByLabelText('全部清除'));
-    expect(header.queryByLabelText('排序')).toBeNull();
 
     expect(alertSpy).toHaveBeenCalledWith(
       '清除所有收藏？',
@@ -169,7 +162,7 @@ describe('FavouritesScreen', () => {
     alertSpy.mockRestore();
   });
 
-  it('hides the clear-all action when there are no favourites', () => {
+  it('keeps sort and hides the clear-all action when there are no favourites', () => {
     mockUseFavourites.mockReturnValue({ data: [], isLoading: false });
 
     const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
@@ -181,8 +174,11 @@ describe('FavouritesScreen', () => {
     );
 
     const headerRight = (navigation.setOptions as jest.Mock).mock.calls.at(-1)?.[0]?.headerRight as
-      | (() => ReactElement | null)
+      | (() => ReactElement)
       | undefined;
-    expect(headerRight?.()).toBeNull();
+    expect(headerRight).toBeDefined();
+    const header = renderWithProviders(headerRight!());
+    expect(header.getByLabelText('排序')).toBeOnTheScreen();
+    expect(header.queryByLabelText('全部清除')).toBeNull();
   });
 });

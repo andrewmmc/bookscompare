@@ -12,7 +12,7 @@ import type { ReactNode } from 'react';
 import type { ThemeColors } from '../theme/colors';
 
 interface NavigationLike {
-  setOptions: (options: { headerLeft?: () => ReactNode; headerRight?: () => ReactNode }) => void;
+  setOptions: (options: { headerRight?: () => ReactNode }) => void;
 }
 
 export interface ClearAllStrings {
@@ -24,7 +24,6 @@ export interface ClearAllStrings {
   sortAction: string;
   newestFirstAction: string;
   oldestFirstAction: string;
-  backAction: string;
 }
 
 type SortDirection = 'desc' | 'asc';
@@ -38,16 +37,12 @@ interface UseClearAllHeaderActionOptions {
   onConfirm: () => void;
   sortDirection: SortDirection;
   onSortDirectionChange: (direction: SortDirection) => void;
-  showBackButton?: boolean;
-  onBack?: () => void;
 }
 
 interface HeaderSortActionProps {
   strings: ClearAllStrings;
   sortDirection: SortDirection;
   onSortDirectionChange: (direction: SortDirection) => void;
-  showBackButton?: boolean;
-  onBack?: () => void;
   colors: ThemeColors;
   scheme: 'light' | 'dark';
 }
@@ -64,8 +59,6 @@ function HeaderSortAction({
   strings,
   sortDirection,
   onSortDirectionChange,
-  showBackButton,
-  onBack,
   colors,
   scheme,
 }: HeaderSortActionProps) {
@@ -97,28 +90,15 @@ function HeaderSortAction({
   };
 
   return (
-    <View style={styles.headerLeftActions}>
-      {showBackButton ? (
-        <Pressable
-          accessibilityLabel={strings.backAction}
-          accessibilityRole="button"
-          hitSlop={8}
-          onPress={onBack}
-          style={({ pressed }) => [styles.backAction, pressed && styles.headerActionPressed]}
-        >
-          <Ionicons color={colors.navigationAction} name="chevron-back" size={26} />
-        </Pressable>
-      ) : null}
-      <Pressable
-        accessibilityLabel={strings.sortAction}
-        accessibilityRole="button"
-        hitSlop={8}
-        onPress={handleSortPress}
-        style={({ pressed }) => [styles.sortAction, pressed && styles.headerActionPressed]}
-      >
-        <Ionicons color={colors.navigationAction} name="swap-vertical" size={20} />
-      </Pressable>
-    </View>
+    <Pressable
+      accessibilityLabel={strings.sortAction}
+      accessibilityRole="button"
+      hitSlop={8}
+      onPress={handleSortPress}
+      style={({ pressed }) => [styles.sortAction, pressed && styles.headerActionPressed]}
+    >
+      <Ionicons color={colors.navigationAction} name="swap-vertical" size={20} />
+    </Pressable>
   );
 }
 
@@ -159,6 +139,21 @@ function HeaderClearAction({
   );
 }
 
+interface HeaderActionsProps extends HeaderSortActionProps, HeaderClearActionProps {
+  visible: boolean;
+}
+
+function HeaderActions(props: HeaderActionsProps) {
+  const styles = useMemo(() => createStyles(props.colors), [props.colors]);
+
+  return (
+    <View style={styles.headerActions}>
+      <HeaderSortAction {...props} />
+      {props.visible ? <HeaderClearAction {...props} /> : null}
+    </View>
+  );
+}
+
 /**
  * Installs a "Clear all" header action that confirms via an Alert before
  * running `onConfirm`, tracking the click and confirmation events.
@@ -172,34 +167,24 @@ export function useClearAllHeaderAction({
   onConfirm,
   sortDirection,
   onSortDirectionChange,
-  showBackButton,
-  onBack,
 }: UseClearAllHeaderActionOptions): void {
   const { colors, scheme } = useTheme();
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerLeft: () => (
-        <HeaderSortAction
+      headerRight: () => (
+        <HeaderActions
+          clickEvent={clickEvent}
           colors={colors}
-          {...(onBack ? { onBack } : {})}
+          confirmEvent={confirmEvent}
+          onConfirm={onConfirm}
           onSortDirectionChange={onSortDirectionChange}
           scheme={scheme}
-          showBackButton={showBackButton ?? false}
           sortDirection={sortDirection}
           strings={strings}
+          visible={visible}
         />
       ),
-      headerRight: () =>
-        visible ? (
-          <HeaderClearAction
-            clickEvent={clickEvent}
-            colors={colors}
-            confirmEvent={confirmEvent}
-            onConfirm={onConfirm}
-            strings={strings}
-          />
-        ) : null,
     });
   }, [
     navigation,
@@ -210,8 +195,6 @@ export function useClearAllHeaderAction({
     onConfirm,
     sortDirection,
     onSortDirectionChange,
-    showBackButton,
-    onBack,
     colors,
     scheme,
   ]);
@@ -219,14 +202,10 @@ export function useClearAllHeaderAction({
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    headerLeftActions: {
+    headerActions: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: spacing.xs,
-    },
-    backAction: {
-      marginLeft: -spacing.sm,
-      paddingVertical: spacing.xxs,
+      gap: spacing.md,
     },
     sortAction: {
       padding: spacing.xxs,
