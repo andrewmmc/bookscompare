@@ -26,7 +26,7 @@ function isHistoryEntry(value: unknown): value is HistoryEntry {
     return false;
   }
   const record = value as Record<string, unknown>;
-  if (typeof record.viewedAt !== 'number') {
+  if (typeof record.viewedAt !== 'number' || !Number.isFinite(record.viewedAt)) {
     return false;
   }
   if (record.type === 'isbn') {

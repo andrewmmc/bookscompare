@@ -6,6 +6,7 @@ import {
   HISTORY_MAX_ENTRIES,
   HISTORY_STORAGE_KEY,
   loadHistory,
+  parseHistory,
   removeHistoryEntry,
   restoreHistoryEntry,
 } from './history';
@@ -132,5 +133,14 @@ describe('history storage', () => {
       { type: 'title', title: 'ok', viewedAt: 2000 },
       { type: 'isbn', isbn: '9781402894626', viewedAt: 1000 },
     ]);
+  });
+
+  it('filters out entries with non-finite timestamps', () => {
+    expect(
+      parseHistory([
+        { type: 'title', title: 'valid', viewedAt: 1000 },
+        { type: 'title', title: 'invalid', viewedAt: Number.NaN },
+      ])
+    ).toEqual([{ type: 'title', title: 'valid', viewedAt: 1000 }]);
   });
 });

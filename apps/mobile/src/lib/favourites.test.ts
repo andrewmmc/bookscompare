@@ -4,6 +4,7 @@ import {
   addFavourite,
   FAVOURITES_STORAGE_KEY,
   loadFavourites,
+  parseFavourites,
   removeFavourite,
   restoreFavourite,
 } from './favourites';
@@ -89,5 +90,14 @@ describe('favourites storage', () => {
     );
     const stored = await loadFavourites();
     expect(stored).toEqual([{ isbn: '9781402894626', title: 'Valid', addedAt: 1000 }]);
+  });
+
+  it('filters out favourites with non-finite timestamps', () => {
+    expect(
+      parseFavourites([
+        { isbn: '9781402894626', title: 'Valid', addedAt: 1000 },
+        { isbn: '9789861336275', title: 'Invalid', addedAt: Number.POSITIVE_INFINITY },
+      ])
+    ).toEqual([{ isbn: '9781402894626', title: 'Valid', addedAt: 1000 }]);
   });
 });

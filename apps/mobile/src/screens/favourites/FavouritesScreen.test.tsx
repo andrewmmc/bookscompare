@@ -1,4 +1,4 @@
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
 import { Alert, FlatList } from 'react-native';
 
@@ -10,6 +10,15 @@ const mockUseFavourites = jest.fn();
 const mockMutate = jest.fn();
 const mockRestoreMutate = jest.fn();
 const mockClearMutate = jest.fn();
+const mockShowActionSheet = jest.fn();
+
+jest.mock('@expo/react-native-action-sheet', () => {
+  const actual = jest.requireActual('@expo/react-native-action-sheet');
+  return {
+    ...actual,
+    useActionSheet: () => ({ showActionSheetWithOptions: mockShowActionSheet }),
+  };
+});
 
 jest.mock('../../analytics', () => ({
   track: jest.fn(),
@@ -29,6 +38,7 @@ describe('FavouritesScreen', () => {
     mockMutate.mockReset();
     mockRestoreMutate.mockReset();
     mockClearMutate.mockReset();
+    mockShowActionSheet.mockReset();
     mockMutate.mockImplementation((_isbn: string, options?: { onSuccess?: () => void }) =>
       options?.onSuccess?.()
     );
@@ -76,7 +86,7 @@ describe('FavouritesScreen', () => {
     expect(track).toHaveBeenCalledWith('favourites_open_book', { isbn: '9789861336275' });
   });
 
-  it('sorts favourites newest-first by default', () => {
+  it('sorts by time and changes direction from the header menu', async () => {
     mockUseFavourites.mockReturnValue({
       data: [
         { isbn: '1', title: '較舊', addedAt: 1000 },
@@ -84,9 +94,10 @@ describe('FavouritesScreen', () => {
       ],
       isLoading: false,
     });
+    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
     const screen = renderWithProviders(
       <FavouritesScreen
-        navigation={{ navigate: jest.fn(), setOptions: jest.fn() } as never}
+        navigation={navigation as never}
         route={{ key: 'Favourites', name: 'Favourites', params: undefined } as never}
       />
     );
@@ -94,6 +105,30 @@ describe('FavouritesScreen', () => {
     expect(
       screen.UNSAFE_getByType(FlatList).props.data.map((item: { title: string }) => item.title)
     ).toEqual(['較新', '較舊']);
+
+    const headerRight = (navigation.setOptions as jest.Mock).mock.calls.at(-1)?.[0]
+      ?.headerRight as () => ReactElement;
+    const header = renderWithProviders(headerRight());
+    mockShowActionSheet.mockImplementation(
+      (_options: unknown, callback: (selectedIndex?: number) => void) => callback(1)
+    );
+    fireEvent.press(header.getByLabelText('排序'));
+
+    expect(mockShowActionSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: '排序',
+        options: ['✓ 最新優先', '最舊優先', '取消'],
+        cancelButtonIndex: 2,
+        userInterfaceStyle: 'light',
+      }),
+      expect.any(Function)
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.UNSAFE_getByType(FlatList).props.data.map((item: { title: string }) => item.title)
+      ).toEqual(['較舊', '較新'])
+    );
   });
 
   it('removes one favourite without confirmation', () => {

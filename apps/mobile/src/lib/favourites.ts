@@ -24,7 +24,8 @@ function isFavourite(value: unknown): value is Favourite {
   return (
     typeof record.isbn === 'string' &&
     typeof record.title === 'string' &&
-    typeof record.addedAt === 'number'
+    typeof record.addedAt === 'number' &&
+    Number.isFinite(record.addedAt)
   );
 }
 
