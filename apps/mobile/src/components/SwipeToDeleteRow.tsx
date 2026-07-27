@@ -197,5 +197,6 @@ const createStyles = (colors: ThemeColors) =>
       ...typography.footnote,
       color: '#ffffff',
       fontWeight: '600',
+      textAlign: 'center',
     },
   });

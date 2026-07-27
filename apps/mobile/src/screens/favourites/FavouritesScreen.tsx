@@ -16,7 +16,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { SwipeToDeleteRow } from '../../components/SwipeToDeleteRow';
 import { useShakeToUndo } from '../../hooks/useShakeToUndo';
 import { strings } from '../../i18n/strings';
-import { formatDate } from '../../lib/datetime';
+import { formatDateTime } from '../../lib/datetime';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -141,7 +141,7 @@ export function FavouritesScreen({ navigation }: Props) {
                     {strings.history.isbnLabel(item.isbn)}
                   </Text>
                   <Text style={styles.meta} numberOfLines={1}>
-                    {strings.favourites.addedOn(formatDate(item.addedAt))}
+                    {strings.favourites.addedOn(formatDateTime(item.addedAt))}
                   </Text>
                 </View>
                 <Ionicons color={colors.inkMuted} name="chevron-forward" size={16} />
