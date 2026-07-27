@@ -171,6 +171,8 @@ describe('HistoryScreen', () => {
     );
 
     const setOptions = navigation.setOptions as jest.Mock;
+    const nativeItems = setOptions.mock.calls.at(-1)?.[0]?.unstable_headerRightItems();
+    expect(nativeItems.map((item: { label: string }) => item.label)).toEqual(['排序', '全部清除']);
     const headerRight = setOptions.mock.calls.at(-1)?.[0]?.headerRight as
       | (() => ReactElement<{ onPress: () => void }> | null)
       | undefined;
@@ -209,6 +211,8 @@ describe('HistoryScreen', () => {
     );
 
     const setOptions = navigation.setOptions as jest.Mock;
+    const nativeItems = setOptions.mock.calls.at(-1)?.[0]?.unstable_headerRightItems();
+    expect(nativeItems.map((item: { label: string }) => item.label)).toEqual(['排序']);
     const headerRight = setOptions.mock.calls.at(-1)?.[0]?.headerRight as
       | (() => ReactElement)
       | undefined;

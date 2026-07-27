@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import { useLayoutEffect, useMemo } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { track } from '../analytics';
@@ -8,11 +8,15 @@ import { spacing } from '../theme/spacing';
 import { useTheme } from '../theme/ThemeProvider';
 import { typography } from '../theme/typography';
 
+import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import type { ReactNode } from 'react';
 import type { ThemeColors } from '../theme/colors';
 
 interface NavigationLike {
-  setOptions: (options: { headerRight?: () => ReactNode }) => void;
+  setOptions: (options: {
+    headerRight?: () => ReactNode;
+    unstable_headerRightItems?: () => NativeStackHeaderItem[];
+  }) => void;
 }
 
 export interface ClearAllStrings {
@@ -49,9 +53,7 @@ interface HeaderSortActionProps {
 
 interface HeaderClearActionProps {
   strings: ClearAllStrings;
-  clickEvent: string;
-  confirmEvent: string;
-  onConfirm: () => void;
+  onPress: () => void;
   colors: ThemeColors;
 }
 
@@ -102,36 +104,15 @@ function HeaderSortAction({
   );
 }
 
-function HeaderClearAction({
-  strings,
-  clickEvent,
-  confirmEvent,
-  onConfirm,
-  colors,
-}: HeaderClearActionProps) {
+function HeaderClearAction({ strings, onPress, colors }: HeaderClearActionProps) {
   const styles = useMemo(() => createStyles(colors), [colors]);
-
-  const handlePress = () => {
-    track(clickEvent);
-    Alert.alert(strings.clearAllConfirmTitle, strings.clearAllConfirmMessage, [
-      { text: strings.cancelAction, style: 'cancel' },
-      {
-        text: strings.clearAllConfirmAction,
-        style: 'destructive',
-        onPress: () => {
-          track(confirmEvent);
-          onConfirm();
-        },
-      },
-    ]);
-  };
 
   return (
     <Pressable
       accessibilityLabel={strings.clearAllAction}
       accessibilityRole="button"
       hitSlop={8}
-      onPress={handlePress}
+      onPress={onPress}
       style={({ pressed }) => [styles.headerAction, pressed && styles.headerActionPressed]}
     >
       <Text style={styles.headerActionText}>{strings.clearAllAction}</Text>
@@ -169,16 +150,74 @@ export function useClearAllHeaderAction({
   onSortDirectionChange,
 }: UseClearAllHeaderActionOptions): void {
   const { colors, scheme } = useTheme();
+  const onConfirmRef = useRef(onConfirm);
+  const onSortDirectionChangeRef = useRef(onSortDirectionChange);
+
+  useLayoutEffect(() => {
+    onConfirmRef.current = onConfirm;
+    onSortDirectionChangeRef.current = onSortDirectionChange;
+  }, [onConfirm, onSortDirectionChange]);
+
+  const handleClearPress = useCallback(() => {
+    track(clickEvent);
+    Alert.alert(strings.clearAllConfirmTitle, strings.clearAllConfirmMessage, [
+      { text: strings.cancelAction, style: 'cancel' },
+      {
+        text: strings.clearAllConfirmAction,
+        style: 'destructive',
+        onPress: () => {
+          track(confirmEvent);
+          onConfirmRef.current();
+        },
+      },
+    ]);
+  }, [clickEvent, confirmEvent, strings]);
+  const handleSortDirectionChange = useCallback((direction: SortDirection) => {
+    onSortDirectionChangeRef.current(direction);
+  }, []);
 
   useLayoutEffect(() => {
     navigation.setOptions({
+      unstable_headerRightItems: () => [
+        {
+          type: 'menu',
+          label: strings.sortAction,
+          accessibilityLabel: strings.sortAction,
+          icon: { type: 'sfSymbol', name: 'arrow.up.arrow.down' },
+          menu: {
+            title: strings.sortAction,
+            items: [
+              {
+                type: 'action',
+                label: strings.newestFirstAction,
+                state: sortDirection === 'desc' ? 'on' : 'off',
+                onPress: () => handleSortDirectionChange('desc'),
+              },
+              {
+                type: 'action',
+                label: strings.oldestFirstAction,
+                state: sortDirection === 'asc' ? 'on' : 'off',
+                onPress: () => handleSortDirectionChange('asc'),
+              },
+            ],
+          },
+        },
+        ...(visible
+          ? [
+              {
+                type: 'button' as const,
+                label: strings.clearAllAction,
+                accessibilityLabel: strings.clearAllAction,
+                onPress: handleClearPress,
+              },
+            ]
+          : []),
+      ],
       headerRight: () => (
         <HeaderActions
-          clickEvent={clickEvent}
           colors={colors}
-          confirmEvent={confirmEvent}
-          onConfirm={onConfirm}
-          onSortDirectionChange={onSortDirectionChange}
+          onPress={handleClearPress}
+          onSortDirectionChange={handleSortDirectionChange}
           scheme={scheme}
           sortDirection={sortDirection}
           strings={strings}
@@ -190,11 +229,9 @@ export function useClearAllHeaderAction({
     navigation,
     visible,
     strings,
-    clickEvent,
-    confirmEvent,
-    onConfirm,
+    handleClearPress,
+    handleSortDirectionChange,
     sortDirection,
-    onSortDirectionChange,
     colors,
     scheme,
   ]);
