@@ -135,10 +135,11 @@ describe('FavouritesScreen', () => {
     const favourite = { isbn: '9789861336275', title: '我的最愛之書', addedAt: 2000 };
     mockUseFavourites.mockReturnValue({ data: [favourite], isLoading: false });
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
 
     const screen = renderWithProviders(
       <FavouritesScreen
-        navigation={{ navigate: jest.fn(), setOptions: jest.fn() } as never}
+        navigation={navigation as never}
         route={{ key: 'Favourites', name: 'Favourites', params: undefined } as never}
       />
     );
@@ -148,6 +149,7 @@ describe('FavouritesScreen', () => {
     expect(mockMutate).toHaveBeenCalledWith('9789861336275', expect.any(Object));
     expect(alertSpy).not.toHaveBeenCalled();
     expect(screen.getByText('已從收藏移除。搖動手機即可還原。')).toBeOnTheScreen();
+    expect(navigation.setOptions).toHaveBeenCalledTimes(1);
 
     alertSpy.mockRestore();
   });
@@ -168,8 +170,6 @@ describe('FavouritesScreen', () => {
     );
 
     const setOptions = navigation.setOptions as jest.Mock;
-    const nativeItems = setOptions.mock.calls.at(-1)?.[0]?.unstable_headerRightItems();
-    expect(nativeItems.map((item: { label: string }) => item.label)).toEqual(['排序', '全部清除']);
     const headerRight = setOptions.mock.calls.at(-1)?.[0]?.headerRight as
       | (() => ReactElement<{ onPress: () => void }> | null)
       | undefined;
@@ -211,8 +211,6 @@ describe('FavouritesScreen', () => {
     );
 
     const setOptions = navigation.setOptions as jest.Mock;
-    const nativeItems = setOptions.mock.calls.at(-1)?.[0]?.unstable_headerRightItems();
-    expect(nativeItems.map((item: { label: string }) => item.label)).toEqual(['排序']);
     const headerRight = setOptions.mock.calls.at(-1)?.[0]?.headerRight as
       | (() => ReactElement)
       | undefined;

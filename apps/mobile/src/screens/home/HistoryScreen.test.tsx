@@ -93,10 +93,11 @@ describe('HistoryScreen', () => {
     const entry = { type: 'title' as const, title: '哈利波特', viewedAt: 2000 };
     mockUseHistory.mockReturnValue({ data: [entry], isLoading: false });
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
 
     const screen = renderWithProviders(
       <HistoryScreen
-        navigation={{ navigate: jest.fn(), setOptions: jest.fn() } as never}
+        navigation={navigation as never}
         route={{ key: 'History', name: 'History', params: undefined } as never}
       />
     );
@@ -106,6 +107,7 @@ describe('HistoryScreen', () => {
     expect(mockRemoveMutate).toHaveBeenCalledWith(entry, expect.any(Object));
     expect(alertSpy).not.toHaveBeenCalled();
     expect(screen.getByText('已刪除。搖動手機即可還原。')).toBeOnTheScreen();
+    expect(navigation.setOptions).toHaveBeenCalledTimes(1);
 
     alertSpy.mockRestore();
   });
@@ -171,8 +173,6 @@ describe('HistoryScreen', () => {
     );
 
     const setOptions = navigation.setOptions as jest.Mock;
-    const nativeItems = setOptions.mock.calls.at(-1)?.[0]?.unstable_headerRightItems();
-    expect(nativeItems.map((item: { label: string }) => item.label)).toEqual(['排序', '全部清除']);
     const headerRight = setOptions.mock.calls.at(-1)?.[0]?.headerRight as
       | (() => ReactElement<{ onPress: () => void }> | null)
       | undefined;
@@ -211,8 +211,6 @@ describe('HistoryScreen', () => {
     );
 
     const setOptions = navigation.setOptions as jest.Mock;
-    const nativeItems = setOptions.mock.calls.at(-1)?.[0]?.unstable_headerRightItems();
-    expect(nativeItems.map((item: { label: string }) => item.label)).toEqual(['排序']);
     const headerRight = setOptions.mock.calls.at(-1)?.[0]?.headerRight as
       | (() => ReactElement)
       | undefined;

@@ -8,15 +8,11 @@ import { spacing } from '../theme/spacing';
 import { useTheme } from '../theme/ThemeProvider';
 import { typography } from '../theme/typography';
 
-import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import type { ReactNode } from 'react';
 import type { ThemeColors } from '../theme/colors';
 
 interface NavigationLike {
-  setOptions: (options: {
-    headerRight?: () => ReactNode;
-    unstable_headerRightItems?: () => NativeStackHeaderItem[];
-  }) => void;
+  setOptions: (options: { headerRight?: () => ReactNode }) => void;
 }
 
 export interface ClearAllStrings {
@@ -178,41 +174,6 @@ export function useClearAllHeaderAction({
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      unstable_headerRightItems: () => [
-        {
-          type: 'menu',
-          label: strings.sortAction,
-          accessibilityLabel: strings.sortAction,
-          icon: { type: 'sfSymbol', name: 'arrow.up.arrow.down' },
-          menu: {
-            title: strings.sortAction,
-            items: [
-              {
-                type: 'action',
-                label: strings.newestFirstAction,
-                state: sortDirection === 'desc' ? 'on' : 'off',
-                onPress: () => handleSortDirectionChange('desc'),
-              },
-              {
-                type: 'action',
-                label: strings.oldestFirstAction,
-                state: sortDirection === 'asc' ? 'on' : 'off',
-                onPress: () => handleSortDirectionChange('asc'),
-              },
-            ],
-          },
-        },
-        ...(visible
-          ? [
-              {
-                type: 'button' as const,
-                label: strings.clearAllAction,
-                accessibilityLabel: strings.clearAllAction,
-                onPress: handleClearPress,
-              },
-            ]
-          : []),
-      ],
       headerRight: () => (
         <HeaderActions
           colors={colors}
