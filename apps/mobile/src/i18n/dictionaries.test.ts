@@ -6,6 +6,7 @@ describe('dictionaries', () => {
 
     expect(zhTW.app.brand).toBe('好書價 BooksCompare');
     expect(zhTW.history.viewedOn('2026/05/30 14:30')).toBe('2026/05/30 14:30');
+    expect(zhTW.history.deleteAction).toBe('移除');
     expect(zhTW.history.isbnLabel('9786264560092')).toBe('ISBN 9786264560092');
     expect(zhTW.searchResult.resultsCount(2)).toBe('共找到 2 個結果。');
     expect(zhTW.searchResult.fromPrice('NT$537')).toBe('NT$537 起');
@@ -22,6 +23,7 @@ describe('dictionaries', () => {
 
     expect(en.app.brand).toBe('BooksCompare');
     expect(en.history.viewedOn('May 30, 2026, 2:30 PM')).toBe('May 30, 2026, 2:30 PM');
+    expect(en.history.deleteAction).toBe('Remove');
     expect(en.history.isbnLabel('9786264560092')).toBe('ISBN 9786264560092');
     expect(en.searchResult.resultsCount(1)).toBe('Found 1 result.');
     expect(en.searchResult.resultsCount(2)).toBe('Found 2 results.');
