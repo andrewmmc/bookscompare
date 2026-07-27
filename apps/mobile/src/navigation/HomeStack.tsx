@@ -66,6 +66,7 @@ export function HomeStack() {
         component={SearchResultScreen}
         options={{
           title: strings.navigation.searchResult,
+          headerBackTitle: '',
           headerStyle: { backgroundColor: colors.groupedBackground },
           contentStyle: { backgroundColor: colors.groupedBackground },
         }}
