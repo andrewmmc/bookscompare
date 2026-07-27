@@ -42,7 +42,6 @@ export function FavouritesScreen({ navigation }: Props) {
   const [undoCandidate, setUndoCandidate] = useState<Favourite | null>(null);
   const [showUndoHint, setShowUndoHint] = useState(false);
 
-  const hasFavourites = (data?.length ?? 0) > 0;
   const entries = useMemo(
     () =>
       (data ?? [])
@@ -81,7 +80,6 @@ export function FavouritesScreen({ navigation }: Props) {
 
   useClearAllHeaderAction({
     navigation,
-    visible: hasFavourites,
     strings: strings.favourites,
     clickEvent: 'favourites_click_clear_all',
     confirmEvent: 'favourites_clear_all_confirm',

@@ -30,7 +30,6 @@ type SortDirection = 'desc' | 'asc';
 
 interface UseClearAllHeaderActionOptions {
   navigation: NavigationLike;
-  visible: boolean;
   strings: ClearAllStrings;
   clickEvent: string;
   confirmEvent: string;
@@ -116,9 +115,7 @@ function HeaderClearAction({ strings, onPress, colors }: HeaderClearActionProps)
   );
 }
 
-interface HeaderActionsProps extends HeaderSortActionProps, HeaderClearActionProps {
-  visible: boolean;
-}
+type HeaderActionsProps = HeaderSortActionProps & HeaderClearActionProps;
 
 function HeaderActions(props: HeaderActionsProps) {
   const styles = useMemo(() => createStyles(props.colors), [props.colors]);
@@ -126,7 +123,7 @@ function HeaderActions(props: HeaderActionsProps) {
   return (
     <View style={styles.headerActions}>
       <HeaderSortAction {...props} />
-      {props.visible ? <HeaderClearAction {...props} /> : null}
+      <HeaderClearAction {...props} />
     </View>
   );
 }
@@ -137,7 +134,6 @@ function HeaderActions(props: HeaderActionsProps) {
  */
 export function useClearAllHeaderAction({
   navigation,
-  visible,
   strings,
   clickEvent,
   confirmEvent,
@@ -182,13 +178,11 @@ export function useClearAllHeaderAction({
           scheme={scheme}
           sortDirection={sortDirection}
           strings={strings}
-          visible={visible}
         />
       ),
     });
   }, [
     navigation,
-    visible,
     strings,
     handleClearPress,
     handleSortDirectionChange,

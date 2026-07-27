@@ -43,7 +43,6 @@ export function HistoryScreen({ navigation }: Props) {
   const [undoCandidate, setUndoCandidate] = useState<HistoryEntry | null>(null);
   const [showUndoHint, setShowUndoHint] = useState(false);
 
-  const hasHistory = (data?.length ?? 0) > 0;
   const entries = useMemo(
     () =>
       (data ?? [])
@@ -86,7 +85,6 @@ export function HistoryScreen({ navigation }: Props) {
 
   useClearAllHeaderAction({
     navigation,
-    visible: hasHistory,
     strings: strings.history,
     clickEvent: 'history_click_clear_all',
     confirmEvent: 'history_clear_all_confirm',
