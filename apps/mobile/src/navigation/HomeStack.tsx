@@ -39,6 +39,7 @@ export function HomeStack() {
         component={HomeScreen}
         options={({ navigation }) => ({
           title: strings.navigation.home,
+          headerBackTitle: '',
           headerLargeTitle: true,
           headerLeft: () => (
             <Pressable
@@ -76,6 +77,7 @@ export function HomeStack() {
         component={HistoryScreen}
         options={{
           title: strings.navigation.history,
+          headerBackTitle: '',
           headerBackButtonDisplayMode: 'minimal',
           headerLargeTitle: true,
           headerStyle: { backgroundColor: colors.groupedBackground },

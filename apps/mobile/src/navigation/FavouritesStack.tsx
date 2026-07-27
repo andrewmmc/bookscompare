@@ -32,7 +32,11 @@ export function FavouritesStack() {
       <Stack.Screen
         name="Favourites"
         component={FavouritesScreen}
-        options={{ title: strings.navigation.favourites, headerLargeTitle: true }}
+        options={{
+          title: strings.navigation.favourites,
+          headerBackTitle: '',
+          headerLargeTitle: true,
+        }}
       />
       <Stack.Screen
         name="SearchResult"
