@@ -75,6 +75,7 @@ export function HomeStack() {
         component={HistoryScreen}
         options={{
           title: strings.navigation.history,
+          headerBackButtonDisplayMode: 'minimal',
           headerLargeTitle: true,
           headerStyle: { backgroundColor: colors.groupedBackground },
           contentStyle: { backgroundColor: colors.groupedBackground },
