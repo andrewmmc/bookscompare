@@ -430,7 +430,11 @@ export function SearchResultScreen({ navigation, route }: Props) {
             }}
             style={styles.headerButton}
           >
-            <Ionicons color={colors.ink} name="swap-vertical" size={20} />
+            <Ionicons
+              color={sortMode === 'price' ? colors.ink : colors.accent}
+              name="swap-vertical"
+              size={20}
+            />
           </Pressable>
           {isbnParam && isbnBookTitle ? (
             <Pressable

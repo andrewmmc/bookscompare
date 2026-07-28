@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Clipboard from 'expo-clipboard';
 import { FlatList } from 'react-native';
 import { act, fireEvent } from '@testing-library/react-native';
@@ -483,6 +484,9 @@ describe('SearchResultScreen', () => {
 
     const headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
     const header = renderWithProviders(<>{headerRight()}</>);
+    expect(header.getByLabelText('搜尋結果排序方式').findByType(Ionicons).props.color).toBe(
+      '#1c1c1e'
+    );
     mockShowActionSheet.mockImplementation(
       (_options: unknown, callback: (selectedIndex?: number) => void) => callback(1)
     );
@@ -504,6 +508,14 @@ describe('SearchResultScreen', () => {
       'books-com-tw',
     ]);
     expect(track).toHaveBeenCalledWith('search_result_change_sort', { sortMode: 'store' });
+
+    header.unmount();
+    const activeHeaderRight = navigation.setOptions.mock.calls.at(-1)?.[0]
+      .headerRight as () => ReactNode;
+    const activeHeader = renderWithProviders(<>{activeHeaderRight()}</>);
+    expect(activeHeader.getByLabelText('搜尋結果排序方式').findByType(Ionicons).props.color).toBe(
+      '#ca5d3b'
+    );
   });
 
   it('sorts physical and ebook offers first from the header popover', () => {
