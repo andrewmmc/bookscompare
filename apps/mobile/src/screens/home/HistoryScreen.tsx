@@ -89,6 +89,7 @@ export function HistoryScreen({ navigation }: Props) {
     clickEvent: 'history_click_clear_all',
     confirmEvent: 'history_clear_all_confirm',
     onConfirm: () => clearHistory.mutate(),
+    clearDisabled: !data?.length,
     sortDirection: historySortDirection,
     onSortDirectionChange: (direction) => {
       track('history_change_sort', { direction });

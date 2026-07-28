@@ -33,6 +33,7 @@ interface UseClearAllHeaderActionOptions {
   clickEvent: string;
   confirmEvent: string;
   onConfirm: () => void;
+  clearDisabled: boolean;
   sortDirection: SortDirection;
   onSortDirectionChange: (direction: SortDirection) => void;
 }
@@ -48,6 +49,7 @@ interface HeaderSortActionProps {
 interface HeaderClearActionProps {
   strings: ClearAllStrings;
   onPress: () => void;
+  disabled: boolean;
   colors: ThemeColors;
 }
 
@@ -97,16 +99,18 @@ function HeaderSortAction({
   );
 }
 
-function HeaderClearAction({ strings, onPress, colors }: HeaderClearActionProps) {
+function HeaderClearAction({ strings, onPress, disabled, colors }: HeaderClearActionProps) {
   return (
     <Pressable
       accessibilityLabel={strings.clearAllAction}
       accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       hitSlop={8}
       onPress={onPress}
       style={({ pressed }) => [styles.headerAction, pressed && styles.headerActionPressed]}
     >
-      <Ionicons color={colors.ink} name="trash-outline" size={20} />
+      <Ionicons color={disabled ? colors.inkMuted : colors.ink} name="trash-outline" size={20} />
     </Pressable>
   );
 }
@@ -132,6 +136,7 @@ export function useClearAllHeaderAction({
   clickEvent,
   confirmEvent,
   onConfirm,
+  clearDisabled,
   sortDirection,
   onSortDirectionChange,
 }: UseClearAllHeaderActionOptions): void {
@@ -167,6 +172,7 @@ export function useClearAllHeaderAction({
       headerRight: () => (
         <HeaderActions
           colors={colors}
+          disabled={clearDisabled}
           onPress={handleClearPress}
           onSortDirectionChange={handleSortDirectionChange}
           scheme={scheme}
@@ -180,6 +186,7 @@ export function useClearAllHeaderAction({
     strings,
     handleClearPress,
     handleSortDirectionChange,
+    clearDisabled,
     sortDirection,
     colors,
     scheme,

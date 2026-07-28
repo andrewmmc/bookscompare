@@ -199,7 +199,7 @@ describe('FavouritesScreen', () => {
     alertSpy.mockRestore();
   });
 
-  it('keeps sort and clear-all actions when there are no favourites', () => {
+  it('keeps sort enabled and disables clear-all when there are no favourites', () => {
     mockUseFavourites.mockReturnValue({ data: [], isLoading: false });
 
     const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
@@ -216,7 +216,7 @@ describe('FavouritesScreen', () => {
       | undefined;
     expect(headerRight).toBeDefined();
     const header = renderWithProviders(headerRight!());
-    expect(header.getByLabelText('排序')).toBeOnTheScreen();
-    expect(header.getByLabelText('全部清除')).toBeOnTheScreen();
+    expect(header.getByLabelText('排序')).toBeEnabled();
+    expect(header.getByLabelText('全部清除')).toBeDisabled();
   });
 });

@@ -84,6 +84,7 @@ export function FavouritesScreen({ navigation }: Props) {
     clickEvent: 'favourites_click_clear_all',
     confirmEvent: 'favourites_clear_all_confirm',
     onConfirm: () => clearFavourites.mutate(),
+    clearDisabled: !data?.length,
     sortDirection: favouritesSortDirection,
     onSortDirectionChange: (direction) => {
       track('favourites_change_sort', { direction });
