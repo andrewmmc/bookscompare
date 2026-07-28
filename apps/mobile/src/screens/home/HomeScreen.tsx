@@ -160,7 +160,9 @@ export function HomeScreen({ navigation }: Props) {
                 }}
                 onBlur={() => setIsInputFocused(false)}
                 onFocus={() => setIsInputFocused(true)}
+                onSubmitEditing={handleSearch}
                 placeholder={strings.home.isbnPlaceholder}
+                returnKeyType="search"
                 value={isbn}
                 onClear={() => setIsbn('')}
                 clearAccessibilityLabel={strings.home.clearAction}

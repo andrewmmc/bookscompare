@@ -47,6 +47,22 @@ describe('HomeScreen', () => {
     expect(track).toHaveBeenCalledWith('home_click_search', { isbnLength: 13 });
   });
 
+  it('searches for an ISBN when the keyboard search key is pressed', () => {
+    const navigation = {
+      navigate: jest.fn(),
+    };
+
+    const screen = renderWithProviders(
+      <HomeScreen navigation={navigation as never} route={{ key: 'Home', name: 'Home' } as never} />
+    );
+
+    const input = screen.getByPlaceholderText('ISBN 碼');
+    fireEvent.changeText(input, '978-1-4028-9462-6');
+    fireEvent(input, 'submitEditing');
+
+    expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', { isbn: '9781402894626' });
+  });
+
   it('navigates to results with a trimmed title', () => {
     const navigation = {
       navigate: jest.fn(),
@@ -62,6 +78,23 @@ describe('HomeScreen', () => {
 
     expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', { title: '設計中的書' });
     expect(track).toHaveBeenCalledWith('home_click_search_title', { titleLength: 5 });
+  });
+
+  it('searches for a title when the keyboard search key is pressed', () => {
+    const navigation = {
+      navigate: jest.fn(),
+    };
+
+    const screen = renderWithProviders(
+      <HomeScreen navigation={navigation as never} route={{ key: 'Home', name: 'Home' } as never} />
+    );
+
+    fireEvent.press(screen.getByText('書名'));
+    const input = screen.getByPlaceholderText('輸入書名');
+    fireEvent.changeText(input, '  設計中的書  ');
+    fireEvent(input, 'submitEditing');
+
+    expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', { title: '設計中的書' });
   });
 
   it('opens the barcode scanner from the camera button', () => {
