@@ -18,6 +18,7 @@ const mockUseIsFavourite = jest.fn();
 const mockAddFavouriteMutate = jest.fn();
 const mockRemoveFavouriteMutate = jest.fn();
 const mockAddHistoryEntryMutate = jest.fn();
+const mockShowActionSheet = jest.fn();
 const mockGetPreferences = jest.fn<Preferences, []>(() => ({
   openLinksIn: 'app',
   themeMode: 'system',
@@ -29,6 +30,14 @@ const mockGetPreferences = jest.fn<Preferences, []>(() => ({
 jest.mock('../../analytics', () => ({
   track: jest.fn(),
 }));
+
+jest.mock('@expo/react-native-action-sheet', () => {
+  const actual = jest.requireActual('@expo/react-native-action-sheet');
+  return {
+    ...actual,
+    useActionSheet: () => ({ showActionSheetWithOptions: mockShowActionSheet }),
+  };
+});
 
 jest.mock('../../lib/linking', () => ({
   openExternalUrl: jest.fn(),
@@ -138,6 +147,7 @@ describe('SearchResultScreen', () => {
     mockAddFavouriteMutate.mockReset();
     mockRemoveFavouriteMutate.mockReset();
     mockAddHistoryEntryMutate.mockReset();
+    mockShowActionSheet.mockReset();
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
       themeMode: 'system',
@@ -432,7 +442,7 @@ describe('SearchResultScreen', () => {
     expect(screen.getByText('最低價')).toBeOnTheScreen();
   });
 
-  it('sorts offers by configured bookstore preference', () => {
+  it('sorts offers from the header popover using the configured bookstore preference', () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
       themeMode: 'system',
@@ -471,7 +481,22 @@ describe('SearchResultScreen', () => {
       />
     );
 
-    fireEvent.press(screen.getByText('書店偏好'));
+    const headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
+    const header = renderWithProviders(<>{headerRight()}</>);
+    mockShowActionSheet.mockImplementation(
+      (_options: unknown, callback: (selectedIndex?: number) => void) => callback(1)
+    );
+    fireEvent.press(header.getByLabelText('搜尋結果排序方式'));
+
+    expect(mockShowActionSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: '排序方式',
+        options: ['✓ 價錢最低', '書店偏好', '實體書優先', '電子書優先', '取消'],
+        cancelButtonIndex: 4,
+        userInterfaceStyle: 'light',
+      }),
+      expect.any(Function)
+    );
 
     const list = screen.UNSAFE_getByType(FlatList);
     expect(list.props.data.map((offer: BookOffer) => offer.sourceId)).toEqual([
@@ -481,7 +506,7 @@ describe('SearchResultScreen', () => {
     expect(track).toHaveBeenCalledWith('search_result_change_sort', { sortMode: 'store' });
   });
 
-  it('sorts physical and ebook offers first from the result controls', () => {
+  it('sorts physical and ebook offers first from the header popover', () => {
     mockUseTitleSearch.mockReturnValue({
       data: createTitleData([
         createOffer({
@@ -516,14 +541,25 @@ describe('SearchResultScreen', () => {
     );
 
     const list = screen.UNSAFE_getByType(FlatList);
+    let headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
+    let header = renderWithProviders(<>{headerRight()}</>);
 
-    fireEvent.press(screen.getByText('實體書優先'));
+    mockShowActionSheet.mockImplementationOnce(
+      (_options: unknown, callback: (selectedIndex?: number) => void) => callback(2)
+    );
+    fireEvent.press(header.getByLabelText('搜尋結果排序方式'));
     expect(list.props.data.map((offer: BookOffer) => offer.sourceProductId)).toEqual([
       'item-physical',
       'item-ebook',
     ]);
 
-    fireEvent.press(screen.getByText('電子書優先'));
+    header.unmount();
+    headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
+    header = renderWithProviders(<>{headerRight()}</>);
+    mockShowActionSheet.mockImplementationOnce(
+      (_options: unknown, callback: (selectedIndex?: number) => void) => callback(3)
+    );
+    fireEvent.press(header.getByLabelText('搜尋結果排序方式'));
     expect(list.props.data.map((offer: BookOffer) => offer.sourceProductId)).toEqual([
       'item-ebook',
       'item-physical',

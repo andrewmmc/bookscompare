@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useActionSheet } from '@expo/react-native-action-sheet';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import * as Clipboard from 'expo-clipboard';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -244,7 +245,8 @@ function OfferRow({
 }
 
 export function SearchResultScreen({ navigation, route }: Props) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
+  const { showActionSheetWithOptions } = useActionSheet();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const tabBarHeight = useBottomTabBarHeight();
   const { openLinksIn, preferredSources, preferredBookTypes } = usePreferences();
@@ -396,6 +398,40 @@ export function SearchResultScreen({ navigation, route }: Props) {
               size={22}
             />
           </Pressable>
+          <Pressable
+            accessibilityLabel={strings.searchResult.sortAccessibilityLabel}
+            accessibilityRole="button"
+            hitSlop={12}
+            onPress={() => {
+              const selectedPrefix = '✓ ';
+              showActionSheetWithOptions(
+                {
+                  title: strings.searchResult.sortByLabel,
+                  options: [
+                    ...sortOptions.map(
+                      (option) =>
+                        `${option.value === sortMode ? selectedPrefix : ''}${option.label}`
+                    ),
+                    strings.searchResult.cancelAction,
+                  ],
+                  cancelButtonIndex: sortOptions.length,
+                  tintColor: colors.navigationAction,
+                  userInterfaceStyle: scheme,
+                },
+                (selectedIndex) => {
+                  const selectedOption =
+                    selectedIndex === undefined ? undefined : sortOptions[selectedIndex];
+                  if (selectedOption && selectedOption.value !== sortMode) {
+                    track('search_result_change_sort', { sortMode: selectedOption.value });
+                    setSortMode(selectedOption.value);
+                  }
+                }
+              );
+            }}
+            style={styles.headerButton}
+          >
+            <Ionicons color={colors.ink} name="swap-vertical" size={20} />
+          </Pressable>
           {isbnParam && isbnBookTitle ? (
             <Pressable
               accessibilityLabel={
@@ -438,6 +474,9 @@ export function SearchResultScreen({ navigation, route }: Props) {
     copyValue,
     copiedQuery,
     searchType,
+    scheme,
+    showActionSheetWithOptions,
+    sortMode,
   ]);
 
   const favouriteIsbnSet = useMemo(
@@ -564,42 +603,6 @@ export function SearchResultScreen({ navigation, route }: Props) {
     resultCount > 0 ? (
       <View style={styles.listHeader}>
         <Text style={styles.sectionHeader}>{strings.searchResult.resultsCount(resultCount)}</Text>
-        <View
-          style={styles.sortSection}
-          accessibilityLabel={strings.searchResult.sortAccessibilityLabel}
-        >
-          <Text style={styles.sortLabel}>{strings.searchResult.sortByLabel}</Text>
-          <View style={styles.sortOptions}>
-            {sortOptions.map((option) => {
-              const selected = option.value === sortMode;
-              return (
-                <Pressable
-                  key={option.value}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  android_ripple={{ color: colors.rowPressed }}
-                  onPress={() => {
-                    if (!selected) {
-                      track('search_result_change_sort', { sortMode: option.value });
-                      setSortMode(option.value);
-                    }
-                  }}
-                  style={({ pressed }) => [
-                    styles.sortOption,
-                    selected && styles.sortOptionSelected,
-                    pressed && !selected && styles.sortOptionPressed,
-                  ]}
-                >
-                  <Text
-                    style={[styles.sortOptionLabel, selected && styles.sortOptionLabelSelected]}
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
       </View>
     ) : null;
 
@@ -649,7 +652,6 @@ const createStyles = (colors: ThemeColors) =>
     listHeader: {
       paddingTop: spacing.md,
       paddingBottom: spacing.xs,
-      gap: spacing.xs,
     },
     sectionHeader: {
       ...typography.footnote,
@@ -657,44 +659,6 @@ const createStyles = (colors: ThemeColors) =>
       textTransform: 'uppercase',
       letterSpacing: 0.5,
       paddingHorizontal: spacing.xs,
-    },
-    sortSection: {
-      gap: spacing.xs,
-    },
-    sortLabel: {
-      ...typography.caption,
-      color: colors.inkMuted,
-      paddingHorizontal: spacing.xs,
-    },
-    sortOptions: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: spacing.xs,
-    },
-    sortOption: {
-      minHeight: 34,
-      borderRadius: 17,
-      paddingHorizontal: spacing.sm,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.surface,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
-    },
-    sortOptionSelected: {
-      backgroundColor: colors.accent,
-      borderColor: colors.accent,
-    },
-    sortOptionPressed: {
-      backgroundColor: colors.rowPressed,
-    },
-    sortOptionLabel: {
-      ...typography.footnote,
-      color: colors.ink,
-      fontWeight: '600',
-    },
-    sortOptionLabelSelected: {
-      color: colors.surface,
     },
     separator: {
       height: StyleSheet.hairlineWidth,

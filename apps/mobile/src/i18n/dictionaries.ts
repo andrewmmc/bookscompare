@@ -67,6 +67,7 @@ interface Dictionary {
     copiedAccessibilityLabel: string;
     sortByLabel: string;
     sortAccessibilityLabel: string;
+    cancelAction: string;
     sortOptions: {
       price: string;
       store: string;
@@ -251,6 +252,7 @@ const zhTW: Dictionary = {
     copiedAccessibilityLabel: '已複製',
     sortByLabel: '排序方式',
     sortAccessibilityLabel: '搜尋結果排序方式',
+    cancelAction: '取消',
     sortOptions: {
       price: '價錢最低',
       store: '書店偏好',
@@ -442,6 +444,7 @@ const en: Dictionary = {
     copiedAccessibilityLabel: 'Copied',
     sortByLabel: 'Sort by',
     sortAccessibilityLabel: 'Search result sort order',
+    cancelAction: 'Cancel',
     sortOptions: {
       price: 'Lowest price',
       store: 'Bookstore preference',
