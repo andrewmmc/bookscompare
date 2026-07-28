@@ -44,6 +44,7 @@ export function FavouritesStack() {
         options={{
           title: strings.navigation.searchResult,
           headerBackTitle: '',
+          headerBackButtonDisplayMode: 'minimal',
           headerStyle: { backgroundColor: colors.groupedBackground },
           contentStyle: { backgroundColor: colors.groupedBackground },
         }}

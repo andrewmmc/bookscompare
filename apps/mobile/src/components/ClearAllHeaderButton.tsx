@@ -1,12 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useLayoutEffect, useRef } from 'react';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { track } from '../analytics';
 import { spacing } from '../theme/spacing';
 import { useTheme } from '../theme/ThemeProvider';
-import { typography } from '../theme/typography';
 
 import type { ReactNode } from 'react';
 import type { ThemeColors } from '../theme/colors';
@@ -60,7 +59,6 @@ function HeaderSortAction({
   scheme,
 }: HeaderSortActionProps) {
   const { showActionSheetWithOptions } = useActionSheet();
-  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const handleSortPress = () => {
     const selectedPrefix = '✓ ';
@@ -92,7 +90,7 @@ function HeaderSortAction({
       accessibilityRole="button"
       hitSlop={8}
       onPress={handleSortPress}
-      style={({ pressed }) => [styles.sortAction, pressed && styles.headerActionPressed]}
+      style={({ pressed }) => [styles.headerAction, pressed && styles.headerActionPressed]}
     >
       <Ionicons color={colors.ink} name="swap-vertical" size={20} />
     </Pressable>
@@ -100,8 +98,6 @@ function HeaderSortAction({
 }
 
 function HeaderClearAction({ strings, onPress, colors }: HeaderClearActionProps) {
-  const styles = useMemo(() => createStyles(colors), [colors]);
-
   return (
     <Pressable
       accessibilityLabel={strings.clearAllAction}
@@ -110,7 +106,7 @@ function HeaderClearAction({ strings, onPress, colors }: HeaderClearActionProps)
       onPress={onPress}
       style={({ pressed }) => [styles.headerAction, pressed && styles.headerActionPressed]}
     >
-      <Text style={styles.headerActionText}>{strings.clearAllAction}</Text>
+      <Ionicons color={colors.ink} name="trash-outline" size={20} />
     </Pressable>
   );
 }
@@ -118,8 +114,6 @@ function HeaderClearAction({ strings, onPress, colors }: HeaderClearActionProps)
 type HeaderActionsProps = HeaderSortActionProps & HeaderClearActionProps;
 
 function HeaderActions(props: HeaderActionsProps) {
-  const styles = useMemo(() => createStyles(props.colors), [props.colors]);
-
   return (
     <View style={styles.headerActions}>
       <HeaderSortAction {...props} />
@@ -192,27 +186,20 @@ export function useClearAllHeaderAction({
   ]);
 }
 
-function createStyles(colors: ThemeColors) {
-  return StyleSheet.create({
-    headerActions: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-    },
-    sortAction: {
-      padding: spacing.xxs,
-    },
-    headerAction: {
-      paddingHorizontal: spacing.xs,
-      paddingVertical: spacing.xxs,
-    },
-    headerActionPressed: {
-      opacity: 0.6,
-    },
-    headerActionText: {
-      ...typography.body,
-      color: colors.ink,
-      fontWeight: '500',
-    },
-  });
-}
+const styles = StyleSheet.create({
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  headerAction: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerActionPressed: {
+    opacity: 0.6,
+  },
+});
