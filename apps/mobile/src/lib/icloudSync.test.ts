@@ -3,6 +3,7 @@ jest.mock('./history', () => {
   return {
     ...actual,
     loadHistory: jest.fn(),
+    loadHistoryUpdatedAt: jest.fn(),
     replaceHistory: jest.fn(),
   };
 });
@@ -12,6 +13,7 @@ jest.mock('./favourites', () => {
   return {
     ...actual,
     loadFavourites: jest.fn(),
+    loadFavouritesUpdatedAt: jest.fn(),
     replaceFavourites: jest.fn(),
   };
 });
@@ -33,8 +35,14 @@ jest.mock('./icloudStorage', () => ({
   setIcloudString: jest.fn(),
 }));
 
-import { loadFavourites, replaceFavourites } from './favourites';
-import { loadHistory, replaceHistory, HISTORY_MAX_ENTRIES, type HistoryEntry } from './history';
+import { loadFavourites, loadFavouritesUpdatedAt, replaceFavourites } from './favourites';
+import {
+  loadHistory,
+  loadHistoryUpdatedAt,
+  replaceHistory,
+  HISTORY_MAX_ENTRIES,
+  type HistoryEntry,
+} from './history';
 import { getIcloudString, isIcloudStorageAvailable, setIcloudString } from './icloudStorage';
 import {
   ICLOUD_FAVOURITES_KEY,
@@ -105,8 +113,37 @@ describe('runInitialIcloudSync', () => {
     jest.mocked(loadPreferences).mockResolvedValue(DEFAULT_PREFERENCES);
     jest.mocked(loadPreferencesUpdatedAt).mockResolvedValue(0);
     jest.mocked(loadHistory).mockResolvedValue([]);
+    jest.mocked(loadHistoryUpdatedAt).mockResolvedValue(0);
+    jest.mocked(replaceHistory).mockImplementation(async (history) => history);
     jest.mocked(loadFavourites).mockResolvedValue([]);
+    jest.mocked(loadFavouritesUpdatedAt).mockResolvedValue(0);
+    jest.mocked(replaceFavourites).mockImplementation(async (favourites) => favourites);
     jest.mocked(getIcloudString).mockReturnValue(null);
+  });
+
+  it('keeps a newer remote clear authoritative instead of resurrecting local entries', async () => {
+    jest
+      .mocked(loadHistory)
+      .mockResolvedValue([{ type: 'title', title: 'Deleted history', viewedAt: 100 }]);
+    jest.mocked(loadHistoryUpdatedAt).mockResolvedValue(100);
+    jest
+      .mocked(loadFavourites)
+      .mockResolvedValue([{ isbn: '9786264560092', title: 'Deleted favourite', addedAt: 100 }]);
+    jest.mocked(loadFavouritesUpdatedAt).mockResolvedValue(100);
+    jest
+      .mocked(getIcloudString)
+      .mockImplementation((key) =>
+        key === ICLOUD_HISTORY_KEY || key === ICLOUD_FAVOURITES_KEY
+          ? JSON.stringify({ schemaVersion: 1, updatedAt: 200, value: [] })
+          : null
+      );
+
+    const result = await runInitialIcloudSync();
+
+    expect(result.history).toEqual([]);
+    expect(result.favourites).toEqual([]);
+    expect(replaceHistory).toHaveBeenCalledWith([], 200);
+    expect(replaceFavourites).toHaveBeenCalledWith([], 200);
   });
 
   it('does not overwrite iCloud with empty local state before remote data arrives', async () => {

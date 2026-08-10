@@ -2,9 +2,16 @@ import { Platform } from 'react-native';
 
 import { BOOK_SOURCES, normalizeIsbn } from '@bookscompare/contracts';
 
-import { loadFavourites, parseFavourites, replaceFavourites, type Favourite } from './favourites';
+import {
+  loadFavourites,
+  loadFavouritesUpdatedAt,
+  parseFavourites,
+  replaceFavourites,
+  type Favourite,
+} from './favourites';
 import {
   loadHistory,
+  loadHistoryUpdatedAt,
   parseHistory,
   replaceHistory,
   HISTORY_MAX_ENTRIES,
@@ -207,7 +214,11 @@ export async function syncHistoryToIcloud(
     ? parseJsonPayload(getIcloudString(ICLOUD_HISTORY_KEY), parseHistory)
     : null;
   const next = remote ? mergeHistoryEntries(history, remote.value) : history;
-  writePayload(ICLOUD_HISTORY_KEY, Date.now(), next);
+  const updatedAt = Date.now();
+  if (remote && !hasSameJsonValue(next, history)) {
+    await replaceHistory(next, updatedAt);
+  }
+  writePayload(ICLOUD_HISTORY_KEY, updatedAt, next);
   return next;
 }
 
@@ -225,7 +236,11 @@ export async function syncFavouritesToIcloud(
     ? parseJsonPayload(getIcloudString(ICLOUD_FAVOURITES_KEY), parseFavourites)
     : null;
   const next = remote ? mergeFavourites(favourites, remote.value) : favourites;
-  writePayload(ICLOUD_FAVOURITES_KEY, Date.now(), next);
+  const updatedAt = Date.now();
+  if (remote && !hasSameJsonValue(next, favourites)) {
+    await replaceFavourites(next, updatedAt);
+  }
+  writePayload(ICLOUD_FAVOURITES_KEY, updatedAt, next);
   return next;
 }
 
@@ -249,8 +264,10 @@ export async function runInitialIcloudSync(): Promise<InitialIcloudSyncResult> {
     parseSyncablePreferences
   );
   const localHistory = await loadHistory();
+  const localHistoryUpdatedAt = await loadHistoryUpdatedAt();
   const remoteHistory = parseJsonPayload(getIcloudString(ICLOUD_HISTORY_KEY), parseHistory);
   const localFavourites = await loadFavourites();
+  const localFavouritesUpdatedAt = await loadFavouritesUpdatedAt();
   const remoteFavourites = parseJsonPayload(
     getIcloudString(ICLOUD_FAVOURITES_KEY),
     parseFavourites
@@ -292,13 +309,19 @@ export async function runInitialIcloudSync(): Promise<InitialIcloudSyncResult> {
   }
 
   if (remoteHistory) {
-    const nextHistory = mergeHistoryEntries(localHistory, remoteHistory.value);
+    const nextHistory =
+      remoteHistory.updatedAt > localHistoryUpdatedAt
+        ? remoteHistory.value
+        : remoteHistory.updatedAt < localHistoryUpdatedAt
+          ? localHistory
+          : mergeHistoryEntries(localHistory, remoteHistory.value);
+    const nextHistoryUpdatedAt = Math.max(localHistoryUpdatedAt, remoteHistory.updatedAt);
     if (!hasSameJsonValue(nextHistory, localHistory)) {
-      result.history = await replaceHistory(nextHistory);
+      result.history = await replaceHistory(nextHistory, nextHistoryUpdatedAt);
     } else {
       result.history = nextHistory;
     }
-    writePayload(ICLOUD_HISTORY_KEY, Date.now(), nextHistory);
+    writePayload(ICLOUD_HISTORY_KEY, nextHistoryUpdatedAt, nextHistory);
   } else {
     result.history = localHistory;
     if (localHistory.length > 0) {
@@ -309,13 +332,19 @@ export async function runInitialIcloudSync(): Promise<InitialIcloudSyncResult> {
   }
 
   if (remoteFavourites) {
-    const nextFavourites = mergeFavourites(localFavourites, remoteFavourites.value);
+    const nextFavourites =
+      remoteFavourites.updatedAt > localFavouritesUpdatedAt
+        ? remoteFavourites.value
+        : remoteFavourites.updatedAt < localFavouritesUpdatedAt
+          ? localFavourites
+          : mergeFavourites(localFavourites, remoteFavourites.value);
+    const nextFavouritesUpdatedAt = Math.max(localFavouritesUpdatedAt, remoteFavourites.updatedAt);
     if (!hasSameJsonValue(nextFavourites, localFavourites)) {
-      result.favourites = await replaceFavourites(nextFavourites);
+      result.favourites = await replaceFavourites(nextFavourites, nextFavouritesUpdatedAt);
     } else {
       result.favourites = nextFavourites;
     }
-    writePayload(ICLOUD_FAVOURITES_KEY, Date.now(), nextFavourites);
+    writePayload(ICLOUD_FAVOURITES_KEY, nextFavouritesUpdatedAt, nextFavourites);
   } else {
     result.favourites = localFavourites;
     if (localFavourites.length > 0) {

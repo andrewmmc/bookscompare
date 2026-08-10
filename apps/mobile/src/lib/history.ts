@@ -3,6 +3,7 @@ import { normalizeIsbn } from '@bookscompare/contracts';
 import { loadJsonValue, saveJsonValue } from './jsonStorage';
 
 export const HISTORY_STORAGE_KEY = 'bookscompare:history:v1';
+export const HISTORY_UPDATED_AT_STORAGE_KEY = 'bookscompare:history-updated-at:v1';
 export const HISTORY_MAX_ENTRIES = 20;
 
 export type HistoryEntry =
@@ -49,12 +50,24 @@ export function getHistoryEntryId(entry: HistoryEntry): string {
   return entry.type === 'isbn' ? `isbn:${entry.isbn}` : `title:${entry.title}`;
 }
 
-async function saveHistory(list: HistoryEntry[]): Promise<void> {
-  await saveJsonValue(HISTORY_STORAGE_KEY, list);
+async function saveHistory(list: HistoryEntry[], updatedAt = Date.now()): Promise<void> {
+  await Promise.all([
+    saveJsonValue(HISTORY_STORAGE_KEY, list),
+    saveJsonValue(HISTORY_UPDATED_AT_STORAGE_KEY, updatedAt),
+  ]);
 }
 
-export async function replaceHistory(list: HistoryEntry[]): Promise<HistoryEntry[]> {
-  await saveHistory(list);
+export async function loadHistoryUpdatedAt(): Promise<number> {
+  return loadJsonValue(HISTORY_UPDATED_AT_STORAGE_KEY, 0, (value) =>
+    typeof value === 'number' && Number.isFinite(value) ? value : 0
+  );
+}
+
+export async function replaceHistory(
+  list: HistoryEntry[],
+  updatedAt = Date.now()
+): Promise<HistoryEntry[]> {
+  await saveHistory(list, updatedAt);
   return list;
 }
 

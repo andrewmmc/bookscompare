@@ -3,6 +3,7 @@ import { normalizeIsbn } from '@bookscompare/contracts';
 import { loadJsonValue, saveJsonValue } from './jsonStorage';
 
 export const FAVOURITES_STORAGE_KEY = 'bookscompare:favourites:v1';
+export const FAVOURITES_UPDATED_AT_STORAGE_KEY = 'bookscompare:favourites-updated-at:v1';
 
 export interface Favourite {
   isbn: string;
@@ -41,12 +42,24 @@ export async function loadFavourites(): Promise<Favourite[]> {
   return loadJsonValue(FAVOURITES_STORAGE_KEY, [], parseFavourites);
 }
 
-async function saveFavourites(list: Favourite[]): Promise<void> {
-  await saveJsonValue(FAVOURITES_STORAGE_KEY, list);
+async function saveFavourites(list: Favourite[], updatedAt = Date.now()): Promise<void> {
+  await Promise.all([
+    saveJsonValue(FAVOURITES_STORAGE_KEY, list),
+    saveJsonValue(FAVOURITES_UPDATED_AT_STORAGE_KEY, updatedAt),
+  ]);
 }
 
-export async function replaceFavourites(list: Favourite[]): Promise<Favourite[]> {
-  await saveFavourites(list);
+export async function loadFavouritesUpdatedAt(): Promise<number> {
+  return loadJsonValue(FAVOURITES_UPDATED_AT_STORAGE_KEY, 0, (value) =>
+    typeof value === 'number' && Number.isFinite(value) ? value : 0
+  );
+}
+
+export async function replaceFavourites(
+  list: Favourite[],
+  updatedAt = Date.now()
+): Promise<Favourite[]> {
+  await saveFavourites(list, updatedAt);
   return list;
 }
 
