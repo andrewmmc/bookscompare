@@ -1,6 +1,6 @@
 const pkg = require('./package.json');
 
-const defaultApiBaseUrl = 'http://localhost:8787';
+const defaultApiBaseUrl = 'https://bookscompare-api.mmc.dev';
 const expoOwner = process.env.EXPO_OWNER || undefined;
 const iosBuildNumber = process.env.IOS_BUILD_NUMBER || '1';
 const androidVersionCodeRaw = process.env.ANDROID_VERSION_CODE;

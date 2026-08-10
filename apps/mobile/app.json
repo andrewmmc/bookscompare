@@ -3,7 +3,7 @@
     "name": "BooksCompare",
     "slug": "bookscompare-mobile",
     "extra": {
-      "apiBaseUrl": "http://localhost:8787",
+      "apiBaseUrl": "https://bookscompare-api.mmc.dev",
       "posthogKey": "",
       "posthogHost": "",
       "supabaseUrl": "",

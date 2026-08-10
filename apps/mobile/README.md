@@ -80,7 +80,7 @@ npm run ios
 
 Expo loads `apps/mobile/.env` automatically. See `.env.example` for the full list. `app.config.ts` reads:
 
-- `EXPO_PUBLIC_API_BASE_URL` — BooksCompare API base URL (default: `http://localhost:8787` in dev)
+- `EXPO_PUBLIC_API_BASE_URL` — BooksCompare API base URL (set to `http://localhost:8787` in `.env` for local development; release builds safely default to the deployed API)
 - `EXPO_PUBLIC_POSTHOG_KEY` — PostHog project API key. Leave blank to disable analytics; otherwise the app initialises `posthog-react-native` on startup.
 - `EXPO_PUBLIC_POSTHOG_HOST` — Optional PostHog host (defaults to `https://us.i.posthog.com`). Use `https://eu.i.posthog.com` or your self-hosted URL when needed.
 
