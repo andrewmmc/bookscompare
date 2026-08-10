@@ -94,6 +94,28 @@ export function clusterOffersIntoBooks(offers: BookOffer[]): OfferCluster[] {
     });
   }
 
+  const isbnClustersByTitle = new Map<string, OfferCluster[]>();
+  for (const cluster of clusters.values()) {
+    if (!cluster.isbn) continue;
+
+    for (const offer of cluster.offers) {
+      const titleKey = buildTitleAuthorClusterKey(offer.title, offer.authors[0]);
+      const candidates = isbnClustersByTitle.get(titleKey) ?? [];
+      if (!candidates.includes(cluster)) candidates.push(cluster);
+      isbnClustersByTitle.set(titleKey, candidates);
+    }
+  }
+
+  for (const [key, cluster] of clusters) {
+    if (cluster.isbn || !key.startsWith('t:')) continue;
+
+    const candidates = isbnClustersByTitle.get(key.slice(2));
+    if (candidates?.length === 1) {
+      candidates[0]!.offers.push(...cluster.offers);
+      clusters.delete(key);
+    }
+  }
+
   return Array.from(clusters.values());
 }
 

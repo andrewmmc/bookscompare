@@ -92,6 +92,17 @@ test('clusterOffersIntoBooks groups offers without ISBN by normalized title and 
   assert.equal(clusters[0]?.offers.length, 2);
 });
 
+test('clusterOffersIntoBooks promotes a matching title-only cluster into an ISBN cluster', () => {
+  const clusters = clusterOffersIntoBooks([
+    createOffer({ sourceId: 'eslite', isbn: '9789861374482' }),
+    createOffer({ sourceId: 'kingstone', sourceProductId: 'kingstone-2' }),
+  ]);
+
+  assert.equal(clusters.length, 1);
+  assert.equal(clusters[0]?.isbn, '9789861374482');
+  assert.equal(clusters[0]?.offers.length, 2);
+});
+
 test('clusterOffersIntoBooks separates books with different titles or different first authors', () => {
   const offers = [
     createOffer({ sourceId: 'books-com-tw', title: '原子習慣', authors: ['James Clear'] }),
