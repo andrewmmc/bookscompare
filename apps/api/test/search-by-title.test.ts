@@ -95,3 +95,32 @@ test('searchBooksByTitle clusters offers across providers into full book entries
   assert.equal(book?.isbn, undefined);
   assert.ok(book?.id.startsWith('t-'));
 });
+
+test('searchBooksByTitle excludes unrelated low-price provider results', async (t) => {
+  const bookProviders = getBookProviders();
+  const original = bookProviders.map((provider) => ({
+    provider,
+    searchByTitle: provider.searchByTitle,
+  }));
+
+  t.after(() => {
+    for (const entry of original) {
+      entry.provider.searchByTitle = entry.searchByTitle;
+    }
+  });
+
+  for (const provider of bookProviders) {
+    provider.searchByTitle = async () =>
+      provider.id === 'books-com-tw'
+        ? [
+            createOffer(provider, 'Unrelated cheap book', 45),
+            createOffer(provider, 'Machine Learning: The Complete Guide', 800),
+          ]
+        : [];
+  }
+
+  const response = await searchBooksByTitle('Machine Learning');
+
+  assert.equal(response.books.length, 1);
+  assert.equal(response.books[0]?.title, 'Machine Learning: The Complete Guide');
+});
