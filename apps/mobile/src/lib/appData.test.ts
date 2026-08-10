@@ -25,6 +25,7 @@ describe('app data reset', () => {
         preferredSources: [],
         preferredBookTypes: [],
         icloudSyncEnabled: true,
+        analyticsEnabled: false,
         favouritesSortDirection: 'desc',
         historySortDirection: 'desc',
       },
@@ -38,6 +39,7 @@ describe('app data reset', () => {
       preferredSources: [],
       preferredBookTypes: [],
       icloudSyncEnabled: true,
+      analyticsEnabled: false,
       favouritesSortDirection: 'desc',
       historySortDirection: 'desc',
     });
