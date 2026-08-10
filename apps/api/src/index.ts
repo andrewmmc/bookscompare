@@ -11,7 +11,13 @@ import { lookupBookByTitleAuthor } from './services/book-by-title';
 import { searchBooksByIsbn } from './services/search-by-isbn';
 import { searchBooksByTitle } from './services/search-by-title';
 
-type Env = Record<string, never>;
+interface RateLimiter {
+  limit(input: { key: string }): Promise<{ success: boolean }>;
+}
+
+interface Env {
+  LOOKUP_RATE_LIMITER?: RateLimiter;
+}
 
 const LOOKUP_CACHE_CONTROL = 'public, max-age=0, s-maxage=1800';
 const LOOKUP_CACHE_HEADER = 'x-bookscompare-cache';
@@ -97,6 +103,30 @@ function invalidRequestResponse(
   message: string
 ): Response {
   return withLookupCacheStatus(jsonResponse(createErrorResponse(code, message), 400), 'MISS');
+}
+
+async function rateLimitResponse(
+  request: Request,
+  env: Env,
+  route: 'isbn' | 'search' | 'book-by-title'
+): Promise<Response | null> {
+  if (!env.LOOKUP_RATE_LIMITER) {
+    return null;
+  }
+
+  const clientAddress = request.headers.get('cf-connecting-ip') ?? 'unknown-client';
+  const { success } = await env.LOOKUP_RATE_LIMITER.limit({ key: `${route}:${clientAddress}` });
+
+  if (success) {
+    return null;
+  }
+
+  return jsonResponse(
+    createErrorResponse('RATE_LIMITED', 'Too many lookup requests. Try again shortly.'),
+    429,
+    'no-store',
+    { 'retry-after': '60' }
+  );
 }
 
 async function handleCachedLookup(
@@ -198,7 +228,7 @@ async function handleBookByTitleRoute(
 }
 
 export default {
-  async fetch(request: Request, _env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const { method } = request;
     const { pathname } = url;
@@ -229,14 +259,20 @@ export default {
     const isbnParam = matchIsbnPath(pathname);
 
     if (isbnParam) {
+      const limited = await rateLimitResponse(request, env, 'isbn');
+      if (limited) return limited;
       return handleIsbnRoute(request, ctx, isbnParam);
     }
 
     if (pathname === '/search') {
+      const limited = await rateLimitResponse(request, env, 'search');
+      if (limited) return limited;
       return handleSearchRoute(request, ctx, url);
     }
 
     if (pathname === '/book/by-title') {
+      const limited = await rateLimitResponse(request, env, 'book-by-title');
+      if (limited) return limited;
       return handleBookByTitleRoute(request, ctx, url);
     }
 

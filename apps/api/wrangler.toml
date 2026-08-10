@@ -5,3 +5,11 @@ workers_dev = false
 routes = [
   { pattern = "bookscompare-api.mmc.dev", custom_domain = true }
 ]
+
+[[ratelimits]]
+name = "LOOKUP_RATE_LIMITER"
+namespace_id = "1001"
+
+[ratelimits.simple]
+limit = 30
+period = 60

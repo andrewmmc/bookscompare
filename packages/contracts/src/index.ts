@@ -69,6 +69,7 @@ export const API_ERROR_CODES = [
   'INVALID_ISBN',
   'INVALID_QUERY',
   'METHOD_NOT_ALLOWED',
+  'RATE_LIMITED',
   'NOT_FOUND',
 ] as const;
 

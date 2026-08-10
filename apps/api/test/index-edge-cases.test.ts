@@ -120,3 +120,24 @@ test('worker validates maximum free-text query lengths before cache lookup', asy
     message: 'Author must be 100 characters or fewer.',
   });
 });
+
+test('worker rate limits public lookup routes', async () => {
+  const rateLimitedEnv = {
+    LOOKUP_RATE_LIMITER: {
+      async limit() {
+        return { success: false };
+      },
+    },
+  };
+  const response = await worker.fetch(
+    new Request('https://bookscompare-api.mmc.dev/search?q=book', {
+      headers: { 'cf-connecting-ip': '192.0.2.1' },
+    }),
+    rateLimitedEnv,
+    createExecutionContext()
+  );
+
+  assert.equal(response.status, 429);
+  assert.equal(response.headers.get('retry-after'), '60');
+  assert.equal(((await response.json()) as { error: { code: string } }).error.code, 'RATE_LIMITED');
+});
