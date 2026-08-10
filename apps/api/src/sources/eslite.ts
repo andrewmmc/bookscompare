@@ -166,6 +166,7 @@ export function parseEsliteSearchResults(
   }
 
   const results: BookOffer[] = [];
+  let failedHits = 0;
 
   for (const hit of hits) {
     if (hit.fields?.is_book === 'no') {
@@ -184,7 +185,12 @@ export function parseEsliteSearchResults(
         reason: error instanceof Error ? error.message : String(error),
         ...(requestUrl ? { url: requestUrl } : {}),
       });
+      failedHits += 1;
     }
+  }
+
+  if (failedHits > 0 && results.length > 0) {
+    throw new Error(`Eslite parser rejected ${failedHits} search result row(s).`);
   }
 
   if (results.length === 0) {

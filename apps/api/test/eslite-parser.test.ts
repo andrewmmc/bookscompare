@@ -57,6 +57,14 @@ test('parseEsliteSearchResults returns empty array for empty payload', async () 
   assert.deepEqual(parseEsliteSearchResults(await readFixture('not-found.json')), []);
 });
 
+test('parseEsliteSearchResults rejects partial results instead of caching incomplete data', async () => {
+  const payload = await readFixture('found.json');
+  const hits = (payload.hits as { hit: unknown[] }).hit;
+  hits.push({ fields: { name: 'Malformed result' } });
+
+  assert.throws(() => parseEsliteSearchResults(payload), /rejected 1 search result row/);
+});
+
 test('parseEsliteSearchResults throws when every book hit is malformed', () => {
   assert.throws(
     () =>

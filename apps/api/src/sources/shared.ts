@@ -36,6 +36,7 @@ export function parseSearchResultRows<Row>({
   incompleteRowMessage,
 }: ParseRowsInput<Row>): BookOffer[] {
   const results: BookOffer[] = [];
+  let failedRows = 0;
 
   for (const row of rows) {
     const block = getBlock(row);
@@ -46,6 +47,7 @@ export function parseSearchResultRows<Row>({
         reason: incompleteRowMessage,
         ...(requestUrl ? { url: requestUrl } : {}),
       });
+      failedRows += 1;
       continue;
     }
 
@@ -61,7 +63,12 @@ export function parseSearchResultRows<Row>({
         reason: error instanceof Error ? error.message : String(error),
         ...(requestUrl ? { url: requestUrl } : {}),
       });
+      failedRows += 1;
     }
+  }
+
+  if (failedRows > 0 && results.length > 0) {
+    throw new Error(`${providerId} parser rejected ${failedRows} search result row(s).`);
   }
 
   return results;
