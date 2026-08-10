@@ -35,6 +35,16 @@ test('worker returns service metadata for root and health routes', async () => {
 
   assert.equal(health.status, 200);
   assert.deepEqual(healthBody, { ok: true, service: 'bookscompare-api' });
+
+  const head = await worker.fetch(
+    new Request('https://bookscompare-api.andrewmmc.workers.dev/health', { method: 'HEAD' }),
+    env,
+    createExecutionContext()
+  );
+
+  assert.equal(head.status, 200);
+  assert.equal(head.headers.get('content-type'), 'application/json; charset=utf-8');
+  assert.equal(await head.text(), '');
 });
 
 test('worker returns JSON errors for unsupported methods, routes, and invalid ISBNs', async () => {
@@ -46,10 +56,11 @@ test('worker returns JSON errors for unsupported methods, routes, and invalid IS
   const methodBody = (await method.json()) as { error: { code: string; message: string } };
 
   assert.equal(method.status, 405);
+  assert.equal(method.headers.get('allow'), 'GET, HEAD');
   assert.equal(method.headers.get('content-type'), 'application/json; charset=utf-8');
   assert.deepEqual(methodBody.error, {
     code: 'METHOD_NOT_ALLOWED',
-    message: 'Only GET requests are supported.',
+    message: 'Only GET and HEAD requests are supported.',
   });
 
   const notFound = await worker.fetch(

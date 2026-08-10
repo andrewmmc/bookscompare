@@ -46,6 +46,14 @@ function jsonResponse(
   });
 }
 
+function withoutBody(response: Response): Response {
+  return new Response(null, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
 function matchIsbnPath(pathname: string): string | null {
   const match = pathname.match(/^\/(?:book\/)?isbn\/([^/]+)$/);
 
@@ -232,50 +240,59 @@ export default {
     const url = new URL(request.url);
     const { method } = request;
     const { pathname } = url;
+    const respond = (response: Response) => (method === 'HEAD' ? withoutBody(response) : response);
 
-    if (method !== 'GET') {
+    if (method !== 'GET' && method !== 'HEAD') {
       return jsonResponse(
-        createErrorResponse('METHOD_NOT_ALLOWED', 'Only GET requests are supported.'),
-        405
+        createErrorResponse('METHOD_NOT_ALLOWED', 'Only GET and HEAD requests are supported.'),
+        405,
+        'no-store',
+        { allow: 'GET, HEAD' }
       );
     }
 
     if (pathname === '/') {
-      return jsonResponse({
-        ok: true,
-        service: 'bookscompare-api',
-        message:
-          'Cloudflare Worker is running. Use /isbn/:id for ISBN lookups, /search?q= for title search, and /book/by-title?title=&author= for non-ISBN book detail.',
-      });
+      return respond(
+        jsonResponse({
+          ok: true,
+          service: 'bookscompare-api',
+          message:
+            'Cloudflare Worker is running. Use /isbn/:id for ISBN lookups, /search?q= for title search, and /book/by-title?title=&author= for non-ISBN book detail.',
+        })
+      );
     }
 
     if (pathname === '/health') {
-      return jsonResponse({
-        ok: true,
-        service: 'bookscompare-api',
-      });
+      return respond(
+        jsonResponse({
+          ok: true,
+          service: 'bookscompare-api',
+        })
+      );
     }
 
     const isbnParam = matchIsbnPath(pathname);
 
     if (isbnParam) {
       const limited = await rateLimitResponse(request, env, 'isbn');
-      if (limited) return limited;
-      return handleIsbnRoute(request, ctx, isbnParam);
+      if (limited) return respond(limited);
+      return respond(await handleIsbnRoute(request, ctx, isbnParam));
     }
 
     if (pathname === '/search') {
       const limited = await rateLimitResponse(request, env, 'search');
-      if (limited) return limited;
-      return handleSearchRoute(request, ctx, url);
+      if (limited) return respond(limited);
+      return respond(await handleSearchRoute(request, ctx, url));
     }
 
     if (pathname === '/book/by-title') {
       const limited = await rateLimitResponse(request, env, 'book-by-title');
-      if (limited) return limited;
-      return handleBookByTitleRoute(request, ctx, url);
+      if (limited) return respond(limited);
+      return respond(await handleBookByTitleRoute(request, ctx, url));
     }
 
-    return jsonResponse(createErrorResponse('NOT_FOUND', `No route matches ${url.pathname}.`), 404);
+    return respond(
+      jsonResponse(createErrorResponse('NOT_FOUND', `No route matches ${url.pathname}.`), 404)
+    );
   },
 } satisfies ExportedHandler<Env>;
