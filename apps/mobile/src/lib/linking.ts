@@ -8,8 +8,22 @@ function showExternalLinkErrorAlert() {
   ]);
 }
 
+export function getSecureWebOrigin(url: string): string | null {
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.protocol === 'https:' ? parsedUrl.origin : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function openExternalUrl(url: string): Promise<boolean> {
   try {
+    if (!getSecureWebOrigin(url)) {
+      showExternalLinkErrorAlert();
+      return false;
+    }
+
     const supported = await Linking.canOpenURL(url);
 
     if (!supported) {

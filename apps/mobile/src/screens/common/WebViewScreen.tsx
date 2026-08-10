@@ -8,7 +8,7 @@ import { track } from '../../analytics';
 import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { strings } from '../../i18n/strings';
-import { openExternalUrl } from '../../lib/linking';
+import { getSecureWebOrigin, openExternalUrl } from '../../lib/linking';
 import { useTheme } from '../../theme/ThemeProvider';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -30,7 +30,8 @@ export function WebViewScreen({ navigation, route }: Props) {
   const { colors, scheme } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const tabBarHeight = useBottomTabBarHeight();
-  const [loadState, setLoadState] = useState<LoadState>('loading');
+  const initialOrigin = useMemo(() => getSecureWebOrigin(route.params.url), [route.params.url]);
+  const [loadState, setLoadState] = useState<LoadState>(initialOrigin ? 'loading' : 'error');
   const injectedJavaScript = useMemo(
     () => `
       (function () {
@@ -111,6 +112,21 @@ export function WebViewScreen({ navigation, route }: Props) {
   return (
     <View style={styles.container}>
       <WebView
+        onShouldStartLoadWithRequest={(request) => {
+          if (request.url === 'about:blank') {
+            return true;
+          }
+
+          const requestOrigin = getSecureWebOrigin(request.url);
+          if (requestOrigin === initialOrigin) {
+            return true;
+          }
+
+          if (requestOrigin) {
+            void openExternalUrl(request.url);
+          }
+          return false;
+        }}
         onError={() => setLoadState('error')}
         onHttpError={({ nativeEvent }) => {
           setLoadState(nativeEvent.statusCode === 404 ? 'not-found' : 'error');

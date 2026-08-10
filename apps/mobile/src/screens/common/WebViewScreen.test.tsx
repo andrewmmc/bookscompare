@@ -13,6 +13,7 @@ jest.mock('../../analytics', () => ({
 }));
 
 jest.mock('../../lib/linking', () => ({
+  ...jest.requireActual('../../lib/linking'),
   openExternalUrl: jest.fn(),
 }));
 
@@ -36,11 +37,13 @@ jest.mock('react-native-webview', () => ({
     onError,
     onHttpError,
     onLoadEnd,
+    onShouldStartLoadWithRequest,
   }: {
     style?: unknown;
     onError?: () => void;
     onHttpError?: (event: { nativeEvent: { statusCode: number } }) => void;
     onLoadEnd?: () => void;
+    onShouldStartLoadWithRequest?: (request: { url: string }) => boolean;
   }) => {
     const { View } = jest.requireActual('react-native');
 
@@ -50,6 +53,9 @@ jest.mock('react-native-webview', () => ({
         onLayout={() => onLoadEnd?.()}
         onResponderEnd={() => onError?.()}
         onTouchEnd={() => onHttpError?.({ nativeEvent: { statusCode: 404 } })}
+        onAccessibilityTap={() =>
+          onShouldStartLoadWithRequest?.({ url: 'https://attacker.example/phishing' })
+        }
         style={style}
       />
     );
@@ -176,6 +182,26 @@ describe('WebViewScreen', () => {
     fireEvent(screen.getByTestId('mock-webview'), 'responderEnd');
 
     expect(screen.getByText('未能載入內容')).toBeTruthy();
+  });
+
+  it('opens cross-origin HTTPS navigation outside the web view', () => {
+    const navigation = { setOptions: jest.fn() };
+    const screen = renderWithProviders(
+      <WebViewScreen
+        navigation={navigation as never}
+        route={
+          {
+            key: 'SearchWebView',
+            name: 'SearchWebView',
+            params: { title: '測試頁面', url: 'https://example.com/book', showOptions: false },
+          } as never
+        }
+      />
+    );
+
+    fireEvent(screen.getByTestId('mock-webview'), 'accessibilityTap');
+
+    expect(openExternalUrl).toHaveBeenCalledWith('https://attacker.example/phishing');
   });
 
   it('opens failed pages externally from the error state', () => {
