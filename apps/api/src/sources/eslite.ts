@@ -1,4 +1,4 @@
-import type { BookOffer } from '@bookscompare/contracts';
+import { isValidIsbn, normalizeIsbn, type BookOffer } from '@bookscompare/contracts';
 
 import { fetchWithTimeout } from '../lib/fetch-with-timeout';
 import { normalizeBookTitle, normalizeWhitespace } from '../lib/html';
@@ -133,11 +133,14 @@ function parseEsliteOffer(hit: EsliteSearchHit): BookOffer {
   const badges = fields.status === 'coming_soon_book' ? ['新書尚未入庫'] : [];
   const title = normalizeBookTitle(fields.name);
   const productType = hasEbookTitleMarker(fields.name) ? '電子書' : '中文書';
+  const rawIsbn = fields.isbn || fields.ean;
+  const isbn = rawIsbn ? normalizeIsbn(rawIsbn) : undefined;
 
   return {
     sourceId: ESLITE_SOURCE_ID,
     sourceName: ESLITE_SOURCE.name,
     sourceProductId,
+    ...(isbn && isValidIsbn(isbn) ? { isbn } : {}),
     title,
     productType,
     authors: fields.author ?? [],

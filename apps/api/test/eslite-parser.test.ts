@@ -19,6 +19,7 @@ test('parseEsliteSearchResults returns normalized offers from API payload', asyn
       sourceId: 'eslite',
       sourceName: '誠品線上',
       sourceProductId: '2683129498002',
+      isbn: '9786264560092',
       title: '別送 (新版)',
       productType: '中文書',
       authors: ['鍾文音'],

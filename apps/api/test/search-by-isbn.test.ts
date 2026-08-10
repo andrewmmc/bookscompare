@@ -18,7 +18,7 @@ function createOffer(provider: BookProvider): BookOffer {
     sourceId: provider.id,
     sourceName: provider.name,
     sourceProductId: `${provider.id}-offer`,
-    title: `${provider.name} title`,
+    title: 'Shared title',
     productType: '中文書',
     authors: ['Test Author'],
     publisher: 'Test Publisher',
@@ -102,9 +102,44 @@ test('searchBooksByIsbn runs provider lookups in parallel and returns a clustere
     ['books-com-tw', 'eslite']
   );
   assert.equal(
-    response.book?.offers.every((offer) => offer.isbn === '9786267569337'),
+    response.book?.offers.every((offer) => offer.isbn === undefined),
     true
   );
   assert.equal(response.meta.liveScraping, true);
   assert.equal(response.meta.message, 'One or more providers failed during ISBN search.');
+});
+
+test('searchBooksByIsbn rejects offers carrying a different ISBN', async (t) => {
+  const bookProviders = getBookProviders();
+  const original = bookProviders.map((provider) => ({
+    provider,
+    searchByIsbn: provider.searchByIsbn,
+  }));
+
+  t.after(() => {
+    for (const entry of original) {
+      entry.provider.searchByIsbn = entry.searchByIsbn;
+    }
+  });
+
+  for (const provider of bookProviders) {
+    provider.searchByIsbn = async () =>
+      provider.id === 'eslite'
+        ? [
+            { ...createOffer(provider), isbn: '9786267569337' },
+            {
+              ...createOffer(provider),
+              sourceProductId: 'wrong-edition',
+              isbn: '9786264560092',
+            },
+          ]
+        : [];
+  }
+
+  const response = await searchBooksByIsbn('9786267569337');
+
+  assert.deepEqual(
+    response.book?.offers.map((offer) => offer.sourceProductId),
+    ['eslite-offer']
+  );
 });

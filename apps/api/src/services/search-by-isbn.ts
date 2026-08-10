@@ -2,10 +2,10 @@ import { clusterOffersIntoBooks, clusterToBookDetail } from '../lib/cluster';
 import { createBookDetailResponse } from '../lib/responses';
 import { runProviderSearch } from './provider-fanout';
 
-import type { BookDetailResponse, BookOffer } from '@bookscompare/contracts';
+import { normalizeIsbn, type BookDetailResponse } from '@bookscompare/contracts';
 
-function annotateOffersWithIsbn(offers: BookOffer[], isbn: string): BookOffer[] {
-  return offers.map((offer) => (offer.isbn ? offer : { ...offer, isbn }));
+function isCompatibleWithIsbn(offerIsbn: string | undefined, isbn: string): boolean {
+  return !offerIsbn || normalizeIsbn(offerIsbn) === isbn;
 }
 
 export async function searchBooksByIsbn(isbn: string): Promise<BookDetailResponse> {
@@ -16,10 +16,13 @@ export async function searchBooksByIsbn(isbn: string): Promise<BookDetailRespons
     emptyMessage: (providerName) => `No ${providerName} search results matched this ISBN.`,
   });
 
-  const offers = annotateOffersWithIsbn(fanout.offers, isbn);
+  const offers = fanout.offers.filter((offer) => isCompatibleWithIsbn(offer.isbn, isbn));
   const clusters = clusterOffersIntoBooks(offers);
-  const cluster = clusters.find((entry) => entry.isbn === isbn) ?? clusters[0];
-  const book = cluster ? clusterToBookDetail(cluster) : null;
+  const cluster =
+    clusters.find((entry) => entry.isbn === isbn) ??
+    clusters.sort((left, right) => right.offers.length - left.offers.length)[0];
+  const detail = cluster ? clusterToBookDetail(cluster) : null;
+  const book = detail ? { ...detail, id: isbn, isbn } : null;
 
   return createBookDetailResponse({
     query: { isbn },
