@@ -3,6 +3,14 @@
 # Usage: ./scripts/bump-version.sh [patch|minor|major] [mobile|api|contracts]
 set -euo pipefail
 
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+if [[ -n "$(git status --porcelain)" ]]; then
+  echo "Version bumps require a clean working tree and index." >&2
+  exit 1
+fi
+
 BUMP="${1:-patch}"
 PACKAGE="${2:-mobile}"
 
@@ -32,6 +40,11 @@ esac
 
 next="${major}.${minor}.${patch}"
 
+if [[ "$PACKAGE" == "mobile" ]] && git rev-parse --verify --quiet "refs/tags/v${next}" >/dev/null; then
+  echo "Tag v${next} already exists." >&2
+  exit 1
+fi
+
 node -e "
 const fs = require('fs');
 const pkg = JSON.parse(fs.readFileSync('${PKG_PATH}', 'utf8'));
@@ -41,7 +54,9 @@ fs.writeFileSync('${PKG_PATH}', JSON.stringify(pkg, null, 2) + '\n');
 
 echo "Bumped ${SCOPE} ${current} → ${next} (${BUMP})"
 
-git add "${PKG_PATH}"
+npm install --package-lock-only --ignore-scripts
+
+git add "${PKG_PATH}" package-lock.json
 git commit -m "chore(${SCOPE}): bump version to ${next}"
 
 if [[ "$PACKAGE" == "mobile" ]]; then
