@@ -5,6 +5,17 @@ import { loadJsonValue, saveJsonValue } from './jsonStorage';
 export const FAVOURITES_STORAGE_KEY = 'bookscompare:favourites:v1';
 export const FAVOURITES_UPDATED_AT_STORAGE_KEY = 'bookscompare:favourites-updated-at:v1';
 
+let favouritesMutationQueue: Promise<void> = Promise.resolve();
+
+function serializeFavouritesMutation<T>(mutation: () => Promise<T>): Promise<T> {
+  const result = favouritesMutationQueue.then(mutation, mutation);
+  favouritesMutationQueue = result.then(
+    () => undefined,
+    () => undefined
+  );
+  return result;
+}
+
 export interface Favourite {
   isbn: string;
   title: string;
@@ -55,15 +66,14 @@ export async function loadFavouritesUpdatedAt(): Promise<number> {
   );
 }
 
-export async function replaceFavourites(
-  list: Favourite[],
-  updatedAt = Date.now()
-): Promise<Favourite[]> {
-  await saveFavourites(list, updatedAt);
-  return list;
+export function replaceFavourites(list: Favourite[], updatedAt = Date.now()): Promise<Favourite[]> {
+  return serializeFavouritesMutation(async () => {
+    await saveFavourites(list, updatedAt);
+    return list;
+  });
 }
 
-export async function addFavourite(input: FavouriteInput): Promise<Favourite[]> {
+export function addFavourite(input: FavouriteInput): Promise<Favourite[]> {
   const isbn = normalizeIsbn(input.isbn);
   const title = input.title.trim();
 
@@ -71,32 +81,40 @@ export async function addFavourite(input: FavouriteInput): Promise<Favourite[]> 
     return loadFavourites();
   }
 
-  const current = await loadFavourites();
-  const withoutExisting = current.filter((item) => item.isbn !== isbn);
-  const next: Favourite[] = [{ isbn, title, addedAt: Date.now() }, ...withoutExisting];
-  await saveFavourites(next);
-  return next;
+  return serializeFavouritesMutation(async () => {
+    const current = await loadFavourites();
+    const withoutExisting = current.filter((item) => item.isbn !== isbn);
+    const next: Favourite[] = [{ isbn, title, addedAt: Date.now() }, ...withoutExisting];
+    await saveFavourites(next);
+    return next;
+  });
 }
 
-export async function removeFavourite(isbn: string): Promise<Favourite[]> {
-  const normalized = normalizeIsbn(isbn);
-  const current = await loadFavourites();
-  const next = current.filter((item) => item.isbn !== normalized);
-  await saveFavourites(next);
-  return next;
+export function removeFavourite(isbn: string): Promise<Favourite[]> {
+  return serializeFavouritesMutation(async () => {
+    const normalized = normalizeIsbn(isbn);
+    const current = await loadFavourites();
+    const next = current.filter((item) => item.isbn !== normalized);
+    await saveFavourites(next);
+    return next;
+  });
 }
 
-export async function restoreFavourite(favourite: Favourite): Promise<Favourite[]> {
-  const current = await loadFavourites();
-  const next = parseFavourites([
-    favourite,
-    ...current.filter((item) => item.isbn !== favourite.isbn),
-  ]);
-  await saveFavourites(next);
-  return next;
+export function restoreFavourite(favourite: Favourite): Promise<Favourite[]> {
+  return serializeFavouritesMutation(async () => {
+    const current = await loadFavourites();
+    const next = parseFavourites([
+      favourite,
+      ...current.filter((item) => item.isbn !== favourite.isbn),
+    ]);
+    await saveFavourites(next);
+    return next;
+  });
 }
 
-export async function clearFavourites(): Promise<Favourite[]> {
-  await saveFavourites([]);
-  return [];
+export function clearFavourites(): Promise<Favourite[]> {
+  return serializeFavouritesMutation(async () => {
+    await saveFavourites([]);
+    return [];
+  });
 }

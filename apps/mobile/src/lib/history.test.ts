@@ -35,6 +35,17 @@ describe('history storage', () => {
     ]);
   });
 
+  it('preserves concurrent additions', async () => {
+    await Promise.all([
+      addHistoryEntry({ type: 'title', title: 'First' }),
+      addHistoryEntry({ type: 'title', title: 'Second' }),
+    ]);
+
+    expect(
+      (await loadHistory()).map((entry) => (entry.type === 'title' ? entry.title : ''))
+    ).toEqual(['Second', 'First']);
+  });
+
   it('dedupes by ISBN and bumps to top, preserving prior title when not provided', async () => {
     jest.spyOn(Date, 'now').mockReturnValueOnce(1000);
     await addHistoryEntry({ type: 'isbn', isbn: '9781402894626', title: 'Original' });

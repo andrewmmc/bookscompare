@@ -33,6 +33,18 @@ describe('favourites storage', () => {
     ]);
   });
 
+  it('preserves concurrent additions', async () => {
+    await Promise.all([
+      addFavourite({ isbn: '9781402894626', title: 'Book A' }),
+      addFavourite({ isbn: '9789861336275', title: 'Book B' }),
+    ]);
+
+    expect((await loadFavourites()).map((favourite) => favourite.isbn)).toEqual([
+      '9789861336275',
+      '9781402894626',
+    ]);
+  });
+
   it('deduplicates by ISBN and refreshes addedAt on re-add', async () => {
     jest.spyOn(Date, 'now').mockReturnValueOnce(1000);
     await addFavourite({ isbn: '9781402894626', title: 'Old title' });
