@@ -90,8 +90,8 @@ function parseJsonPayload<T>(
   }
 }
 
-function writePayload<T>(key: string, updatedAt: number, value: T): boolean {
-  return setIcloudString(
+function writePayload<T>(key: string, updatedAt: number, value: T): void {
+  const didWrite = setIcloudString(
     key,
     JSON.stringify({
       schemaVersion: 1,
@@ -99,6 +99,10 @@ function writePayload<T>(key: string, updatedAt: number, value: T): boolean {
       value,
     })
   );
+
+  if (!didWrite) {
+    throw new Error(`Failed to write iCloud value for ${key}`);
+  }
 }
 
 function hasSameJsonValue(a: unknown, b: unknown): boolean {
@@ -245,9 +249,15 @@ export async function syncFavouritesToIcloud(
 }
 
 export async function clearIcloudData(): Promise<void> {
-  removeIcloudValue(ICLOUD_PREFERENCES_KEY);
-  removeIcloudValue(ICLOUD_HISTORY_KEY);
-  removeIcloudValue(ICLOUD_FAVOURITES_KEY);
+  const results = [
+    removeIcloudValue(ICLOUD_PREFERENCES_KEY),
+    removeIcloudValue(ICLOUD_HISTORY_KEY),
+    removeIcloudValue(ICLOUD_FAVOURITES_KEY),
+  ];
+
+  if (results.some((didRemove) => !didRemove)) {
+    throw new Error('Failed to clear all iCloud values');
+  }
 }
 
 export async function runInitialIcloudSync(): Promise<InitialIcloudSyncResult> {

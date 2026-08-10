@@ -43,8 +43,14 @@ import {
   HISTORY_MAX_ENTRIES,
   type HistoryEntry,
 } from './history';
-import { getIcloudString, isIcloudStorageAvailable, setIcloudString } from './icloudStorage';
 import {
+  getIcloudString,
+  isIcloudStorageAvailable,
+  removeIcloudValue,
+  setIcloudString,
+} from './icloudStorage';
+import {
+  clearIcloudData,
   ICLOUD_FAVOURITES_KEY,
   ICLOUD_HISTORY_KEY,
   mergeFavourites,
@@ -119,6 +125,8 @@ describe('runInitialIcloudSync', () => {
     jest.mocked(loadFavouritesUpdatedAt).mockResolvedValue(0);
     jest.mocked(replaceFavourites).mockImplementation(async (favourites) => favourites);
     jest.mocked(getIcloudString).mockReturnValue(null);
+    jest.mocked(setIcloudString).mockReturnValue(true);
+    jest.mocked(removeIcloudValue).mockReturnValue(true);
   });
 
   it('keeps a newer remote clear authoritative instead of resurrecting local entries', async () => {
@@ -180,5 +188,28 @@ describe('runInitialIcloudSync', () => {
         [ICLOUD_FAVOURITES_KEY, expect.any(String)],
       ])
     );
+  });
+
+  it('reports iCloud writes that the native storage module rejects', async () => {
+    jest
+      .mocked(loadHistory)
+      .mockResolvedValue([{ type: 'title', title: 'Local history', viewedAt: 100 }]);
+    jest.mocked(setIcloudString).mockReturnValue(false);
+
+    await expect(runInitialIcloudSync()).rejects.toThrow('Failed to write iCloud value');
+  });
+});
+
+describe('clearIcloudData', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(removeIcloudValue).mockReturnValue(true);
+  });
+
+  it('reports a partial native storage removal failure', async () => {
+    jest.mocked(removeIcloudValue).mockReturnValueOnce(true).mockReturnValueOnce(false);
+
+    await expect(clearIcloudData()).rejects.toThrow('Failed to clear all iCloud values');
+    expect(removeIcloudValue).toHaveBeenCalledTimes(3);
   });
 });

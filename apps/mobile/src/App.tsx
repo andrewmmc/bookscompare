@@ -82,7 +82,12 @@ function AppContent() {
     let retriedPendingRemoteData = false;
 
     const syncFromIcloud = async (isInitialRun = false): Promise<void> => {
-      const syncResult = await runInitialIcloudSync();
+      let syncResult: InitialIcloudSyncResult;
+      try {
+        syncResult = await runInitialIcloudSync();
+      } catch {
+        return;
+      }
       if (cancelled) {
         return;
       }
