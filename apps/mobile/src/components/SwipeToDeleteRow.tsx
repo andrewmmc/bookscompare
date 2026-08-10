@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
@@ -64,11 +64,21 @@ export function SwipeToDeleteRow({
     [translateX]
   );
 
-  const syncClosedState = useCallback(() => {
+  useEffect(() => {
     if (!isOpen && currentOffset !== 0 && !gestureContext.deleteCommitted) {
-      animateTo(0);
+      Animated.spring(translateX, {
+        bounciness: 0,
+        restDisplacementThreshold: 0.4,
+        restSpeedThreshold: 1.7,
+        toValue: 0,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) {
+          setCurrentOffset(0);
+        }
+      });
     }
-  }, [animateTo, currentOffset, gestureContext.deleteCommitted, isOpen]);
+  }, [currentOffset, gestureContext.deleteCommitted, isOpen, translateX]);
 
   const commitDelete = useCallback(() => {
     setGestureContext((previous) => {
@@ -135,8 +145,6 @@ export function SwipeToDeleteRow({
       return { ...previous, rowWidth: nextRowWidth };
     });
   }, []);
-
-  syncClosedState();
 
   return (
     <View
