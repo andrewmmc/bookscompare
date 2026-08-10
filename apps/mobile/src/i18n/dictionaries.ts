@@ -146,6 +146,9 @@ interface Dictionary {
     icloudSync: string;
     icloudSyncOn: string;
     icloudSyncOff: string;
+    analytics: string;
+    analyticsOn: string;
+    analyticsOff: string;
     resetAllData: string;
     resetAllDataConfirmTitle: string;
     resetAllDataConfirmMessage: string;
@@ -336,6 +339,9 @@ const zhTW: Dictionary = {
     icloudSync: 'iCloud 同步',
     icloudSyncOn: '開啟',
     icloudSyncOff: '關閉',
+    analytics: '分享匿名使用分析',
+    analyticsOn: '開啟',
+    analyticsOff: '關閉',
     resetAllData: '重設所有資料',
     resetAllDataConfirmTitle: '重設所有資料？',
     resetAllDataConfirmMessage: '此動作無法復原，所有本機設定、搜尋記錄與收藏都會被移除。',
@@ -531,6 +537,9 @@ const en: Dictionary = {
     icloudSync: 'iCloud Sync',
     icloudSyncOn: 'On',
     icloudSyncOff: 'Off',
+    analytics: 'Share anonymous usage analytics',
+    analyticsOn: 'On',
+    analyticsOff: 'Off',
     resetAllData: 'Reset all data',
     resetAllDataConfirmTitle: 'Reset all data?',
     resetAllDataConfirmMessage:

@@ -447,10 +447,10 @@ export function SearchResultScreen({ navigation, route }: Props) {
               hitSlop={12}
               onPress={() => {
                 if (isbnIsFavourite) {
-                  track('favourite_remove', { isbn: isbnParam, source: 'search_result_header' });
+                  track('favourite_remove', { source: 'search_result_header' });
                   removeFavourite.mutate(isbnParam);
                 } else {
-                  track('favourite_add', { isbn: isbnParam, source: 'search_result_header' });
+                  track('favourite_add', { source: 'search_result_header' });
                   addFavourite.mutate({ isbn: isbnParam, title: isbnBookTitle });
                 }
               }}
@@ -493,17 +493,16 @@ export function SearchResultScreen({ navigation, route }: Props) {
       return;
     }
     if (favouriteIsbnSet.has(item.isbn)) {
-      track('favourite_remove', { isbn: item.isbn, source: 'search_result_row' });
+      track('favourite_remove', { source: 'search_result_row' });
       removeFavourite.mutate(item.isbn);
     } else {
-      track('favourite_add', { isbn: item.isbn, source: 'search_result_row' });
+      track('favourite_add', { source: 'search_result_row' });
       addFavourite.mutate({ isbn: item.isbn, title: item.title });
     }
   };
 
   const openOffer = (item: BookOffer) => {
     track('search_result_open_offer', {
-      isbn: isbnParam,
       sourceId: item.sourceId,
     });
     if (openLinksIn === 'browser') {

@@ -83,7 +83,7 @@ describe('FavouritesScreen', () => {
     expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', {
       isbn: '9789861336275',
     });
-    expect(track).toHaveBeenCalledWith('favourites_open_book', { isbn: '9789861336275' });
+    expect(track).toHaveBeenCalledWith('favourites_open_book');
   });
 
   it('sorts by time and changes direction from the header menu', async () => {

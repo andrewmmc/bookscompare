@@ -1,6 +1,9 @@
 import type { AnalyticsProps, AnalyticsProvider } from '../types';
 
 export const noopAnalyticsProvider: AnalyticsProvider = {
+  setEnabled(_enabled: boolean): void {
+    // No-op
+  },
   init(): void {
     // No-op: analytics is disabled when no provider key is configured.
   },

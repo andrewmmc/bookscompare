@@ -10,6 +10,7 @@ jest.mock('./analytics', () => ({
   track: jest.fn(),
   registerAnalyticsProperties: jest.fn(),
   identify: jest.fn(),
+  setAnalyticsEnabled: jest.fn(),
 }));
 
 jest.mock('react-native-webview', () => {

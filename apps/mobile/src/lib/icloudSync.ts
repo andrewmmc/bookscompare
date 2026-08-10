@@ -276,7 +276,11 @@ export async function runInitialIcloudSync(): Promise<InitialIcloudSyncResult> {
   if (remotePreferences) {
     const nextPreferences =
       remotePreferences.updatedAt > localPreferencesUpdatedAt
-        ? { ...remotePreferences.value, icloudSyncEnabled: preferences.icloudSyncEnabled }
+        ? {
+            ...remotePreferences.value,
+            icloudSyncEnabled: preferences.icloudSyncEnabled,
+            analyticsEnabled: Boolean(preferences.analyticsEnabled),
+          }
         : preferences;
     const nextPreferencesUpdatedAt = Math.max(
       localPreferencesUpdatedAt,

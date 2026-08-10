@@ -59,7 +59,7 @@ export function WebViewScreen({ navigation, route }: Props) {
                 accessibilityRole="button"
                 hitSlop={12}
                 onPress={() => {
-                  track('webview_share', { title: route.params.title });
+                  track('webview_share');
                   void Share.share({
                     title: route.params.title,
                     message: route.params.url,

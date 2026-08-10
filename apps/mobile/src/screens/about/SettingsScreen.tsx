@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { track } from '../../analytics';
+import { setAnalyticsEnabled, track } from '../../analytics';
 import { FAVOURITES_QUERY_KEY } from '../../api/favourites';
 import { HISTORY_QUERY_KEY } from '../../api/history';
 import { ListRow } from '../../components/ListRow';
@@ -129,6 +129,11 @@ export function SettingsScreen({ navigation }: Props) {
     });
   };
 
+  const toggleAnalytics = () => {
+    const next = !preferences.analyticsEnabled;
+    void updatePreference('analyticsEnabled', next).then(() => setAnalyticsEnabled(next));
+  };
+
   const confirmResetAllData = () => {
     track('settings_click_reset_all_data');
     Alert.alert(
@@ -232,6 +237,19 @@ export function SettingsScreen({ navigation }: Props) {
         {strings.settings.dataSection}
       </Text>
       <View style={styles.group}>
+        <SettingsRow
+          icon="analytics-outline"
+          iconBackground={colors.accentDeep}
+          title={strings.settings.analytics}
+          value={
+            preferences.analyticsEnabled
+              ? strings.settings.analyticsOn
+              : strings.settings.analyticsOff
+          }
+          onPress={toggleAnalytics}
+          hideChevron
+          isLast={false}
+        />
         <ListRow
           icon="trash-outline"
           title={strings.settings.resetAllData}

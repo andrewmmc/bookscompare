@@ -8,12 +8,12 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { initAnalytics, registerAnalyticsProperties } from './analytics';
+import { initAnalytics, registerAnalyticsProperties, setAnalyticsEnabled } from './analytics';
 import { FAVOURITES_QUERY_KEY } from './api/favourites';
 import { HISTORY_QUERY_KEY } from './api/history';
 import { strings } from './i18n/strings';
 import { runInitialIcloudSync, type InitialIcloudSyncResult } from './lib/icloudSync';
-import { usePreferencesLoaded } from './lib/preferences';
+import { usePreferences, usePreferencesLoaded } from './lib/preferences';
 import { RootNavigator } from './navigation/RootNavigator';
 import { spacing } from './theme/spacing';
 import { paperThemeDark, paperThemeLight } from './theme/paperTheme';
@@ -55,6 +55,7 @@ function AppContent() {
   const { colors, scheme } = useTheme();
   const paperTheme = scheme === 'dark' ? paperThemeDark : paperThemeLight;
   const preferencesLoaded = usePreferencesLoaded();
+  const { analyticsEnabled } = usePreferences();
   const [icloudSyncReady, setIcloudSyncReady] = useState(false);
   const applyIcloudSyncResult = useCallback((syncResult: InitialIcloudSyncResult) => {
     if (syncResult.history !== undefined) {
@@ -66,9 +67,10 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
+    setAnalyticsEnabled(Boolean(analyticsEnabled));
     initAnalytics();
     registerAnalyticsProperties({ themeScheme: scheme });
-  }, [scheme]);
+  }, [analyticsEnabled, scheme]);
 
   useEffect(() => {
     if (!preferencesLoaded) {

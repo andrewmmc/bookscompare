@@ -259,7 +259,7 @@ describe('WebViewScreen', () => {
         url: 'https://example.com',
       })
     );
-    expect(track).toHaveBeenCalledWith('webview_share', { title: '測試頁面' });
+    expect(track).toHaveBeenCalledWith('webview_share');
     expect(openExternalUrl).not.toHaveBeenCalled();
   });
 
@@ -287,7 +287,7 @@ describe('WebViewScreen', () => {
 
     fireEvent.press(header.getByLabelText('分享'));
 
-    expect(track).toHaveBeenCalledWith('webview_share', { title: '測試頁面' });
+    expect(track).toHaveBeenCalledWith('webview_share');
     expect(Share.share).toHaveBeenCalledWith({
       title: '測試頁面',
       message: 'https://example.com',

@@ -31,6 +31,7 @@ describe('preferences storage', () => {
       preferredSources: [],
       preferredBookTypes: [],
       icloudSyncEnabled: true,
+      analyticsEnabled: false,
       favouritesSortDirection: 'desc',
       historySortDirection: 'desc',
     });
@@ -43,6 +44,7 @@ describe('preferences storage', () => {
       preferredSources: ['books-com-tw', 'kingstone'],
       preferredBookTypes: ['physical', 'ebook'],
       icloudSyncEnabled: false,
+      analyticsEnabled: false,
       favouritesSortDirection: 'asc',
       historySortDirection: 'asc',
     };
@@ -73,6 +75,7 @@ describe('preferences storage', () => {
       preferredSources: [],
       preferredBookTypes: [],
       icloudSyncEnabled: true,
+      analyticsEnabled: false,
       favouritesSortDirection: 'desc',
       historySortDirection: 'desc',
     });
@@ -89,6 +92,7 @@ describe('preferences storage', () => {
       preferredSources: [],
       preferredBookTypes: [],
       icloudSyncEnabled: true,
+      analyticsEnabled: false,
       favouritesSortDirection: 'desc',
       historySortDirection: 'desc',
     });

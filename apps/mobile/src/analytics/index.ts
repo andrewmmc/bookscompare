@@ -30,6 +30,10 @@ function selectProvider(): AnalyticsProvider {
 
 const provider = selectProvider();
 
+export function setAnalyticsEnabled(enabled: boolean): void {
+  provider.setEnabled(enabled);
+}
+
 export function initAnalytics(): void {
   provider.init();
 }

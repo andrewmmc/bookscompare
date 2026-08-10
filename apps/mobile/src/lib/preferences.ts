@@ -20,11 +20,12 @@ export interface Preferences {
   preferredSources: BookSourceId[];
   preferredBookTypes: BookTypePreference[];
   icloudSyncEnabled: boolean;
+  analyticsEnabled?: boolean;
   favouritesSortDirection?: AddedTimeSortDirection;
   historySortDirection?: AddedTimeSortDirection;
 }
 
-export type SyncablePreferences = Omit<Preferences, 'icloudSyncEnabled'>;
+export type SyncablePreferences = Omit<Preferences, 'icloudSyncEnabled' | 'analyticsEnabled'>;
 
 type PreferenceKey = keyof Preferences;
 
@@ -36,6 +37,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   preferredSources: [],
   preferredBookTypes: [],
   icloudSyncEnabled: true,
+  analyticsEnabled: false,
   favouritesSortDirection: 'desc',
   historySortDirection: 'desc',
 };
@@ -53,6 +55,7 @@ const validators: {
     value.every((v) => v === 'physical' || v === 'ebook') &&
     new Set(value).size === value.length,
   icloudSyncEnabled: (value): value is boolean => typeof value === 'boolean',
+  analyticsEnabled: (value): value is boolean => typeof value === 'boolean',
   favouritesSortDirection: (value): value is AddedTimeSortDirection =>
     value === 'desc' || value === 'asc',
   historySortDirection: (value): value is AddedTimeSortDirection =>

@@ -656,7 +656,6 @@ describe('SearchResultScreen', () => {
     fireEvent.press(screen.getByLabelText('加入收藏'));
 
     expect(track).toHaveBeenCalledWith('favourite_add', {
-      isbn: '9781402894626',
       source: 'search_result_row',
     });
     expect(mockAddFavouriteMutate).toHaveBeenCalledWith({
@@ -714,7 +713,6 @@ describe('SearchResultScreen', () => {
     fireEvent.press(screen.getByLabelText('從收藏中移除'));
 
     expect(track).toHaveBeenCalledWith('favourite_remove', {
-      isbn: '9781402894626',
       source: 'search_result_row',
     });
     expect(mockRemoveFavouriteMutate).toHaveBeenCalledWith('9781402894626');
@@ -745,7 +743,6 @@ describe('SearchResultScreen', () => {
     fireEvent.press(header.getByLabelText('加入收藏'));
 
     expect(track).toHaveBeenCalledWith('favourite_add', {
-      isbn: '9781402894626',
       source: 'search_result_header',
     });
     expect(mockAddFavouriteMutate).toHaveBeenCalledWith({
@@ -840,7 +837,6 @@ describe('SearchResultScreen', () => {
     fireEvent.press(header.getByLabelText('從收藏中移除'));
 
     expect(track).toHaveBeenCalledWith('favourite_remove', {
-      isbn: '9781402894626',
       source: 'search_result_header',
     });
     expect(mockRemoveFavouriteMutate).toHaveBeenCalledWith('9781402894626');

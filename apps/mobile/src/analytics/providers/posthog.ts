@@ -7,6 +7,8 @@ interface PostHogClient {
   register(props: Record<string, unknown>): void;
   identify(userId: string): void;
   reset(): void;
+  optIn(): void;
+  optOut(): void;
 }
 
 interface PostHogConstructor {
@@ -22,10 +24,22 @@ export function createPostHogProvider(
 ): AnalyticsProvider {
   let client: PostHogClient | null = null;
   let initialized = false;
+  let enabled = false;
 
   return {
+    setEnabled(nextEnabled: boolean): void {
+      enabled = nextEnabled;
+      if (client) {
+        if (enabled) {
+          client.optIn();
+        } else {
+          client.optOut();
+          client.reset();
+        }
+      }
+    },
     init(): void {
-      if (initialized) {
+      if (initialized || !enabled) {
         return;
       }
       initialized = true;
@@ -35,6 +49,7 @@ export function createPostHogProvider(
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const mod = require('posthog-react-native') as { PostHog: PostHogConstructor };
         client = new mod.PostHog(apiKey, { host, captureAppLifecycleEvents: true });
+        client.optIn();
       } catch (error) {
         if (__DEV__) {
           console.warn('[analytics] Failed to initialise PostHog:', error);

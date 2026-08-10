@@ -53,12 +53,12 @@ export function FavouritesScreen({ navigation }: Props) {
   );
 
   const openBook = (item: Favourite) => {
-    track('favourites_open_book', { isbn: item.isbn });
+    track('favourites_open_book');
     navigation.navigate('SearchResult', { isbn: item.isbn });
   };
 
   const handleRemove = (item: Favourite) => {
-    track('favourite_remove', { isbn: item.isbn, source: 'favourites_swipe' });
+    track('favourite_remove', { source: 'favourites_swipe' });
     removeFavourite.mutate(item.isbn, {
       onSuccess: () => {
         setUndoCandidate(item);
@@ -74,7 +74,7 @@ export function FavouritesScreen({ navigation }: Props) {
     const item = undoCandidate;
     setUndoCandidate(null);
     setShowUndoHint(false);
-    track('favourite_remove_undo', { isbn: item.isbn, method: 'shake' });
+    track('favourite_remove_undo', { method: 'shake' });
     restoreFavourite.mutate(item);
   }, undoCandidate !== null);
 

@@ -28,6 +28,7 @@ jest.mock('../../lib/preferences', () => ({
 
 jest.mock('../../analytics', () => ({
   track: (...args: unknown[]) => mockTrack(...args),
+  setAnalyticsEnabled: jest.fn(),
 }));
 
 jest.mock('../../lib/icloudSync', () => ({
@@ -114,7 +115,7 @@ describe('SettingsScreen', () => {
     expect(screen.getByText('深色')).toBeOnTheScreen();
     expect(screen.getByText('電子書')).toBeOnTheScreen();
     expect(screen.getByText('已選 2 家')).toBeOnTheScreen();
-    expect(screen.getByText('關閉')).toBeOnTheScreen();
+    expect(screen.getAllByText('關閉')).toHaveLength(2);
   });
 
   it('renders physical-books label when only physical books are preferred', () => {
