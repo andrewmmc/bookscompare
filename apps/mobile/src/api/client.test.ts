@@ -92,4 +92,43 @@ describe('api client configuration', () => {
       message: 'API request failed with status 500',
     });
   });
+
+  it('forwards caller cancellation to fetch', async () => {
+    const { apiGet } = loadClient();
+    let fetchSignal: AbortSignal | undefined;
+    jest.spyOn(global, 'fetch').mockImplementation((_url, init) => {
+      fetchSignal = init?.signal as AbortSignal;
+      return new Promise<Response>((_resolve, reject) => {
+        fetchSignal?.addEventListener('abort', () => reject(new Error('aborted')), { once: true });
+      });
+    });
+    const controller = new AbortController();
+
+    const request = apiGet('/health', controller.signal);
+    controller.abort();
+
+    expect(fetchSignal?.aborted).toBe(true);
+    await expect(request).rejects.toThrow('aborted');
+  });
+
+  it('aborts requests that exceed the timeout', async () => {
+    jest.useFakeTimers();
+    const { apiGet } = loadClient();
+    let fetchSignal: AbortSignal | undefined;
+    jest.spyOn(global, 'fetch').mockImplementation((_url, init) => {
+      fetchSignal = init?.signal as AbortSignal;
+      return new Promise<Response>((_resolve, reject) => {
+        fetchSignal?.addEventListener('abort', () => reject(new Error('timed out')), {
+          once: true,
+        });
+      });
+    });
+
+    const request = apiGet('/health');
+    jest.advanceTimersByTime(15_000);
+
+    expect(fetchSignal?.aborted).toBe(true);
+    await expect(request).rejects.toThrow('timed out');
+    jest.useRealTimers();
+  });
 });

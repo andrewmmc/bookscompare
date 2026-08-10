@@ -7,6 +7,7 @@ interface AppExtra {
 }
 
 const defaultApiBaseUrl = 'https://bookscompare-api.mmc.dev';
+const requestTimeoutMs = 15_000;
 
 function readConfiguredApiBaseUrl(): string | undefined {
   const extra = (Constants.expoConfig?.extra ?? {}) as Partial<AppExtra>;
@@ -50,16 +51,31 @@ function parseApiErrorBody(
   return null;
 }
 
-export async function apiGet<T>(path: string): Promise<T> {
-  const response = await fetch(`${getApiBaseUrl()}${path}`);
+export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> {
+  const controller = new AbortController();
+  const abortRequest = () => controller.abort();
+  const timeout = setTimeout(abortRequest, requestTimeoutMs);
 
-  if (!response.ok) {
-    const body = await response.text();
-    const apiError = parseApiErrorBody(body);
-    throw new ApiError(response.status, body, apiError?.code, apiError?.message);
+  if (signal?.aborted) {
+    controller.abort();
+  } else {
+    signal?.addEventListener('abort', abortRequest, { once: true });
   }
 
-  return (await response.json()) as T;
+  try {
+    const response = await fetch(`${getApiBaseUrl()}${path}`, { signal: controller.signal });
+
+    if (!response.ok) {
+      const body = await response.text();
+      const apiError = parseApiErrorBody(body);
+      throw new ApiError(response.status, body, apiError?.code, apiError?.message);
+    }
+
+    return (await response.json()) as T;
+  } finally {
+    clearTimeout(timeout);
+    signal?.removeEventListener('abort', abortRequest);
+  }
 }
 
 export { getApiBaseUrl };

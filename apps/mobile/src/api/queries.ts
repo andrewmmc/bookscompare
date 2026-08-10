@@ -6,7 +6,7 @@ import { searchByTitle } from './title';
 export function useIsbnLookup(isbn: string) {
   return useQuery({
     queryKey: ['isbn-lookup', isbn],
-    queryFn: () => lookupIsbn(isbn),
+    queryFn: ({ signal }) => lookupIsbn(isbn, signal),
     enabled: isbn.length > 0,
   });
 }
@@ -14,7 +14,7 @@ export function useIsbnLookup(isbn: string) {
 export function useTitleSearch(title: string) {
   return useQuery({
     queryKey: ['title-search', title],
-    queryFn: () => searchByTitle(title),
+    queryFn: ({ signal }) => searchByTitle(title, signal),
     enabled: title.length > 0,
   });
 }
