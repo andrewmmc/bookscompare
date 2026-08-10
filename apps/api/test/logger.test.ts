@@ -79,5 +79,18 @@ test('logParseFailure always emits a warn line', (t) => {
   assert.equal(captured[0]?.level, 'warn');
   assert.equal(captured[0]?.payload.event, 'provider.parse_failure');
   assert.equal(captured[0]?.payload.reason, 'missing price');
-  assert.equal(captured[0]?.payload.url, 'https://example.com/search?q=book');
+  assert.equal(captured[0]?.payload.url, 'https://example.com');
+});
+
+test('logging redacts search terms embedded in paths and query strings', (t) => {
+  const captured = captureConsole(t);
+
+  logFetchAttempt({
+    url: 'https://store.example/search/private-book-title?q=private-book-title',
+    attempt: 1,
+    status: 200,
+  });
+
+  assert.equal(captured[0]?.payload.url, 'https://store.example');
+  assert.doesNotMatch(JSON.stringify(captured[0]?.payload), /private-book-title/);
 });

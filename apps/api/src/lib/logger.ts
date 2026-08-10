@@ -4,6 +4,14 @@ interface LogFields {
   [key: string]: string | number | boolean | null | undefined;
 }
 
+function redactSensitiveUrl(url: string): string {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return '[invalid-url]';
+  }
+}
+
 function emit(level: LogLevel, event: string, fields: LogFields = {}): void {
   const payload = {
     level,
@@ -45,7 +53,10 @@ export function logFetchAttempt(fields: {
   durationMs?: number | undefined;
   error?: string | undefined;
 }): void {
-  emit(fields.error ? 'warn' : 'info', 'fetch.attempt', fields);
+  emit(fields.error ? 'warn' : 'info', 'fetch.attempt', {
+    ...fields,
+    url: redactSensitiveUrl(fields.url),
+  });
 }
 
 export function logParseFailure(fields: {
@@ -53,5 +64,8 @@ export function logParseFailure(fields: {
   reason: string;
   url?: string | undefined;
 }): void {
-  emit('warn', 'provider.parse_failure', fields);
+  emit('warn', 'provider.parse_failure', {
+    ...fields,
+    ...(fields.url ? { url: redactSensitiveUrl(fields.url) } : {}),
+  });
 }
