@@ -51,7 +51,11 @@ function parseApiErrorBody(
   return null;
 }
 
-export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> {
+export async function apiGet<T>(
+  path: string,
+  signal?: AbortSignal,
+  validate?: (value: unknown) => value is T
+): Promise<T> {
   const controller = new AbortController();
   const abortRequest = () => controller.abort();
   const timeout = setTimeout(abortRequest, requestTimeoutMs);
@@ -71,7 +75,12 @@ export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> 
       throw new ApiError(response.status, body, apiError?.code, apiError?.message);
     }
 
-    return (await response.json()) as T;
+    const payload: unknown = await response.json();
+    if (validate && !validate(payload)) {
+      throw new ApiError(502, undefined, undefined, 'API returned an invalid response');
+    }
+
+    return payload as T;
   } finally {
     clearTimeout(timeout);
     signal?.removeEventListener('abort', abortRequest);

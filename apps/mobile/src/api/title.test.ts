@@ -10,7 +10,7 @@ describe('searchByTitle', () => {
       ok: true,
       json: async () => ({
         query: { title: '哈利波特 & magic' },
-        results: [],
+        books: [],
         sources: [],
         meta: { liveScraping: false, requestedAt: 'now' },
       }),
@@ -23,5 +23,17 @@ describe('searchByTitle', () => {
       { signal: expect.any(AbortSignal) }
     );
     expect('title' in response.query && response.query.title).toBe('哈利波特 & magic');
+  });
+
+  it('rejects malformed successful responses', async () => {
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ query: { title: 'Book' }, books: 'not-an-array' }),
+    } as Response);
+
+    await expect(searchByTitle('Book')).rejects.toMatchObject({
+      status: 502,
+      message: 'API returned an invalid response',
+    });
   });
 });

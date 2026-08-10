@@ -34,4 +34,16 @@ describe('lookupIsbn', () => {
 
     await expect(lookupIsbn('9781402894626')).rejects.toBeInstanceOf(ApiError);
   });
+
+  it('rejects malformed successful responses', async () => {
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ query: { isbn: '9781402894626' }, book: 'not-a-book' }),
+    } as Response);
+
+    await expect(lookupIsbn('9781402894626')).rejects.toMatchObject({
+      status: 502,
+      message: 'API returned an invalid response',
+    });
+  });
 });

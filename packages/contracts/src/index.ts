@@ -151,3 +151,127 @@ export interface ApiErrorResponse {
     message: string;
   };
 }
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
+function hasOptionalString(record: Record<string, unknown>, key: string): boolean {
+  return record[key] === undefined || typeof record[key] === 'string';
+}
+
+function hasOptionalFiniteNumber(record: Record<string, unknown>, key: string): boolean {
+  return (
+    record[key] === undefined || (typeof record[key] === 'number' && Number.isFinite(record[key]))
+  );
+}
+
+function isBookSourceId(value: unknown): value is BookSourceId {
+  return BOOK_SOURCES.some((source) => source.id === value);
+}
+
+function isBookOffer(value: unknown): value is BookOffer {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isBookSourceId(value.sourceId) &&
+    typeof value.sourceName === 'string' &&
+    typeof value.sourceProductId === 'string' &&
+    hasOptionalString(value, 'isbn') &&
+    typeof value.title === 'string' &&
+    typeof value.productType === 'string' &&
+    isStringArray(value.authors) &&
+    typeof value.publisher === 'string' &&
+    hasOptionalString(value, 'publicationDate') &&
+    typeof value.summary === 'string' &&
+    typeof value.price === 'number' &&
+    Number.isFinite(value.price) &&
+    value.currency === 'TWD' &&
+    typeof value.priceText === 'string' &&
+    hasOptionalFiniteNumber(value, 'discountRate') &&
+    typeof value.url === 'string' &&
+    typeof value.imageUrl === 'string' &&
+    hasOptionalString(value, 'previewUrl') &&
+    isStringArray(value.badges)
+  );
+}
+
+function isBookDetail(value: unknown): value is BookDetail {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === 'string' &&
+    hasOptionalString(value, 'isbn') &&
+    typeof value.title === 'string' &&
+    isStringArray(value.authors) &&
+    hasOptionalString(value, 'publisher') &&
+    hasOptionalString(value, 'publicationDate') &&
+    typeof value.imageUrl === 'string' &&
+    typeof value.summary === 'string' &&
+    Array.isArray(value.offers) &&
+    value.offers.every(isBookOffer)
+  );
+}
+
+function isSourceState(value: unknown): value is SourceState {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isBookSourceId(value.id) &&
+    typeof value.name === 'string' &&
+    (value.status === 'disabled' || value.status === 'ready' || value.status === 'error') &&
+    hasOptionalString(value, 'message')
+  );
+}
+
+function isResponseMeta(value: unknown): value is ResponseMeta {
+  return (
+    isRecord(value) &&
+    typeof value.liveScraping === 'boolean' &&
+    typeof value.requestedAt === 'string' &&
+    hasOptionalString(value, 'message')
+  );
+}
+
+export function isSearchResponse(value: unknown): value is SearchResponse {
+  if (!isRecord(value) || !isRecord(value.query)) {
+    return false;
+  }
+
+  return (
+    typeof value.query.title === 'string' &&
+    Array.isArray(value.books) &&
+    value.books.every(isBookDetail) &&
+    Array.isArray(value.sources) &&
+    value.sources.every(isSourceState) &&
+    isResponseMeta(value.meta)
+  );
+}
+
+export function isBookDetailResponse(value: unknown): value is BookDetailResponse {
+  if (!isRecord(value) || !isRecord(value.query)) {
+    return false;
+  }
+
+  const hasValidQuery =
+    typeof value.query.isbn === 'string' ||
+    (typeof value.query.title === 'string' && hasOptionalString(value.query, 'author'));
+
+  return (
+    hasValidQuery &&
+    (value.book === null || isBookDetail(value.book)) &&
+    Array.isArray(value.sources) &&
+    value.sources.every(isSourceState) &&
+    isResponseMeta(value.meta)
+  );
+}
