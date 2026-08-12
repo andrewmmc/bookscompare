@@ -40,9 +40,10 @@ export const ICLOUD_FAVOURITES_KEY = 'bookscompare:icloud:favourites:v1';
 const validSourceIds = new Set<string>(BOOK_SOURCES.map((source) => source.id));
 
 interface IcloudPayload<T> {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   updatedAt: number;
   value: T;
+  deleted: Record<string, number>;
 }
 
 export interface InitialIcloudSyncResult {
@@ -73,7 +74,7 @@ function parseJsonPayload<T>(
     if (
       !parsed ||
       typeof parsed !== 'object' ||
-      parsed.schemaVersion !== 1 ||
+      (parsed.schemaVersion !== 1 && parsed.schemaVersion !== 2) ||
       typeof parsed.updatedAt !== 'number' ||
       !Number.isFinite(parsed.updatedAt)
     ) {
@@ -81,22 +82,37 @@ function parseJsonPayload<T>(
     }
 
     return {
-      schemaVersion: 1,
+      schemaVersion: parsed.schemaVersion,
       updatedAt: parsed.updatedAt,
       value: parseValue(parsed.value),
+      deleted:
+        parsed.schemaVersion === 2 && parsed.deleted && typeof parsed.deleted === 'object'
+          ? Object.fromEntries(
+              Object.entries(parsed.deleted as Record<string, unknown>).filter(
+                (entry): entry is [string, number] =>
+                  typeof entry[1] === 'number' && Number.isFinite(entry[1])
+              )
+            )
+          : {},
     };
   } catch {
     return null;
   }
 }
 
-function writePayload<T>(key: string, updatedAt: number, value: T): void {
+function writePayload<T>(
+  key: string,
+  updatedAt: number,
+  value: T,
+  deleted: Record<string, number> = {}
+): void {
   const didWrite = setIcloudString(
     key,
     JSON.stringify({
-      schemaVersion: 1,
+      schemaVersion: 2,
       updatedAt,
       value,
+      deleted,
     })
   );
 
@@ -142,6 +158,31 @@ function normalizeTitle(title: string): string {
 
 function historyIdentity(entry: HistoryEntry): string {
   return entry.type === 'isbn' ? `isbn:${entry.isbn}` : `title:${normalizeTitle(entry.title)}`;
+}
+
+function applyTombstones<T>(
+  entries: T[],
+  deleted: Record<string, number>,
+  identity: (entry: T) => string,
+  modifiedAt: (entry: T) => number
+): T[] {
+  return entries.filter((entry) => modifiedAt(entry) > (deleted[identity(entry)] ?? 0));
+}
+
+function tombstonesForRemoved<T>(
+  remoteEntries: T[],
+  localEntries: T[],
+  existing: Record<string, number>,
+  identity: (entry: T) => string,
+  removedAt: number
+): Record<string, number> {
+  const localIds = new Set(localEntries.map(identity));
+  const deleted = { ...existing };
+  for (const entry of remoteEntries) {
+    const id = identity(entry);
+    if (!localIds.has(id)) deleted[id] = Math.max(deleted[id] ?? 0, removedAt);
+  }
+  return deleted;
 }
 
 export function mergeHistoryEntries(
@@ -214,15 +255,24 @@ export async function syncHistoryToIcloud(
   }
 
   const shouldMergeRemote = options.mergeRemote ?? true;
-  const remote = shouldMergeRemote
-    ? parseJsonPayload(getIcloudString(ICLOUD_HISTORY_KEY), parseHistory)
-    : null;
-  const next = remote ? mergeHistoryEntries(history, remote.value) : history;
+  const remote = parseJsonPayload(getIcloudString(ICLOUD_HISTORY_KEY), parseHistory);
   const updatedAt = Date.now();
+  const deleted =
+    remote && !shouldMergeRemote
+      ? tombstonesForRemoved(remote.value, history, remote.deleted, historyIdentity, updatedAt)
+      : (remote?.deleted ?? {});
+  const next = remote
+    ? applyTombstones(
+        mergeHistoryEntries(history, remote.value),
+        deleted,
+        historyIdentity,
+        (entry) => entry.viewedAt
+      )
+    : history;
   if (remote && !hasSameJsonValue(next, history)) {
     await replaceHistory(next, updatedAt);
   }
-  writePayload(ICLOUD_HISTORY_KEY, updatedAt, next);
+  writePayload(ICLOUD_HISTORY_KEY, updatedAt, next, deleted);
   return next;
 }
 
@@ -236,15 +286,25 @@ export async function syncFavouritesToIcloud(
   }
 
   const shouldMergeRemote = options.mergeRemote ?? true;
-  const remote = shouldMergeRemote
-    ? parseJsonPayload(getIcloudString(ICLOUD_FAVOURITES_KEY), parseFavourites)
-    : null;
-  const next = remote ? mergeFavourites(favourites, remote.value) : favourites;
+  const remote = parseJsonPayload(getIcloudString(ICLOUD_FAVOURITES_KEY), parseFavourites);
   const updatedAt = Date.now();
+  const favouriteIdentity = (entry: Favourite) => normalizeIsbn(entry.isbn);
+  const deleted =
+    remote && !shouldMergeRemote
+      ? tombstonesForRemoved(remote.value, favourites, remote.deleted, favouriteIdentity, updatedAt)
+      : (remote?.deleted ?? {});
+  const next = remote
+    ? applyTombstones(
+        mergeFavourites(favourites, remote.value),
+        deleted,
+        favouriteIdentity,
+        (entry) => entry.addedAt
+      )
+    : favourites;
   if (remote && !hasSameJsonValue(next, favourites)) {
     await replaceFavourites(next, updatedAt);
   }
-  writePayload(ICLOUD_FAVOURITES_KEY, updatedAt, next);
+  writePayload(ICLOUD_FAVOURITES_KEY, updatedAt, next, deleted);
   return next;
 }
 
@@ -324,18 +384,23 @@ export async function runInitialIcloudSync(): Promise<InitialIcloudSyncResult> {
 
   if (remoteHistory) {
     const nextHistory =
-      remoteHistory.updatedAt > localHistoryUpdatedAt
-        ? remoteHistory.value
-        : remoteHistory.updatedAt < localHistoryUpdatedAt
-          ? localHistory
-          : mergeHistoryEntries(localHistory, remoteHistory.value);
+      remoteHistory.schemaVersion === 1 && remoteHistory.updatedAt !== localHistoryUpdatedAt
+        ? remoteHistory.updatedAt > localHistoryUpdatedAt
+          ? remoteHistory.value
+          : localHistory
+        : applyTombstones(
+            mergeHistoryEntries(localHistory, remoteHistory.value),
+            remoteHistory.deleted,
+            historyIdentity,
+            (entry) => entry.viewedAt
+          );
     const nextHistoryUpdatedAt = Math.max(localHistoryUpdatedAt, remoteHistory.updatedAt);
     if (!hasSameJsonValue(nextHistory, localHistory)) {
       result.history = await replaceHistory(nextHistory, nextHistoryUpdatedAt);
     } else {
       result.history = nextHistory;
     }
-    writePayload(ICLOUD_HISTORY_KEY, nextHistoryUpdatedAt, nextHistory);
+    writePayload(ICLOUD_HISTORY_KEY, nextHistoryUpdatedAt, nextHistory, remoteHistory.deleted);
   } else {
     result.history = localHistory;
     if (localHistory.length > 0) {
@@ -347,18 +412,29 @@ export async function runInitialIcloudSync(): Promise<InitialIcloudSyncResult> {
 
   if (remoteFavourites) {
     const nextFavourites =
-      remoteFavourites.updatedAt > localFavouritesUpdatedAt
-        ? remoteFavourites.value
-        : remoteFavourites.updatedAt < localFavouritesUpdatedAt
-          ? localFavourites
-          : mergeFavourites(localFavourites, remoteFavourites.value);
+      remoteFavourites.schemaVersion === 1 &&
+      remoteFavourites.updatedAt !== localFavouritesUpdatedAt
+        ? remoteFavourites.updatedAt > localFavouritesUpdatedAt
+          ? remoteFavourites.value
+          : localFavourites
+        : applyTombstones(
+            mergeFavourites(localFavourites, remoteFavourites.value),
+            remoteFavourites.deleted,
+            (entry) => normalizeIsbn(entry.isbn),
+            (entry) => entry.addedAt
+          );
     const nextFavouritesUpdatedAt = Math.max(localFavouritesUpdatedAt, remoteFavourites.updatedAt);
     if (!hasSameJsonValue(nextFavourites, localFavourites)) {
       result.favourites = await replaceFavourites(nextFavourites, nextFavouritesUpdatedAt);
     } else {
       result.favourites = nextFavourites;
     }
-    writePayload(ICLOUD_FAVOURITES_KEY, nextFavouritesUpdatedAt, nextFavourites);
+    writePayload(
+      ICLOUD_FAVOURITES_KEY,
+      nextFavouritesUpdatedAt,
+      nextFavourites,
+      remoteFavourites.deleted
+    );
   } else {
     result.favourites = localFavourites;
     if (localFavourites.length > 0) {

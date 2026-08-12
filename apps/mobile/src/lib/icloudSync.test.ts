@@ -56,6 +56,8 @@ import {
   mergeFavourites,
   mergeHistoryEntries,
   runInitialIcloudSync,
+  syncFavouritesToIcloud,
+  syncHistoryToIcloud,
 } from './icloudSync';
 import { DEFAULT_PREFERENCES, loadPreferences, loadPreferencesUpdatedAt } from './preferences';
 
@@ -197,6 +199,46 @@ describe('runInitialIcloudSync', () => {
     jest.mocked(setIcloudString).mockReturnValue(false);
 
     await expect(runInitialIcloudSync()).rejects.toThrow('Failed to write iCloud value');
+  });
+
+  it('merges independent additions from a version 2 payload regardless of collection timestamps', async () => {
+    jest.mocked(loadHistory).mockResolvedValue([{ type: 'title', title: 'Local', viewedAt: 300 }]);
+    jest.mocked(loadHistoryUpdatedAt).mockResolvedValue(300);
+    jest.mocked(getIcloudString).mockImplementation((key) =>
+      key === ICLOUD_HISTORY_KEY
+        ? JSON.stringify({
+            schemaVersion: 2,
+            updatedAt: 400,
+            value: [{ type: 'title', title: 'Remote', viewedAt: 200 }],
+            deleted: {},
+          })
+        : null
+    );
+
+    const result = await runInitialIcloudSync();
+    expect(result.history?.map((entry) => entry.title)).toEqual(['Local', 'Remote']);
+  });
+
+  it('records and applies tombstones for explicit removals', async () => {
+    const remoteHistory = [{ type: 'title' as const, title: 'Removed', viewedAt: 100 }];
+    const remoteFavourite = { isbn: '9786264560092', title: 'Removed', addedAt: 100 };
+    jest.mocked(getIcloudString).mockImplementation((key) =>
+      JSON.stringify({
+        schemaVersion: 2,
+        updatedAt: 100,
+        value: key === ICLOUD_HISTORY_KEY ? remoteHistory : [remoteFavourite],
+        deleted: {},
+      })
+    );
+
+    await syncHistoryToIcloud([], { mergeRemote: false });
+    await syncFavouritesToIcloud([], { mergeRemote: false });
+
+    const payloads = jest.mocked(setIcloudString).mock.calls.map(([, raw]) => JSON.parse(raw));
+    expect(payloads[0].deleted['title:removed']).toEqual(expect.any(Number));
+    expect(payloads[1].deleted['9786264560092']).toEqual(expect.any(Number));
+    expect(payloads[0].value).toEqual([]);
+    expect(payloads[1].value).toEqual([]);
   });
 });
 
