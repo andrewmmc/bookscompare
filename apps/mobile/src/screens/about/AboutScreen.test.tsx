@@ -37,19 +37,19 @@ describe('AboutScreen', () => {
     });
   });
 
-  it('opens in-app links in the webview screen when preference is app', () => {
+  it('opens in-app links in the webview screen when preference is app', async () => {
     const navigation = {
       navigate: jest.fn(),
     };
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <AboutScreen
         navigation={navigation as never}
         route={{ key: 'About', name: 'About' } as never}
       />
     );
 
-    fireEvent.press(screen.getByText('使用條款及私隱政策'));
+    await fireEvent.press(screen.getByText('使用條款及私隱政策'));
 
     expect(navigation.navigate).toHaveBeenCalledWith('AboutWebView', {
       title: '使用條款及私隱政策',
@@ -57,7 +57,7 @@ describe('AboutScreen', () => {
     });
   });
 
-  it('opens links externally when preference is browser', () => {
+  it('opens links externally when preference is browser', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'browser',
       themeMode: 'system',
@@ -70,14 +70,14 @@ describe('AboutScreen', () => {
       navigate: jest.fn(),
     };
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <AboutScreen
         navigation={navigation as never}
         route={{ key: 'About', name: 'About' } as never}
       />
     );
 
-    fireEvent.press(screen.getByText('提交意見'));
+    await fireEvent.press(screen.getByText('提交意見'));
 
     expect(navigation.navigate).not.toHaveBeenCalled();
     expect(openExternalUrl).toHaveBeenCalledWith(
@@ -85,19 +85,19 @@ describe('AboutScreen', () => {
     );
   });
 
-  it('navigates to settings screen', () => {
+  it('navigates to settings screen', async () => {
     const navigation = {
       navigate: jest.fn(),
     };
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <AboutScreen
         navigation={navigation as never}
         route={{ key: 'About', name: 'About' } as never}
       />
     );
 
-    fireEvent.press(screen.getByText('設定'));
+    await fireEvent.press(screen.getByText('設定'));
 
     expect(navigation.navigate).toHaveBeenCalledWith('Settings');
   });

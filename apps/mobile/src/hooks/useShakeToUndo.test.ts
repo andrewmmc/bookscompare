@@ -22,12 +22,12 @@ describe('useShakeToUndo', () => {
     sensorListener = undefined;
   });
 
-  it('runs undo after two strong movements and removes the listener on unmount', () => {
+  it('runs undo after two strong movements and removes the listener on unmount', async () => {
     const onUndo = jest.fn();
     const nowSpy = jest.spyOn(Date, 'now').mockReturnValueOnce(10_000).mockReturnValueOnce(10_100);
-    const { unmount } = renderHook(() => useShakeToUndo(onUndo, true));
+    const { unmount } = await renderHook(() => useShakeToUndo(onUndo, true));
 
-    act(() => {
+    await act(() => {
       sensorListener?.({ x: 0, y: 0, z: 1 });
       sensorListener?.({ x: 2, y: 0, z: 0 });
       sensorListener?.({ x: -2, y: 0, z: 0 });
@@ -35,13 +35,13 @@ describe('useShakeToUndo', () => {
 
     expect(Accelerometer.setUpdateInterval).toHaveBeenCalledWith(100);
     expect(onUndo).toHaveBeenCalledTimes(1);
-    unmount();
+    await unmount();
     expect(mockRemove).toHaveBeenCalledTimes(1);
     nowSpy.mockRestore();
   });
 
-  it('does not subscribe when there is nothing to undo', () => {
-    renderHook(() => useShakeToUndo(jest.fn(), false));
+  it('does not subscribe when there is nothing to undo', async () => {
+    await renderHook(() => useShakeToUndo(jest.fn(), false));
     expect(Accelerometer.addListener).not.toHaveBeenCalled();
   });
 });

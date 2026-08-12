@@ -37,8 +37,8 @@ describe('StorePreferencesScreen', () => {
     });
   });
 
-  it('renders all bookstore toggles', () => {
-    const screen = renderWithProviders(
+  it('renders all bookstore toggles', async () => {
+    const screen = await renderWithProviders(
       <StorePreferencesScreen
         navigation={{} as never}
         route={{ key: 'StorePreferences', name: 'StorePreferences' } as never}
@@ -51,8 +51,8 @@ describe('StorePreferencesScreen', () => {
     expect(screen.getByText('誠品線上')).toBeOnTheScreen();
   });
 
-  it('toggles are off when no preferred sources are set', () => {
-    const screen = renderWithProviders(
+  it('toggles are off when no preferred sources are set', async () => {
+    const screen = await renderWithProviders(
       <StorePreferencesScreen
         navigation={{} as never}
         route={{ key: 'StorePreferences', name: 'StorePreferences' } as never}
@@ -63,15 +63,15 @@ describe('StorePreferencesScreen', () => {
     expect(toggle.props.value).toBe(false);
   });
 
-  it('toggles on a store and persists the preference', () => {
-    const screen = renderWithProviders(
+  it('toggles on a store and persists the preference', async () => {
+    const screen = await renderWithProviders(
       <StorePreferencesScreen
         navigation={{} as never}
         route={{ key: 'StorePreferences', name: 'StorePreferences' } as never}
       />
     );
 
-    fireEvent(screen.getByTestId('store-toggle-books-com-tw'), 'valueChange', true);
+    await fireEvent(screen.getByTestId('store-toggle-books-com-tw'), 'valueChange', true);
 
     expect(mockUpdatePreference).toHaveBeenCalledWith('preferredSources', ['books-com-tw']);
     expect(track).toHaveBeenCalledWith('settings_change', {
@@ -80,7 +80,7 @@ describe('StorePreferencesScreen', () => {
     });
   });
 
-  it('toggles off a store that was previously selected', () => {
+  it('toggles off a store that was previously selected', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
       themeMode: 'system',
@@ -89,19 +89,19 @@ describe('StorePreferencesScreen', () => {
       icloudSyncEnabled: true,
     });
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <StorePreferencesScreen
         navigation={{} as never}
         route={{ key: 'StorePreferences', name: 'StorePreferences' } as never}
       />
     );
 
-    fireEvent(screen.getByTestId('store-toggle-books-com-tw'), 'valueChange', false);
+    await fireEvent(screen.getByTestId('store-toggle-books-com-tw'), 'valueChange', false);
 
     expect(mockUpdatePreference).toHaveBeenCalledWith('preferredSources', ['eslite']);
   });
 
-  it('reflects currently selected stores as toggled on', () => {
+  it('reflects currently selected stores as toggled on', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
       themeMode: 'system',
@@ -110,7 +110,7 @@ describe('StorePreferencesScreen', () => {
       icloudSyncEnabled: true,
     });
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <StorePreferencesScreen
         navigation={{} as never}
         route={{ key: 'StorePreferences', name: 'StorePreferences' } as never}

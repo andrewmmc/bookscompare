@@ -37,8 +37,8 @@ describe('ThemePreferencesScreen', () => {
     });
   });
 
-  it('renders all appearance options', () => {
-    const screen = renderWithProviders(
+  it('renders all appearance options', async () => {
+    const screen = await renderWithProviders(
       <ThemePreferencesScreen
         navigation={{} as never}
         route={{ key: 'ThemePreferences', name: 'ThemePreferences' } as never}
@@ -50,15 +50,15 @@ describe('ThemePreferencesScreen', () => {
     expect(screen.getByText('深色')).toBeOnTheScreen();
   });
 
-  it('persists the selected theme option', () => {
-    const screen = renderWithProviders(
+  it('persists the selected theme option', async () => {
+    const screen = await renderWithProviders(
       <ThemePreferencesScreen
         navigation={{} as never}
         route={{ key: 'ThemePreferences', name: 'ThemePreferences' } as never}
       />
     );
 
-    fireEvent.press(screen.getByTestId('theme-option-dark'));
+    await fireEvent.press(screen.getByTestId('theme-option-dark'));
 
     expect(mockUpdatePreference).toHaveBeenCalledWith('themeMode', 'dark');
     expect(track).toHaveBeenCalledWith('settings_change', {
@@ -67,21 +67,21 @@ describe('ThemePreferencesScreen', () => {
     });
   });
 
-  it('does not persist when the selected option is pressed again', () => {
-    const screen = renderWithProviders(
+  it('does not persist when the selected option is pressed again', async () => {
+    const screen = await renderWithProviders(
       <ThemePreferencesScreen
         navigation={{} as never}
         route={{ key: 'ThemePreferences', name: 'ThemePreferences' } as never}
       />
     );
 
-    fireEvent.press(screen.getByTestId('theme-option-system'));
+    await fireEvent.press(screen.getByTestId('theme-option-system'));
 
     expect(mockUpdatePreference).not.toHaveBeenCalled();
     expect(track).not.toHaveBeenCalled();
   });
 
-  it('marks the current theme option as selected', () => {
+  it('marks the current theme option as selected', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
       themeMode: 'light',
@@ -90,7 +90,7 @@ describe('ThemePreferencesScreen', () => {
       icloudSyncEnabled: true,
     });
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <ThemePreferencesScreen
         navigation={{} as never}
         route={{ key: 'ThemePreferences', name: 'ThemePreferences' } as never}

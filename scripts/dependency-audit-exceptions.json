@@ -1,5 +1,5 @@
 {
-  "advisoryIds": [1138808, 1138809],
+  "advisoryIds": [1119441, 1138808, 1138809],
   "reviewBy": "2026-11-12",
-  "reason": "Metro's image-size dependency has no patched npm release: the latest version, 2.0.2, remains affected. It is build tooling, not part of the shipped app runtime."
+  "reason": "Metro's latest image-size dependency and Expo's xcode dependency have no upstream patched ranges available. Both are build tooling and are not part of the shipped app runtime."
 }

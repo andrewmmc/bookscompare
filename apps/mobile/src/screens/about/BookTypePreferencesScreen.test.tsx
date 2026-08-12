@@ -37,8 +37,8 @@ describe('BookTypePreferencesScreen', () => {
     });
   });
 
-  it('renders all book type toggles', () => {
-    const screen = renderWithProviders(
+  it('renders all book type toggles', async () => {
+    const screen = await renderWithProviders(
       <BookTypePreferencesScreen
         navigation={{} as never}
         route={{ key: 'BookTypePreferences', name: 'BookTypePreferences' } as never}
@@ -49,15 +49,15 @@ describe('BookTypePreferencesScreen', () => {
     expect(screen.getByText('電子書')).toBeOnTheScreen();
   });
 
-  it('toggles on ebook preference and persists it', () => {
-    const screen = renderWithProviders(
+  it('toggles on ebook preference and persists it', async () => {
+    const screen = await renderWithProviders(
       <BookTypePreferencesScreen
         navigation={{} as never}
         route={{ key: 'BookTypePreferences', name: 'BookTypePreferences' } as never}
       />
     );
 
-    fireEvent(screen.getByTestId('book-type-toggle-ebook'), 'valueChange', true);
+    await fireEvent(screen.getByTestId('book-type-toggle-ebook'), 'valueChange', true);
 
     expect(mockUpdatePreference).toHaveBeenCalledWith('preferredBookTypes', ['ebook']);
     expect(track).toHaveBeenCalledWith('settings_change', {
@@ -66,7 +66,7 @@ describe('BookTypePreferencesScreen', () => {
     });
   });
 
-  it('turning off one selected type keeps the other selected type', () => {
+  it('turning off one selected type keeps the other selected type', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
       themeMode: 'system',
@@ -75,14 +75,14 @@ describe('BookTypePreferencesScreen', () => {
       icloudSyncEnabled: true,
     });
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <BookTypePreferencesScreen
         navigation={{} as never}
         route={{ key: 'BookTypePreferences', name: 'BookTypePreferences' } as never}
       />
     );
 
-    fireEvent(screen.getByTestId('book-type-toggle-physical'), 'valueChange', false);
+    await fireEvent(screen.getByTestId('book-type-toggle-physical'), 'valueChange', false);
 
     expect(mockUpdatePreference).toHaveBeenCalledWith('preferredBookTypes', ['ebook']);
     expect(track).toHaveBeenCalledWith('settings_change', {
@@ -91,7 +91,7 @@ describe('BookTypePreferencesScreen', () => {
     });
   });
 
-  it('reflects the currently selected book type', () => {
+  it('reflects the currently selected book type', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
       themeMode: 'system',
@@ -100,7 +100,7 @@ describe('BookTypePreferencesScreen', () => {
       icloudSyncEnabled: true,
     });
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <BookTypePreferencesScreen
         navigation={{} as never}
         route={{ key: 'BookTypePreferences', name: 'BookTypePreferences' } as never}
@@ -111,7 +111,7 @@ describe('BookTypePreferencesScreen', () => {
     expect(screen.getByTestId('book-type-toggle-physical').props.value).toBe(false);
   });
 
-  it('turning off the only selected type resets to all', () => {
+  it('turning off the only selected type resets to all', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
       themeMode: 'system',
@@ -120,14 +120,14 @@ describe('BookTypePreferencesScreen', () => {
       icloudSyncEnabled: true,
     });
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <BookTypePreferencesScreen
         navigation={{} as never}
         route={{ key: 'BookTypePreferences', name: 'BookTypePreferences' } as never}
       />
     );
 
-    fireEvent(screen.getByTestId('book-type-toggle-physical'), 'valueChange', false);
+    await fireEvent(screen.getByTestId('book-type-toggle-physical'), 'valueChange', false);
 
     expect(mockUpdatePreference).toHaveBeenCalledWith('preferredBookTypes', []);
     expect(track).toHaveBeenCalledWith('settings_change', {

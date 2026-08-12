@@ -25,10 +25,7 @@ const SEARCH_QUERY_MAX_LENGTH = 100;
 const AUTHOR_QUERY_MAX_LENGTH = 100;
 
 type CachedLookupPayload =
-  | SearchResponse
-  | BookDetailResponse
-  | ApiErrorResponse
-  | Record<string, string | boolean>;
+  SearchResponse | BookDetailResponse | ApiErrorResponse | Record<string, string | boolean>;
 
 function jsonResponse(
   payload: CachedLookupPayload,

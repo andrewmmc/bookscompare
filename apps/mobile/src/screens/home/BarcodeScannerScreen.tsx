@@ -79,7 +79,7 @@ export function BarcodeScannerScreen({ navigation }: Props) {
                 });
               }
         }
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
 
       <View style={styles.overlay} pointerEvents="none">
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,

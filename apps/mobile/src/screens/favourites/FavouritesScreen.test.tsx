@@ -1,6 +1,6 @@
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
-import { Alert, FlatList } from 'react-native';
+import { Alert } from 'react-native';
 
 import { FavouritesScreen } from './FavouritesScreen';
 import { track } from '../../analytics';
@@ -44,11 +44,11 @@ describe('FavouritesScreen', () => {
     );
   });
 
-  it('shows empty state when there are no favourites', () => {
+  it('shows empty state when there are no favourites', async () => {
     mockUseFavourites.mockReturnValue({ data: [], isLoading: false });
 
     const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <FavouritesScreen
         navigation={navigation as never}
         route={{ key: 'Favourites', name: 'Favourites', params: undefined } as never}
@@ -58,7 +58,7 @@ describe('FavouritesScreen', () => {
     expect(screen.getByText('還沒有收藏任何書')).toBeOnTheScreen();
   });
 
-  it('renders favourites and navigates to SearchResult on tap', () => {
+  it('renders favourites and navigates to SearchResult on tap', async () => {
     mockUseFavourites.mockReturnValue({
       data: [
         { isbn: '9789861336275', title: '我的最愛之書', addedAt: 2000 },
@@ -68,7 +68,7 @@ describe('FavouritesScreen', () => {
     });
 
     const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <FavouritesScreen
         navigation={navigation as never}
         route={{ key: 'Favourites', name: 'Favourites', params: undefined } as never}
@@ -79,7 +79,7 @@ describe('FavouritesScreen', () => {
     expect(screen.getByText('另一本書')).toBeOnTheScreen();
     expect(screen.getByText('ISBN 9789861336275')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByText('我的最愛之書'));
+    await fireEvent.press(screen.getByText('我的最愛之書'));
     expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', {
       isbn: '9789861336275',
     });
@@ -95,24 +95,25 @@ describe('FavouritesScreen', () => {
       isLoading: false,
     });
     const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <FavouritesScreen
         navigation={navigation as never}
         route={{ key: 'Favourites', name: 'Favourites', params: undefined } as never}
       />
     );
 
-    expect(
-      screen.UNSAFE_getByType(FlatList).props.data.map((item: { title: string }) => item.title)
-    ).toEqual(['較新', '較舊']);
+    expect(screen.getAllByText(/較新|較舊/).map((item) => item.props.children)).toEqual([
+      '較新',
+      '較舊',
+    ]);
 
     const headerRight = (navigation.setOptions as jest.Mock).mock.calls.at(-1)?.[0]
       ?.headerRight as () => ReactElement;
-    const header = renderWithProviders(headerRight());
+    const header = await renderWithProviders(headerRight());
     mockShowActionSheet.mockImplementation(
       (_options: unknown, callback: (selectedIndex?: number) => void) => callback(1)
     );
-    fireEvent.press(header.getByLabelText('排序'));
+    await fireEvent.press(header.getByLabelText('排序'));
 
     expect(mockShowActionSheet).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -125,26 +126,27 @@ describe('FavouritesScreen', () => {
     );
 
     await waitFor(() =>
-      expect(
-        screen.UNSAFE_getByType(FlatList).props.data.map((item: { title: string }) => item.title)
-      ).toEqual(['較舊', '較新'])
+      expect(screen.getAllByText(/較新|較舊/).map((item) => item.props.children)).toEqual([
+        '較舊',
+        '較新',
+      ])
     );
   });
 
-  it('removes one favourite without confirmation', () => {
+  it('removes one favourite without confirmation', async () => {
     const favourite = { isbn: '9789861336275', title: '我的最愛之書', addedAt: 2000 };
     mockUseFavourites.mockReturnValue({ data: [favourite], isLoading: false });
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <FavouritesScreen
         navigation={navigation as never}
         route={{ key: 'Favourites', name: 'Favourites', params: undefined } as never}
       />
     );
 
-    fireEvent.press(screen.getByLabelText('從收藏中移除'));
+    await fireEvent.press(screen.getByLabelText('從收藏中移除'));
 
     expect(mockMutate).toHaveBeenCalledWith('9789861336275', expect.any(Object));
     expect(alertSpy).not.toHaveBeenCalled();
@@ -154,7 +156,7 @@ describe('FavouritesScreen', () => {
     alertSpy.mockRestore();
   });
 
-  it('confirms before clearing all favourites', () => {
+  it('confirms before clearing all favourites', async () => {
     mockUseFavourites.mockReturnValue({
       data: [{ isbn: '9789861336275', title: '我的最愛之書', addedAt: 2000 }],
       isLoading: false,
@@ -162,7 +164,7 @@ describe('FavouritesScreen', () => {
 
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
-    renderWithProviders(
+    await renderWithProviders(
       <FavouritesScreen
         navigation={navigation as never}
         route={{ key: 'Favourites', name: 'Favourites', params: undefined } as never}
@@ -171,14 +173,13 @@ describe('FavouritesScreen', () => {
 
     const setOptions = navigation.setOptions as jest.Mock;
     const headerRight = setOptions.mock.calls.at(-1)?.[0]?.headerRight as
-      | (() => ReactElement<{ onPress: () => void }> | null)
-      | undefined;
+      (() => ReactElement<{ onPress: () => void }> | null) | undefined;
     expect(headerRight).toBeDefined();
     const headerNode = headerRight!();
     expect(headerNode).not.toBeNull();
-    const header = renderWithProviders(headerNode!);
+    const header = await renderWithProviders(headerNode!);
     expect(header.getByLabelText('排序')).toBeOnTheScreen();
-    fireEvent.press(header.getByLabelText('全部清除'));
+    await fireEvent.press(header.getByLabelText('全部清除'));
 
     expect(alertSpy).toHaveBeenCalledWith(
       '清除所有收藏？',
@@ -199,11 +200,11 @@ describe('FavouritesScreen', () => {
     alertSpy.mockRestore();
   });
 
-  it('keeps sort enabled and disables clear-all when there are no favourites', () => {
+  it('keeps sort enabled and disables clear-all when there are no favourites', async () => {
     mockUseFavourites.mockReturnValue({ data: [], isLoading: false });
 
     const navigation = { navigate: jest.fn(), setOptions: jest.fn() };
-    renderWithProviders(
+    await renderWithProviders(
       <FavouritesScreen
         navigation={navigation as never}
         route={{ key: 'Favourites', name: 'Favourites', params: undefined } as never}
@@ -212,10 +213,9 @@ describe('FavouritesScreen', () => {
 
     const setOptions = navigation.setOptions as jest.Mock;
     const headerRight = setOptions.mock.calls.at(-1)?.[0]?.headerRight as
-      | (() => ReactElement)
-      | undefined;
+      (() => ReactElement) | undefined;
     expect(headerRight).toBeDefined();
-    const header = renderWithProviders(headerRight!());
+    const header = await renderWithProviders(headerRight!());
     expect(header.getByLabelText('排序')).toBeEnabled();
     expect(header.getByLabelText('全部清除')).toBeDisabled();
   });

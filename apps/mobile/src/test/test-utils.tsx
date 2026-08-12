@@ -3,6 +3,7 @@ import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react-native';
 import { PaperProvider } from 'react-native-paper';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { paperThemeDark, paperThemeLight } from '../theme/paperTheme';
 import { ThemeProvider } from '../theme/ThemeProvider';
@@ -30,16 +31,18 @@ export function renderWithProviders(element: ReactElement, options: RenderOption
   const paperTheme = scheme === 'dark' ? paperThemeDark : paperThemeLight;
 
   return render(
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider schemeOverride={scheme}>
-        <PaperProvider theme={paperTheme}>
-          <ActionSheetProvider>
-            <BottomTabBarHeightContext.Provider value={0}>
-              {element}
-            </BottomTabBarHeightContext.Provider>
-          </ActionSheetProvider>
-        </PaperProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider schemeOverride={scheme}>
+          <PaperProvider theme={paperTheme}>
+            <ActionSheetProvider>
+              <BottomTabBarHeightContext.Provider value={0}>
+                {element}
+              </BottomTabBarHeightContext.Provider>
+            </ActionSheetProvider>
+          </PaperProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }

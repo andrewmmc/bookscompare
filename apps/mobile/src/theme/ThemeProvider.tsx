@@ -35,7 +35,7 @@ export function ThemeProvider({ children, schemeOverride }: ThemeProviderProps) 
       return;
     }
     if (preferences.themeMode === 'system') {
-      Appearance.setColorScheme(null);
+      Appearance.setColorScheme('unspecified');
     } else {
       Appearance.setColorScheme(preferences.themeMode);
     }

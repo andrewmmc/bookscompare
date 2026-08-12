@@ -169,6 +169,7 @@ function OfferRow({
     <Pressable
       android_ripple={{ color: colors.rowPressed }}
       onPress={() => onOpen(item)}
+      testID={`offer-${item.sourceProductId}`}
       style={({ pressed }) => [
         styles.row,
         isFirst && styles.rowFirst,
@@ -401,6 +402,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
           <Pressable
             accessibilityLabel={strings.searchResult.sortAccessibilityLabel}
             accessibilityRole="button"
+            accessibilityState={{ selected: sortMode !== 'price' }}
             hitSlop={12}
             onPress={() => {
               const selectedPrefix = '✓ ';
@@ -607,12 +609,13 @@ export function SearchResultScreen({ navigation, route }: Props) {
       <View style={styles.listHeader}>
         <Text style={styles.sectionHeader}>{strings.searchResult.resultsCount(resultCount)}</Text>
       </View>
-    ) : null;
+    ) : undefined;
 
   return (
     <View style={styles.container}>
       <FlatList
         data={offers}
+        testID="search-results-list"
         style={styles.list}
         contentContainerStyle={[styles.listContent, { paddingBottom: tabBarHeight + spacing.xl }]}
         contentInsetAdjustmentBehavior="automatic"

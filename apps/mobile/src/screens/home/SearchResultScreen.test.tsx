@@ -1,6 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Clipboard from 'expo-clipboard';
-import { FlatList } from 'react-native';
 import { act, fireEvent } from '@testing-library/react-native';
 
 import { SearchResultScreen } from './SearchResultScreen';
@@ -174,7 +172,7 @@ describe('SearchResultScreen', () => {
     });
   });
 
-  it('renders ISBN offers and opens the selected store in-app', () => {
+  it('renders ISBN offers and opens the selected store in-app', async () => {
     mockUseIsbnLookup.mockReturnValue({
       data: createIsbnData(),
       error: null,
@@ -184,7 +182,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={
@@ -193,7 +191,7 @@ describe('SearchResultScreen', () => {
       />
     );
 
-    fireEvent.press(screen.getByText('博客來: 設計中的書'));
+    await fireEvent.press(screen.getByText('博客來: 設計中的書'));
 
     expect(mockUseIsbnLookup).toHaveBeenCalledWith('9781402894626');
     expect(navigation.navigate).toHaveBeenCalledWith('SearchWebView', {
@@ -203,7 +201,7 @@ describe('SearchResultScreen', () => {
     });
   });
 
-  it('renders title-search offers, records history, and opens the selected store', () => {
+  it('renders title-search offers, records history, and opens the selected store', async () => {
     mockUseTitleSearch.mockReturnValue({
       data: createTitleData([
         createOffer(),
@@ -224,7 +222,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
@@ -235,7 +233,7 @@ describe('SearchResultScreen', () => {
     expect(screen.getByText('誠品線上: 設計中的書')).toBeOnTheScreen();
     expect(screen.getByText('電子書')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByText('誠品線上: 設計中的書'));
+    await fireEvent.press(screen.getByText('誠品線上: 設計中的書'));
 
     expect(mockAddHistoryEntryMutate).toHaveBeenCalledWith({ type: 'title', title: '設計' });
     expect(navigation.navigate).toHaveBeenCalledWith('SearchWebView', {
@@ -245,7 +243,7 @@ describe('SearchResultScreen', () => {
     });
   });
 
-  it('shows a loading overlay while waiting for results', () => {
+  it('shows a loading overlay while waiting for results', async () => {
     mockUseTitleSearch.mockReturnValue({
       data: undefined,
       error: null,
@@ -255,7 +253,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
@@ -266,7 +264,7 @@ describe('SearchResultScreen', () => {
     expect(track).not.toHaveBeenCalledWith('search_result_error', expect.anything());
   });
 
-  it('shows a network error state and retries', () => {
+  it('shows a network error state and retries', async () => {
     const refetch = jest.fn();
     mockUseTitleSearch.mockReturnValue({
       data: undefined,
@@ -277,7 +275,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
@@ -286,13 +284,13 @@ describe('SearchResultScreen', () => {
 
     expect(screen.getByText('未能載入內容')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByText('重新載入'));
+    await fireEvent.press(screen.getByText('重新載入'));
 
     expect(track).toHaveBeenCalledWith('search_result_error', { searchType: 'title' });
     expect(refetch).toHaveBeenCalled();
   });
 
-  it('shows an all-sources-errored empty state and retries', () => {
+  it('shows an all-sources-errored empty state and retries', async () => {
     const refetch = jest.fn();
     mockUseTitleSearch.mockReturnValue({
       data: createTitleData([], {
@@ -305,7 +303,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
@@ -314,13 +312,13 @@ describe('SearchResultScreen', () => {
 
     expect(screen.getByText('書店暫時無法回應')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByText('重新載入'));
+    await fireEvent.press(screen.getByText('重新載入'));
 
     expect(track).toHaveBeenCalledWith('search_result_empty', { searchType: 'title' });
     expect(refetch).toHaveBeenCalled();
   });
 
-  it('shows a not-live empty state and retries', () => {
+  it('shows a not-live empty state and retries', async () => {
     const refetch = jest.fn();
     mockUseTitleSearch.mockReturnValue({
       data: createTitleData([], { liveScraping: false }),
@@ -331,7 +329,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
@@ -340,12 +338,12 @@ describe('SearchResultScreen', () => {
 
     expect(screen.getByText('即時搜尋尚未啟用')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByText('重新載入'));
+    await fireEvent.press(screen.getByText('重新載入'));
 
     expect(refetch).toHaveBeenCalled();
   });
 
-  it('renders an empty state when title results have no offers', () => {
+  it('renders an empty state when title results have no offers', async () => {
     mockUseTitleSearch.mockReturnValue({
       data: createTitleData([]),
       error: null,
@@ -355,7 +353,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
@@ -366,7 +364,7 @@ describe('SearchResultScreen', () => {
     expect(navigation.navigate).not.toHaveBeenCalled();
   });
 
-  it('filters title-search offers by preferred book type', () => {
+  it('filters title-search offers by preferred book type', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
       themeMode: 'system',
@@ -394,7 +392,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
@@ -406,7 +404,7 @@ describe('SearchResultScreen', () => {
     expect(screen.queryByText('電子書')).toBeNull();
   });
 
-  it('sorts offers cheapest-first and badges the lowest price', () => {
+  it('sorts offers cheapest-first and badges the lowest price', async () => {
     mockUseTitleSearch.mockReturnValue({
       data: createTitleData([
         createOffer({
@@ -431,19 +429,21 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
       />
     );
 
-    const list = screen.UNSAFE_getByType(FlatList);
-    expect(list.props.data.map((offer: BookOffer) => offer.price)).toEqual([250, 360]);
+    expect(screen.getAllByTestId(/^offer-/).map((offer) => offer.props.testID)).toEqual([
+      'offer-item-cheap',
+      'offer-item-pricey',
+    ]);
     expect(screen.getByText('最低價')).toBeOnTheScreen();
   });
 
-  it('sorts offers from the header popover using the configured bookstore preference', () => {
+  it('sorts offers from the header popover using the configured bookstore preference', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
       themeMode: 'system',
@@ -475,7 +475,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
@@ -483,14 +483,14 @@ describe('SearchResultScreen', () => {
     );
 
     const headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
-    const header = renderWithProviders(<>{headerRight()}</>);
-    expect(header.getByLabelText('搜尋結果排序方式').findByType(Ionicons).props.color).toBe(
-      '#1c1c1e'
-    );
+    const header = await renderWithProviders(<>{headerRight()}</>);
+    expect(header.getByLabelText('搜尋結果排序方式').props.accessibilityState).toEqual({
+      selected: false,
+    });
     mockShowActionSheet.mockImplementation(
       (_options: unknown, callback: (selectedIndex?: number) => void) => callback(1)
     );
-    fireEvent.press(header.getByLabelText('搜尋結果排序方式'));
+    await fireEvent.press(header.getByLabelText('搜尋結果排序方式'));
 
     expect(mockShowActionSheet).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -502,23 +502,22 @@ describe('SearchResultScreen', () => {
       expect.any(Function)
     );
 
-    const list = screen.UNSAFE_getByType(FlatList);
-    expect(list.props.data.map((offer: BookOffer) => offer.sourceId)).toEqual([
-      'eslite',
-      'books-com-tw',
+    expect(screen.getAllByTestId(/^offer-/).map((offer) => offer.props.testID)).toEqual([
+      'offer-item-eslite',
+      'offer-item-books',
     ]);
     expect(track).toHaveBeenCalledWith('search_result_change_sort', { sortMode: 'store' });
 
-    header.unmount();
+    await header.unmount();
     const activeHeaderRight = navigation.setOptions.mock.calls.at(-1)?.[0]
       .headerRight as () => ReactNode;
-    const activeHeader = renderWithProviders(<>{activeHeaderRight()}</>);
-    expect(activeHeader.getByLabelText('搜尋結果排序方式').findByType(Ionicons).props.color).toBe(
-      '#ca5d3b'
-    );
+    const activeHeader = await renderWithProviders(<>{activeHeaderRight()}</>);
+    expect(activeHeader.getByLabelText('搜尋結果排序方式').props.accessibilityState).toEqual({
+      selected: true,
+    });
   });
 
-  it('sorts physical and ebook offers first from the header popover', () => {
+  it('sorts physical and ebook offers first from the header popover', async () => {
     mockUseTitleSearch.mockReturnValue({
       data: createTitleData([
         createOffer({
@@ -545,40 +544,39 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
       />
     );
 
-    const list = screen.UNSAFE_getByType(FlatList);
     let headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
-    let header = renderWithProviders(<>{headerRight()}</>);
+    let header = await renderWithProviders(<>{headerRight()}</>);
 
     mockShowActionSheet.mockImplementationOnce(
       (_options: unknown, callback: (selectedIndex?: number) => void) => callback(2)
     );
-    fireEvent.press(header.getByLabelText('搜尋結果排序方式'));
-    expect(list.props.data.map((offer: BookOffer) => offer.sourceProductId)).toEqual([
-      'item-physical',
-      'item-ebook',
+    await fireEvent.press(header.getByLabelText('搜尋結果排序方式'));
+    expect(screen.getAllByTestId(/^offer-/).map((offer) => offer.props.testID)).toEqual([
+      'offer-item-physical',
+      'offer-item-ebook',
     ]);
 
-    header.unmount();
+    await header.unmount();
     headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
-    header = renderWithProviders(<>{headerRight()}</>);
+    header = await renderWithProviders(<>{headerRight()}</>);
     mockShowActionSheet.mockImplementationOnce(
       (_options: unknown, callback: (selectedIndex?: number) => void) => callback(3)
     );
-    fireEvent.press(header.getByLabelText('搜尋結果排序方式'));
-    expect(list.props.data.map((offer: BookOffer) => offer.sourceProductId)).toEqual([
-      'item-ebook',
-      'item-physical',
+    await fireEvent.press(header.getByLabelText('搜尋結果排序方式'));
+    expect(screen.getAllByTestId(/^offer-/).map((offer) => offer.props.testID)).toEqual([
+      'offer-item-ebook',
+      'offer-item-physical',
     ]);
   });
 
-  it('shows a filtered-empty state when filters remove every offer', () => {
+  it('shows a filtered-empty state when filters remove every offer', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
       themeMode: 'system',
@@ -595,7 +593,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
@@ -606,7 +604,7 @@ describe('SearchResultScreen', () => {
     expect(screen.queryByText('未能找到結果')).toBeNull();
   });
 
-  it('opens offers in the browser when that preference is selected', () => {
+  it('opens offers in the browser when that preference is selected', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'browser',
       themeMode: 'system',
@@ -623,20 +621,20 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
       />
     );
 
-    fireEvent.press(screen.getByText('博客來: 設計中的書'));
+    await fireEvent.press(screen.getByText('博客來: 設計中的書'));
 
     expect(openExternalUrl).toHaveBeenCalledWith('https://example.com/browser-book');
     expect(navigation.navigate).not.toHaveBeenCalled();
   });
 
-  it('adds a row favourite from title results', () => {
+  it('adds a row favourite from title results', async () => {
     mockUseTitleSearch.mockReturnValue({
       data: createTitleData(),
       error: null,
@@ -646,14 +644,14 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
       />
     );
 
-    fireEvent.press(screen.getByLabelText('加入收藏'));
+    await fireEvent.press(screen.getByLabelText('加入收藏'));
 
     expect(track).toHaveBeenCalledWith('favourite_add', {
       source: 'search_result_row',
@@ -664,7 +662,7 @@ describe('SearchResultScreen', () => {
     });
   });
 
-  it('does not render a row favourite action when an offer has no isbn', () => {
+  it('does not render a row favourite action when an offer has no isbn', async () => {
     const offerWithoutIsbn = {
       ...createOffer({ sourceProductId: 'item-no-isbn', url: 'https://example.com/no-isbn' }),
       isbn: undefined,
@@ -679,7 +677,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
@@ -689,7 +687,7 @@ describe('SearchResultScreen', () => {
     expect(screen.queryByLabelText('加入收藏')).toBeNull();
   });
 
-  it('removes a row favourite from title results', () => {
+  it('removes a row favourite from title results', async () => {
     mockUseFavourites.mockReturnValue({
       data: [{ isbn: '9781402894626', title: '設計中的書', addedAt: 1000 }],
       isLoading: false,
@@ -703,14 +701,14 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
       />
     );
 
-    fireEvent.press(screen.getByLabelText('從收藏中移除'));
+    await fireEvent.press(screen.getByLabelText('從收藏中移除'));
 
     expect(track).toHaveBeenCalledWith('favourite_remove', {
       source: 'search_result_row',
@@ -718,7 +716,7 @@ describe('SearchResultScreen', () => {
     expect(mockRemoveFavouriteMutate).toHaveBeenCalledWith('9781402894626');
   });
 
-  it('adds the ISBN result to favourites from the header action', () => {
+  it('adds the ISBN result to favourites from the header action', async () => {
     mockUseIsbnLookup.mockReturnValue({
       data: createIsbnData(),
       error: null,
@@ -728,7 +726,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    renderWithProviders(
+    await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={
@@ -738,9 +736,9 @@ describe('SearchResultScreen', () => {
     );
 
     const headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
-    const header = renderWithProviders(<>{headerRight()}</>);
+    const header = await renderWithProviders(<>{headerRight()}</>);
 
-    fireEvent.press(header.getByLabelText('加入收藏'));
+    await fireEvent.press(header.getByLabelText('加入收藏'));
 
     expect(track).toHaveBeenCalledWith('favourite_add', {
       source: 'search_result_header',
@@ -761,7 +759,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    renderWithProviders(
+    await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={
@@ -771,10 +769,10 @@ describe('SearchResultScreen', () => {
     );
 
     const headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
-    const header = renderWithProviders(<>{headerRight()}</>);
+    const header = await renderWithProviders(<>{headerRight()}</>);
 
     await act(async () => {
-      fireEvent.press(header.getByLabelText('複製 ISBN'));
+      await fireEvent.press(header.getByLabelText('複製 ISBN'));
       await Promise.resolve();
     });
 
@@ -792,7 +790,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    renderWithProviders(
+    await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
@@ -800,10 +798,10 @@ describe('SearchResultScreen', () => {
     );
 
     const headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
-    const header = renderWithProviders(<>{headerRight()}</>);
+    const header = await renderWithProviders(<>{headerRight()}</>);
 
     await act(async () => {
-      fireEvent.press(header.getByLabelText('複製書名'));
+      await fireEvent.press(header.getByLabelText('複製書名'));
       await Promise.resolve();
     });
 
@@ -811,7 +809,7 @@ describe('SearchResultScreen', () => {
     expect(track).toHaveBeenCalledWith('search_result_copy_query', { searchType: 'title' });
   });
 
-  it('removes the ISBN result from favourites from the header action', () => {
+  it('removes the ISBN result from favourites from the header action', async () => {
     mockUseIsFavourite.mockReturnValue(true);
     mockUseIsbnLookup.mockReturnValue({
       data: createIsbnData(),
@@ -822,7 +820,7 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    renderWithProviders(
+    await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={
@@ -832,9 +830,9 @@ describe('SearchResultScreen', () => {
     );
 
     const headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
-    const header = renderWithProviders(<>{headerRight()}</>);
+    const header = await renderWithProviders(<>{headerRight()}</>);
 
-    fireEvent.press(header.getByLabelText('從收藏中移除'));
+    await fireEvent.press(header.getByLabelText('從收藏中移除'));
 
     expect(track).toHaveBeenCalledWith('favourite_remove', {
       source: 'search_result_header',
@@ -842,7 +840,7 @@ describe('SearchResultScreen', () => {
     expect(mockRemoveFavouriteMutate).toHaveBeenCalledWith('9781402894626');
   });
 
-  it('refreshes the list from pull-to-refresh props', () => {
+  it('refreshes the list from pull-to-refresh props', async () => {
     const refetch = jest.fn();
     mockUseTitleSearch.mockReturnValue({
       data: createTitleData(),
@@ -853,14 +851,14 @@ describe('SearchResultScreen', () => {
     });
 
     const navigation = createNavigation();
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SearchResultScreen
         navigation={navigation as never}
         route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
       />
     );
 
-    const list = screen.UNSAFE_getByType(FlatList);
+    const list = screen.getByTestId('search-results-list');
     expect(list.props.refreshing).toBe(true);
 
     list.props.onRefresh();

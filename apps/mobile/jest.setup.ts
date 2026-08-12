@@ -1,3 +1,5 @@
+import 'react-native-gesture-handler/jestSetup';
+
 jest.mock('@expo/vector-icons/Ionicons', () => 'Ionicons');
 
 jest.mock('expo-blur', () => {
@@ -16,5 +18,5 @@ jest.mock('expo-clipboard', () => ({
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
+  require('@react-native-async-storage/async-storage/jest')
 );

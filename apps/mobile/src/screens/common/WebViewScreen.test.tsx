@@ -71,12 +71,12 @@ describe('WebViewScreen', () => {
     jest.restoreAllMocks();
   });
 
-  it('shows a friendly empty state on 404 pages', () => {
+  it('shows a friendly empty state on 404 pages', async () => {
     const navigation = {
       setOptions: jest.fn(),
     };
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <WebViewScreen
         navigation={navigation as never}
         route={
@@ -89,17 +89,17 @@ describe('WebViewScreen', () => {
       />
     );
 
-    fireEvent(screen.getByTestId('mock-webview'), 'onTouchEnd');
+    await fireEvent(screen.getByTestId('mock-webview'), 'onTouchEnd');
 
     expect(screen.getByText('頁面仍在準備中')).toBeTruthy();
   });
 
-  it('does not add a share action when options are hidden', () => {
+  it('does not add a share action when options are hidden', async () => {
     const navigation = {
       setOptions: jest.fn(),
     };
 
-    renderWithProviders(
+    await renderWithProviders(
       <WebViewScreen
         navigation={navigation as never}
         route={
@@ -115,12 +115,12 @@ describe('WebViewScreen', () => {
     expect(navigation.setOptions).toHaveBeenLastCalledWith({ title: '測試頁面' });
   });
 
-  it('adds bottom space for the tab bar', () => {
+  it('adds bottom space for the tab bar', async () => {
     const navigation = {
       setOptions: jest.fn(),
     };
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <WebViewScreen
         navigation={navigation as never}
         route={
@@ -136,12 +136,12 @@ describe('WebViewScreen', () => {
     expect(screen.getByTestId('mock-webview')).toHaveStyle({ marginBottom: 48 });
   });
 
-  it('hides the loading overlay after the web view finishes loading', () => {
+  it('hides the loading overlay after the web view finishes loading', async () => {
     const navigation = {
       setOptions: jest.fn(),
     };
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <WebViewScreen
         navigation={navigation as never}
         route={
@@ -156,17 +156,17 @@ describe('WebViewScreen', () => {
 
     expect(screen.getByText('正在打開書店頁面…')).toBeTruthy();
 
-    fireEvent(screen.getByTestId('mock-webview'), 'layout');
+    await fireEvent(screen.getByTestId('mock-webview'), 'layout');
 
     expect(screen.queryByText('正在打開書店頁面…')).toBeNull();
   });
 
-  it('shows a friendly error state on web view load errors', () => {
+  it('shows a friendly error state on web view load errors', async () => {
     const navigation = {
       setOptions: jest.fn(),
     };
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <WebViewScreen
         navigation={navigation as never}
         route={
@@ -179,14 +179,14 @@ describe('WebViewScreen', () => {
       />
     );
 
-    fireEvent(screen.getByTestId('mock-webview'), 'responderEnd');
+    await fireEvent(screen.getByTestId('mock-webview'), 'responderEnd');
 
     expect(screen.getByText('未能載入內容')).toBeTruthy();
   });
 
-  it('opens cross-origin HTTPS navigation outside the web view', () => {
+  it('opens cross-origin HTTPS navigation outside the web view', async () => {
     const navigation = { setOptions: jest.fn() };
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <WebViewScreen
         navigation={navigation as never}
         route={
@@ -199,17 +199,17 @@ describe('WebViewScreen', () => {
       />
     );
 
-    fireEvent(screen.getByTestId('mock-webview'), 'accessibilityTap');
+    await fireEvent(screen.getByTestId('mock-webview'), 'accessibilityTap');
 
     expect(openExternalUrl).toHaveBeenCalledWith('https://attacker.example/phishing');
   });
 
-  it('opens failed pages externally from the error state', () => {
+  it('opens failed pages externally from the error state', async () => {
     const navigation = {
       setOptions: jest.fn(),
     };
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <WebViewScreen
         navigation={navigation as never}
         route={
@@ -222,18 +222,18 @@ describe('WebViewScreen', () => {
       />
     );
 
-    fireEvent(screen.getByTestId('mock-webview'), 'responderEnd');
-    fireEvent.press(screen.getByText('在瀏覽器開啟'));
+    await fireEvent(screen.getByTestId('mock-webview'), 'responderEnd');
+    await fireEvent.press(screen.getByText('在瀏覽器開啟'));
 
     expect(openExternalUrl).toHaveBeenCalledWith('https://example.com');
   });
 
-  it('adds a share action when options are shown', () => {
+  it('adds a share action when options are shown', async () => {
     const navigation = {
       setOptions: jest.fn(),
     };
 
-    renderWithProviders(
+    await renderWithProviders(
       <WebViewScreen
         navigation={navigation as never}
         route={
@@ -258,9 +258,11 @@ describe('WebViewScreen', () => {
     const navigation = {
       setOptions: jest.fn(),
     };
-    jest.spyOn(Share, 'share').mockResolvedValueOnce({ action: 'sharedAction' });
+    jest
+      .spyOn(Share, 'share')
+      .mockResolvedValueOnce({ action: 'sharedAction', activityType: undefined });
 
-    renderWithProviders(
+    await renderWithProviders(
       <WebViewScreen
         navigation={navigation as never}
         route={
@@ -274,9 +276,9 @@ describe('WebViewScreen', () => {
     );
 
     const headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
-    const header = renderWithProviders(<>{headerRight()}</>);
+    const header = await renderWithProviders(<>{headerRight()}</>);
 
-    fireEvent.press(header.getByLabelText('分享'));
+    await fireEvent.press(header.getByLabelText('分享'));
 
     await waitFor(() =>
       expect(Share.share).toHaveBeenCalledWith({
@@ -295,7 +297,7 @@ describe('WebViewScreen', () => {
     };
     jest.spyOn(Share, 'share').mockRejectedValueOnce(new Error('share unavailable'));
 
-    renderWithProviders(
+    await renderWithProviders(
       <WebViewScreen
         navigation={navigation as never}
         route={
@@ -309,9 +311,9 @@ describe('WebViewScreen', () => {
     );
 
     const headerRight = navigation.setOptions.mock.calls.at(-1)?.[0].headerRight as () => ReactNode;
-    const header = renderWithProviders(<>{headerRight()}</>);
+    const header = await renderWithProviders(<>{headerRight()}</>);
 
-    fireEvent.press(header.getByLabelText('分享'));
+    await fireEvent.press(header.getByLabelText('分享'));
 
     expect(track).toHaveBeenCalledWith('webview_share');
     expect(Share.share).toHaveBeenCalledWith({

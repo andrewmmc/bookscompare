@@ -47,13 +47,13 @@ describe('BarcodeScannerScreen', () => {
     jest.restoreAllMocks();
   });
 
-  it('navigates to results after a valid isbn scan', () => {
+  it('navigates to results after a valid isbn scan', async () => {
     mockUseCameraPermissions.mockReturnValue([{ granted: true }, jest.fn()]);
 
     const navigation = { replace: jest.fn() };
-    const screen = renderScanner(navigation);
+    const screen = await renderScanner(navigation);
 
-    fireEvent.press(screen.getByTestId('camera-view'));
+    await fireEvent.press(screen.getByTestId('camera-view'));
 
     expect(navigation.replace).toHaveBeenCalledWith('SearchResult', {
       isbn: '9781402894626',
@@ -61,31 +61,31 @@ describe('BarcodeScannerScreen', () => {
     expect(mockTrack).toHaveBeenCalledWith('barcode_scanner_valid_barcode', { isbnLength: 13 });
   });
 
-  it('shows a loading state while the permission is still resolving', () => {
+  it('shows a loading state while the permission is still resolving', async () => {
     mockUseCameraPermissions.mockReturnValue([null, jest.fn()]);
 
-    const screen = renderScanner({});
+    const screen = await renderScanner({});
 
     expect(screen.getByText(strings.scanner.permissionCheckingLabel)).toBeTruthy();
     expect(screen.queryByTestId('camera-view')).toBeNull();
   });
 
-  it('prompts to grant permission and requests it when the action is pressed', () => {
+  it('prompts to grant permission and requests it when the action is pressed', async () => {
     const requestPermission = jest.fn();
     mockUseCameraPermissions.mockReturnValue([
       { granted: false, canAskAgain: true },
       requestPermission,
     ]);
 
-    const screen = renderScanner({});
+    const screen = await renderScanner({});
 
     expect(screen.getByText(strings.scanner.permissionRequiredTitle)).toBeTruthy();
-    fireEvent.press(screen.getByText(strings.scanner.permissionRequiredAction));
+    await fireEvent.press(screen.getByText(strings.scanner.permissionRequiredAction));
 
     expect(requestPermission).toHaveBeenCalledTimes(1);
   });
 
-  it('opens settings when camera permission cannot be requested again', () => {
+  it('opens settings when camera permission cannot be requested again', async () => {
     const requestPermission = jest.fn();
     const openSettings = jest.spyOn(Linking, 'openSettings').mockResolvedValue();
     mockUseCameraPermissions.mockReturnValue([
@@ -93,21 +93,23 @@ describe('BarcodeScannerScreen', () => {
       requestPermission,
     ]);
 
-    const screen = renderScanner({});
+    const screen = await renderScanner({});
 
-    fireEvent.press(screen.getByText(strings.scanner.permissionSettingsAction));
+    await fireEvent.press(screen.getByText(strings.scanner.permissionSettingsAction));
 
     expect(openSettings).toHaveBeenCalledTimes(1);
     expect(requestPermission).not.toHaveBeenCalled();
   });
 
-  it('ignores an invalid barcode without navigating', () => {
+  it('ignores an invalid barcode without navigating', async () => {
     mockUseCameraPermissions.mockReturnValue([{ granted: true }, jest.fn()]);
 
     const navigation = { replace: jest.fn() };
-    const screen = renderScanner(navigation);
+    const screen = await renderScanner(navigation);
 
-    fireEvent.press(screen.getByTestId('camera-view'), { nativeEvent: { data: 'not-an-isbn' } });
+    await fireEvent.press(screen.getByTestId('camera-view'), {
+      nativeEvent: { data: 'not-an-isbn' },
+    });
 
     expect(navigation.replace).not.toHaveBeenCalled();
     expect(mockTrack).toHaveBeenCalledWith('barcode_scanner_invalid_barcode');

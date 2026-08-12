@@ -37,8 +37,8 @@ describe('OpenLinksPreferencesScreen', () => {
     });
   });
 
-  it('renders all open link options', () => {
-    const screen = renderWithProviders(
+  it('renders all open link options', async () => {
+    const screen = await renderWithProviders(
       <OpenLinksPreferencesScreen
         navigation={{} as never}
         route={{ key: 'OpenLinksPreferences', name: 'OpenLinksPreferences' } as never}
@@ -49,15 +49,15 @@ describe('OpenLinksPreferencesScreen', () => {
     expect(screen.getByText('在瀏覽器開啟')).toBeOnTheScreen();
   });
 
-  it('persists the selected open link option', () => {
-    const screen = renderWithProviders(
+  it('persists the selected open link option', async () => {
+    const screen = await renderWithProviders(
       <OpenLinksPreferencesScreen
         navigation={{} as never}
         route={{ key: 'OpenLinksPreferences', name: 'OpenLinksPreferences' } as never}
       />
     );
 
-    fireEvent.press(screen.getByTestId('open-links-option-browser'));
+    await fireEvent.press(screen.getByTestId('open-links-option-browser'));
 
     expect(mockUpdatePreference).toHaveBeenCalledWith('openLinksIn', 'browser');
     expect(track).toHaveBeenCalledWith('settings_change', {
@@ -66,21 +66,21 @@ describe('OpenLinksPreferencesScreen', () => {
     });
   });
 
-  it('does not persist when the selected option is pressed again', () => {
-    const screen = renderWithProviders(
+  it('does not persist when the selected option is pressed again', async () => {
+    const screen = await renderWithProviders(
       <OpenLinksPreferencesScreen
         navigation={{} as never}
         route={{ key: 'OpenLinksPreferences', name: 'OpenLinksPreferences' } as never}
       />
     );
 
-    fireEvent.press(screen.getByTestId('open-links-option-app'));
+    await fireEvent.press(screen.getByTestId('open-links-option-app'));
 
     expect(mockUpdatePreference).not.toHaveBeenCalled();
     expect(track).not.toHaveBeenCalled();
   });
 
-  it('marks the current option as selected', () => {
+  it('marks the current option as selected', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'browser',
       themeMode: 'system',
@@ -89,7 +89,7 @@ describe('OpenLinksPreferencesScreen', () => {
       icloudSyncEnabled: true,
     });
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <OpenLinksPreferencesScreen
         navigation={{} as never}
         route={{ key: 'OpenLinksPreferences', name: 'OpenLinksPreferences' } as never}

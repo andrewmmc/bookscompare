@@ -39,7 +39,7 @@ jest.mock('react-native-safe-area-context', () => {
 
 describe('App', () => {
   it('mounts and renders the tab navigator once preferences load', async () => {
-    render(<App />);
+    await render(<App />);
 
     await waitFor(() => {
       expect(screen.getByText(strings.tabs.home)).toBeTruthy();

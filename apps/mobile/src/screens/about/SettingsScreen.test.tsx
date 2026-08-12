@@ -82,8 +82,8 @@ describe('SettingsScreen', () => {
     });
   });
 
-  it('renders current preferences', () => {
-    const screen = renderWithProviders(
+  it('renders current preferences', async () => {
+    const screen = await renderWithProviders(
       <SettingsScreen
         navigation={{} as never}
         route={{ key: 'Settings', name: 'Settings' } as never}
@@ -95,7 +95,7 @@ describe('SettingsScreen', () => {
     expect(screen.getAllByText(/^全部$/)).toHaveLength(2);
   });
 
-  it('renders specific labels for browser, dark mode, ebook-only, and selected stores', () => {
+  it('renders specific labels for browser, dark mode, ebook-only, and selected stores', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'browser',
       themeMode: 'dark',
@@ -104,7 +104,7 @@ describe('SettingsScreen', () => {
       icloudSyncEnabled: false,
     });
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SettingsScreen
         navigation={{} as never}
         route={{ key: 'Settings', name: 'Settings' } as never}
@@ -118,7 +118,7 @@ describe('SettingsScreen', () => {
     expect(screen.getAllByText('關閉')).toHaveLength(2);
   });
 
-  it('renders physical-books label when only physical books are preferred', () => {
+  it('renders physical-books label when only physical books are preferred', async () => {
     mockGetPreferences.mockReturnValue({
       openLinksIn: 'app',
       themeMode: 'light',
@@ -127,7 +127,7 @@ describe('SettingsScreen', () => {
       icloudSyncEnabled: true,
     });
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SettingsScreen
         navigation={{} as never}
         route={{ key: 'Settings', name: 'Settings' } as never}
@@ -138,75 +138,75 @@ describe('SettingsScreen', () => {
     expect(screen.getByText('淺色')).toBeOnTheScreen();
   });
 
-  it('navigates to store preferences', () => {
+  it('navigates to store preferences', async () => {
     const navigation = { navigate: jest.fn() };
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SettingsScreen
         navigation={navigation as never}
         route={{ key: 'Settings', name: 'Settings' } as never}
       />
     );
 
-    fireEvent.press(screen.getByText('書店偏好'));
+    await fireEvent.press(screen.getByText('書店偏好'));
 
     expect(navigation.navigate).toHaveBeenCalledWith('StorePreferences');
   });
 
-  it('navigates to book type preferences', () => {
+  it('navigates to book type preferences', async () => {
     const navigation = { navigate: jest.fn() };
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SettingsScreen
         navigation={navigation as never}
         route={{ key: 'Settings', name: 'Settings' } as never}
       />
     );
 
-    fireEvent.press(screen.getByText('書籍類型'));
+    await fireEvent.press(screen.getByText('書籍類型'));
 
     expect(navigation.navigate).toHaveBeenCalledWith('BookTypePreferences');
   });
 
-  it('navigates to open links preferences', () => {
+  it('navigates to open links preferences', async () => {
     const navigation = { navigate: jest.fn() };
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SettingsScreen
         navigation={navigation as never}
         route={{ key: 'Settings', name: 'Settings' } as never}
       />
     );
 
-    fireEvent.press(screen.getByText(/在 App 內開啟/));
+    await fireEvent.press(screen.getByText(/在 App 內開啟/));
 
     expect(navigation.navigate).toHaveBeenCalledWith('OpenLinksPreferences');
   });
 
-  it('navigates to theme preferences', () => {
+  it('navigates to theme preferences', async () => {
     const navigation = { navigate: jest.fn() };
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SettingsScreen
         navigation={navigation as never}
         route={{ key: 'Settings', name: 'Settings' } as never}
       />
     );
 
-    fireEvent.press(screen.getByText(/跟隨系統/));
+    await fireEvent.press(screen.getByText(/跟隨系統/));
 
     expect(navigation.navigate).toHaveBeenCalledWith('ThemePreferences');
   });
 
-  it('toggles iCloud sync from the iOS settings row', () => {
-    const screen = renderWithProviders(
+  it('toggles iCloud sync from the iOS settings row', async () => {
+    const screen = await renderWithProviders(
       <SettingsScreen
         navigation={{} as never}
         route={{ key: 'Settings', name: 'Settings' } as never}
       />
     );
 
-    fireEvent.press(screen.getByText('iCloud 同步'));
+    await fireEvent.press(screen.getByText('iCloud 同步'));
 
     expect(mockTrack).toHaveBeenCalledWith('settings_change', {
       key: 'icloudSyncEnabled',
@@ -232,14 +232,14 @@ describe('SettingsScreen', () => {
     });
     mockRunInitialIcloudSync.mockResolvedValue({ history: [], favourites: [] });
 
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SettingsScreen
         navigation={{} as never}
         route={{ key: 'Settings', name: 'Settings' } as never}
       />
     );
 
-    fireEvent.press(screen.getByText('iCloud 同步'));
+    await fireEvent.press(screen.getByText('iCloud 同步'));
 
     await waitFor(() => {
       expect(mockSetQueryData).toHaveBeenCalledWith(['history'], []);
@@ -247,21 +247,21 @@ describe('SettingsScreen', () => {
     });
   });
 
-  it('only shows the iCloud sync setting on iOS', () => {
+  it('only shows the iCloud sync setting on iOS', async () => {
     expect(shouldShowIcloudSyncSetting('ios')).toBe(true);
     expect(shouldShowIcloudSyncSetting('android')).toBe(false);
     expect(shouldShowIcloudSyncSetting('web')).toBe(false);
   });
 
-  it('shows a warning alert before resetting all data', () => {
-    const screen = renderWithProviders(
+  it('shows a warning alert before resetting all data', async () => {
+    const screen = await renderWithProviders(
       <SettingsScreen
         navigation={{} as never}
         route={{ key: 'Settings', name: 'Settings' } as never}
       />
     );
 
-    fireEvent.press(screen.getByText('重設所有資料'));
+    await fireEvent.press(screen.getByText('重設所有資料'));
 
     expect(alertSpy).toHaveBeenCalledWith(
       '重設所有資料？',
@@ -271,14 +271,14 @@ describe('SettingsScreen', () => {
   });
 
   it('resets local data and clears iCloud data after confirmation', async () => {
-    const screen = renderWithProviders(
+    const screen = await renderWithProviders(
       <SettingsScreen
         navigation={{} as never}
         route={{ key: 'Settings', name: 'Settings' } as never}
       />
     );
 
-    fireEvent.press(screen.getByText('重設所有資料'));
+    await fireEvent.press(screen.getByText('重設所有資料'));
 
     const buttons = alertSpy.mock.calls[0]?.[2];
     const confirmButton = buttons?.[1];
