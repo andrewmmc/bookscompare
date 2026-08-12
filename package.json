@@ -23,6 +23,7 @@
     "coverage:mobile": "npm run coverage -w @bookscompare/mobile",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run test:mobile && npm run check:api",
     "audit:privacy": "./scripts/audit-privacy.sh",
+    "audit:dependencies": "node scripts/audit-dependencies.mjs",
     "validate:appstore-images": "./scripts/validate-appstore-images.sh",
     "validate:release-notes": "./scripts/validate-release-notes.sh",
     "bump": "./scripts/bump-version.sh patch mobile",

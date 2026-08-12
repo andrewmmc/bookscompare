@@ -1,0 +1,5 @@
+{
+  "advisoryIds": [1117015, 1119441, 1124252, 1124288, 1130709, 1138808, 1138809],
+  "reviewBy": "2026-11-12",
+  "reason": "Expo SDK 54 build-tool dependencies have no compatible patched graph; npm recommends the breaking Expo 57 migration. These packages are used by Metro/prebuild tooling, not the shipped app runtime."
+}

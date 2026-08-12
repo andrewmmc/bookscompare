@@ -83,5 +83,11 @@ export default tseslint.config(
         ...globals.jest,
       },
     },
+  },
+  {
+    files: ['scripts/**/*.{js,mjs}'],
+    languageOptions: {
+      globals: globals.node,
+    },
   }
 );
