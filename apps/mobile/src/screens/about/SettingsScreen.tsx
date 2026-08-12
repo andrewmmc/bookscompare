@@ -118,14 +118,16 @@ export function SettingsScreen({ navigation }: Props) {
         return;
       }
 
-      void runInitialIcloudSync().then((syncResult) => {
-        if (syncResult.history !== undefined) {
-          queryClient.setQueryData(HISTORY_QUERY_KEY, syncResult.history);
-        }
-        if (syncResult.favourites !== undefined) {
-          queryClient.setQueryData(FAVOURITES_QUERY_KEY, syncResult.favourites);
-        }
-      });
+      void runInitialIcloudSync()
+        .then((syncResult) => {
+          if (syncResult.history !== undefined) {
+            queryClient.setQueryData(HISTORY_QUERY_KEY, syncResult.history);
+          }
+          if (syncResult.favourites !== undefined) {
+            queryClient.setQueryData(FAVOURITES_QUERY_KEY, syncResult.favourites);
+          }
+        })
+        .catch(() => undefined);
     });
   };
 

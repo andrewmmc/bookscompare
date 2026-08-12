@@ -28,11 +28,11 @@ export function useAddHistoryEntry() {
     onSuccess: (next) => {
       queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, next);
       void queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
-      void syncHistoryToIcloud(next).then((synced) => {
-        if (synced) {
-          queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, synced);
-        }
-      });
+      void syncHistoryToIcloud(next)
+        .then((synced) => {
+          if (synced) queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, synced);
+        })
+        .catch(() => undefined);
     },
   });
 }
@@ -44,7 +44,7 @@ export function useRemoveHistoryEntry() {
     onSuccess: (next) => {
       queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, next);
       void queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
-      void syncHistoryToIcloud(next, { mergeRemote: false });
+      void syncHistoryToIcloud(next, { mergeRemote: false }).catch(() => undefined);
     },
   });
 }
@@ -56,7 +56,7 @@ export function useRestoreHistoryEntry() {
     onSuccess: (next) => {
       queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, next);
       void queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
-      void syncHistoryToIcloud(next, { mergeRemote: false });
+      void syncHistoryToIcloud(next, { mergeRemote: false }).catch(() => undefined);
     },
   });
 }
@@ -68,7 +68,7 @@ export function useClearHistory() {
     onSuccess: (next) => {
       queryClient.setQueryData<HistoryEntry[]>(HISTORY_QUERY_KEY, next);
       void queryClient.invalidateQueries({ queryKey: HISTORY_QUERY_KEY });
-      void syncHistoryToIcloud(next, { mergeRemote: false });
+      void syncHistoryToIcloud(next, { mergeRemote: false }).catch(() => undefined);
     },
   });
 }

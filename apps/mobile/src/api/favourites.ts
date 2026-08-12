@@ -38,11 +38,11 @@ export function useAddFavourite() {
     mutationFn: (input: { isbn: string; title: string }) => addFavourite(input),
     onSuccess: (next) => {
       queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, next);
-      void syncFavouritesToIcloud(next).then((synced) => {
-        if (synced) {
-          queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, synced);
-        }
-      });
+      void syncFavouritesToIcloud(next)
+        .then((synced) => {
+          if (synced) queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, synced);
+        })
+        .catch(() => undefined);
     },
   });
 }
@@ -53,7 +53,7 @@ export function useRemoveFavourite() {
     mutationFn: (isbn: string) => removeFavourite(isbn),
     onSuccess: (next) => {
       queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, next);
-      void syncFavouritesToIcloud(next, { mergeRemote: false });
+      void syncFavouritesToIcloud(next, { mergeRemote: false }).catch(() => undefined);
     },
   });
 }
@@ -64,7 +64,7 @@ export function useRestoreFavourite() {
     mutationFn: (favourite: Favourite) => restoreFavourite(favourite),
     onSuccess: (next) => {
       queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, next);
-      void syncFavouritesToIcloud(next, { mergeRemote: false });
+      void syncFavouritesToIcloud(next, { mergeRemote: false }).catch(() => undefined);
     },
   });
 }
@@ -75,7 +75,7 @@ export function useClearFavourites() {
     mutationFn: () => clearFavourites(),
     onSuccess: (next) => {
       queryClient.setQueryData<Favourite[]>(FAVOURITES_QUERY_KEY, next);
-      void syncFavouritesToIcloud(next, { mergeRemote: false });
+      void syncFavouritesToIcloud(next, { mergeRemote: false }).catch(() => undefined);
     },
   });
 }
