@@ -62,7 +62,7 @@ export async function fetchHtml(
       const durationMs = Date.now() - startedAt;
       lastError = error;
 
-      if (options.timeoutMs && error instanceof Error && error.name === 'AbortError') {
+      if (options.timeoutMs && error instanceof Error && error.name === 'TimeoutError') {
         lastError = new Error(
           options.errorLabel
             ? `${options.errorLabel} timed out after ${options.timeoutMs}ms.`

@@ -220,7 +220,7 @@ export async function fetchEsliteOffers(
       options.timeoutMs
     );
   } catch (error) {
-    if (options.timeoutMs && error instanceof Error && error.name === 'AbortError') {
+    if (options.timeoutMs && error instanceof Error && error.name === 'TimeoutError') {
       throw new Error(`Eslite timed out after ${options.timeoutMs}ms.`, { cause: error });
     }
 

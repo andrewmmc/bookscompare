@@ -91,7 +91,7 @@ test('fetchHtml retries retryable HTTP statuses before returning text', async (t
 
 test('fetchHtml throws labelled timeout errors when an abort occurs', async (t) => {
   const abortError = new Error('aborted');
-  abortError.name = 'AbortError';
+  abortError.name = 'TimeoutError';
 
   installFetch(t, async () => {
     throw abortError;

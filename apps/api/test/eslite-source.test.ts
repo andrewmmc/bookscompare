@@ -73,7 +73,7 @@ test('fetchEsliteOffers throws labelled errors for failed responses and timeouts
   await assert.rejects(fetchEsliteOffers('9780000000000'), /Eslite returned 503\./);
 
   const abortError = new Error('aborted');
-  abortError.name = 'AbortError';
+  abortError.name = 'TimeoutError';
   globalThis.fetch = (async () => {
     throw abortError;
   }) as typeof fetch;

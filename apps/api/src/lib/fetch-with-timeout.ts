@@ -8,8 +8,14 @@ export async function fetchWithTimeout(
   }
 
   const controller = new AbortController();
+  const abortFromCaller = () => controller.abort(init.signal?.reason);
+  if (init.signal?.aborted) {
+    abortFromCaller();
+  } else {
+    init.signal?.addEventListener('abort', abortFromCaller, { once: true });
+  }
   const timeoutId = setTimeout(() => {
-    controller.abort();
+    controller.abort(new DOMException(`Request timed out after ${timeoutMs}ms.`, 'TimeoutError'));
   }, timeoutMs);
 
   try {
@@ -19,5 +25,6 @@ export async function fetchWithTimeout(
     });
   } finally {
     clearTimeout(timeoutId);
+    init.signal?.removeEventListener('abort', abortFromCaller);
   }
 }
