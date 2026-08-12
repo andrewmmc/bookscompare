@@ -191,6 +191,27 @@ function hasOptionalFiniteNumber(record: Record<string, unknown>, key: string): 
   );
 }
 
+function isHttpsUrl(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  try {
+    return new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+function isIsoDate(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    Number.isFinite(Date.parse(`${value}T00:00:00Z`))
+  );
+}
+
+function hasOptionalValidIsbn(record: Record<string, unknown>, key: string): boolean {
+  return record[key] === undefined || (typeof record[key] === 'string' && isValidIsbn(record[key]));
+}
+
 function isBookSourceId(value: unknown): value is BookSourceId {
   return BOOK_SOURCES.some((source) => source.id === value);
 }
@@ -204,21 +225,22 @@ function isBookOffer(value: unknown): value is BookOffer {
     isBookSourceId(value.sourceId) &&
     typeof value.sourceName === 'string' &&
     typeof value.sourceProductId === 'string' &&
-    hasOptionalString(value, 'isbn') &&
+    hasOptionalValidIsbn(value, 'isbn') &&
     typeof value.title === 'string' &&
     typeof value.productType === 'string' &&
     isStringArray(value.authors) &&
     typeof value.publisher === 'string' &&
-    hasOptionalString(value, 'publicationDate') &&
+    (value.publicationDate === undefined || isIsoDate(value.publicationDate)) &&
     typeof value.summary === 'string' &&
     typeof value.price === 'number' &&
     Number.isFinite(value.price) &&
+    value.price >= 0 &&
     value.currency === 'TWD' &&
     typeof value.priceText === 'string' &&
     hasOptionalFiniteNumber(value, 'discountRate') &&
-    typeof value.url === 'string' &&
-    typeof value.imageUrl === 'string' &&
-    hasOptionalString(value, 'previewUrl') &&
+    isHttpsUrl(value.url) &&
+    (value.imageUrl === '' || isHttpsUrl(value.imageUrl)) &&
+    (value.previewUrl === undefined || isHttpsUrl(value.previewUrl)) &&
     isStringArray(value.badges)
   );
 }
@@ -230,12 +252,12 @@ function isBookDetail(value: unknown): value is BookDetail {
 
   return (
     typeof value.id === 'string' &&
-    hasOptionalString(value, 'isbn') &&
+    hasOptionalValidIsbn(value, 'isbn') &&
     typeof value.title === 'string' &&
     isStringArray(value.authors) &&
     hasOptionalString(value, 'publisher') &&
-    hasOptionalString(value, 'publicationDate') &&
-    typeof value.imageUrl === 'string' &&
+    (value.publicationDate === undefined || isIsoDate(value.publicationDate)) &&
+    (value.imageUrl === '' || isHttpsUrl(value.imageUrl)) &&
     typeof value.summary === 'string' &&
     Array.isArray(value.offers) &&
     value.offers.every(isBookOffer)
@@ -260,6 +282,7 @@ function isResponseMeta(value: unknown): value is ResponseMeta {
     isRecord(value) &&
     typeof value.liveScraping === 'boolean' &&
     typeof value.requestedAt === 'string' &&
+    Number.isFinite(Date.parse(value.requestedAt)) &&
     hasOptionalString(value, 'message')
   );
 }

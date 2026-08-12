@@ -13,7 +13,7 @@ describe('lookupIsbn', () => {
         query: { isbn: '9781402894626' },
         book: null,
         sources: [],
-        meta: { liveScraping: false, requestedAt: 'now' },
+        meta: { liveScraping: false, requestedAt: '2026-08-12T00:00:00.000Z' },
       }),
     } as Response);
 
@@ -45,5 +45,19 @@ describe('lookupIsbn', () => {
       status: 502,
       message: 'API returned an invalid response',
     });
+  });
+
+  it('rejects semantically invalid response metadata', async () => {
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        query: { isbn: '9781402894626' },
+        book: null,
+        sources: [],
+        meta: { liveScraping: false, requestedAt: 'not-a-date' },
+      }),
+    } as Response);
+
+    await expect(lookupIsbn('9781402894626')).rejects.toMatchObject({ status: 502 });
   });
 });

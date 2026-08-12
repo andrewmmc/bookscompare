@@ -12,7 +12,7 @@ describe('searchByTitle', () => {
         query: { title: '哈利波特 & magic' },
         books: [],
         sources: [],
-        meta: { liveScraping: false, requestedAt: 'now' },
+        meta: { liveScraping: false, requestedAt: '2026-08-12T00:00:00.000Z' },
       }),
     } as Response);
 
