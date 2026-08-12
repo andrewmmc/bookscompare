@@ -161,10 +161,23 @@ async function handleCachedLookup(
   return withLookupCacheStatus(response, 'MISS');
 }
 
+async function handleCachedHead(cacheKey: Request): Promise<Response> {
+  const cachedResponse = await getLookupCache().match(cacheKey);
+  if (cachedResponse) {
+    return withoutBody(withLookupCacheStatus(cachedResponse, 'HIT'));
+  }
+
+  return withLookupCacheStatus(
+    new Response(null, { status: 204, headers: { 'cache-control': 'no-store' } }),
+    'MISS'
+  );
+}
+
 async function handleIsbnRoute(
   request: Request,
   ctx: ExecutionContext,
-  rawIsbn: string
+  rawIsbn: string,
+  headOnly = false
 ): Promise<Response> {
   const isbn = normalizeIsbn(rawIsbn);
 
@@ -172,13 +185,17 @@ async function handleIsbnRoute(
     return invalidRequestResponse('INVALID_ISBN', 'Provide a valid ISBN-10 or ISBN-13 value.');
   }
 
-  return handleCachedLookup(ctx, createIsbnCacheKey(request, isbn), () => searchBooksByIsbn(isbn));
+  const cacheKey = createIsbnCacheKey(request, isbn);
+  return headOnly
+    ? handleCachedHead(cacheKey)
+    : handleCachedLookup(ctx, cacheKey, () => searchBooksByIsbn(isbn));
 }
 
 async function handleSearchRoute(
   request: Request,
   ctx: ExecutionContext,
-  url: URL
+  url: URL,
+  headOnly = false
 ): Promise<Response> {
   const query = normalizeFreeTextQuery(url.searchParams.get('q'));
 
@@ -193,15 +210,17 @@ async function handleSearchRoute(
     );
   }
 
-  return handleCachedLookup(ctx, createSearchCacheKey(request, query), () =>
-    searchBooksByTitle(query)
-  );
+  const cacheKey = createSearchCacheKey(request, query);
+  return headOnly
+    ? handleCachedHead(cacheKey)
+    : handleCachedLookup(ctx, cacheKey, () => searchBooksByTitle(query));
 }
 
 async function handleBookByTitleRoute(
   request: Request,
   ctx: ExecutionContext,
-  url: URL
+  url: URL,
+  headOnly = false
 ): Promise<Response> {
   const title = normalizeFreeTextQuery(url.searchParams.get('title'));
   const author = normalizeFreeTextQuery(url.searchParams.get('author'));
@@ -224,15 +243,15 @@ async function handleBookByTitleRoute(
     );
   }
 
-  return handleCachedLookup(
-    ctx,
-    createBookByTitleCacheKey(request, title, author || undefined),
-    () =>
-      lookupBookByTitleAuthor({
-        title,
-        ...(author ? { author } : {}),
-      })
-  );
+  const cacheKey = createBookByTitleCacheKey(request, title, author || undefined);
+  return headOnly
+    ? handleCachedHead(cacheKey)
+    : handleCachedLookup(ctx, cacheKey, () =>
+        lookupBookByTitleAuthor({
+          title,
+          ...(author ? { author } : {}),
+        })
+      );
 }
 
 export default {
@@ -276,19 +295,19 @@ export default {
     if (isbnParam) {
       const limited = await rateLimitResponse(request, env, 'isbn');
       if (limited) return respond(limited);
-      return respond(await handleIsbnRoute(request, ctx, isbnParam));
+      return respond(await handleIsbnRoute(request, ctx, isbnParam, method === 'HEAD'));
     }
 
     if (pathname === '/search') {
       const limited = await rateLimitResponse(request, env, 'search');
       if (limited) return respond(limited);
-      return respond(await handleSearchRoute(request, ctx, url));
+      return respond(await handleSearchRoute(request, ctx, url, method === 'HEAD'));
     }
 
     if (pathname === '/book/by-title') {
       const limited = await rateLimitResponse(request, env, 'book-by-title');
       if (limited) return respond(limited);
-      return respond(await handleBookByTitleRoute(request, ctx, url));
+      return respond(await handleBookByTitleRoute(request, ctx, url, method === 'HEAD'));
     }
 
     return respond(

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import worker from '../src/index';
+import { installFakeCaches } from './helpers';
 
 function createExecutionContext(): ExecutionContext {
   return {
@@ -151,4 +152,19 @@ test('worker rate limits public lookup routes', async () => {
   assert.equal(response.status, 429);
   assert.equal(response.headers.get('retry-after'), '60');
   assert.equal(((await response.json()) as { error: { code: string } }).error.code, 'RATE_LIMITED');
+});
+
+test('HEAD lookup routes do not run providers on a cache miss', async (t) => {
+  installFakeCaches(t);
+  const response = await worker.fetch(
+    new Request('https://bookscompare-api.andrewmmc.workers.dev/isbn/9786267569337', {
+      method: 'HEAD',
+    }),
+    {},
+    createExecutionContext()
+  );
+
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get('x-bookscompare-cache'), 'MISS');
+  assert.equal(await response.text(), '');
 });
