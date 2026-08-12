@@ -133,7 +133,8 @@ test('worker validates maximum free-text query lengths before cache lookup', asy
   });
 });
 
-test('worker rate limits public lookup routes', async () => {
+test('worker rate limits public lookup routes', async (t) => {
+  installFakeCaches(t);
   const rateLimitedEnv = {
     LOOKUP_RATE_LIMITER: {
       async limit() {
@@ -152,6 +153,47 @@ test('worker rate limits public lookup routes', async () => {
   assert.equal(response.status, 429);
   assert.equal(response.headers.get('retry-after'), '60');
   assert.equal(((await response.json()) as { error: { code: string } }).error.code, 'RATE_LIMITED');
+});
+
+test('invalid lookups do not consume rate-limit capacity', async () => {
+  let calls = 0;
+  const response = await worker.fetch(
+    new Request('https://bookscompare-api.mmc.dev/search?q=%20'),
+    {
+      LOOKUP_RATE_LIMITER: {
+        async limit() {
+          calls += 1;
+          return { success: true };
+        },
+      },
+    },
+    createExecutionContext()
+  );
+  assert.equal(response.status, 400);
+  assert.equal(calls, 0);
+});
+
+test('cached lookups do not consume rate-limit capacity', async (t) => {
+  const { store } = installFakeCaches(t);
+  store.set(
+    'https://bookscompare-api.mmc.dev/search?q=book',
+    new Response('{}', { headers: { 'content-type': 'application/json' } })
+  );
+  let calls = 0;
+  const response = await worker.fetch(
+    new Request('https://bookscompare-api.mmc.dev/search?q=book'),
+    {
+      LOOKUP_RATE_LIMITER: {
+        async limit() {
+          calls += 1;
+          return { success: true };
+        },
+      },
+    },
+    createExecutionContext()
+  );
+  assert.equal(response.headers.get('x-bookscompare-cache'), 'HIT');
+  assert.equal(calls, 0);
 });
 
 test('HEAD lookup routes do not run providers on a cache miss', async (t) => {

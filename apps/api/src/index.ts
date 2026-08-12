@@ -140,13 +140,19 @@ async function rateLimitResponse(
 async function handleCachedLookup(
   ctx: ExecutionContext,
   cacheKey: Request,
-  runLookup: () => Promise<SearchResponse | BookDetailResponse>
+  runLookup: () => Promise<SearchResponse | BookDetailResponse>,
+  beforeLookup?: () => Promise<Response | null>
 ): Promise<Response> {
   const cache = getLookupCache();
   const cachedResponse = await cache.match(cacheKey);
 
   if (cachedResponse) {
     return withLookupCacheStatus(cachedResponse, 'HIT');
+  }
+
+  const blockedResponse = await beforeLookup?.();
+  if (blockedResponse) {
+    return blockedResponse;
   }
 
   const lookupResponse = await runLookup();
@@ -175,6 +181,7 @@ async function handleCachedHead(cacheKey: Request): Promise<Response> {
 
 async function handleIsbnRoute(
   request: Request,
+  env: Env,
   ctx: ExecutionContext,
   rawIsbn: string,
   headOnly = false
@@ -188,11 +195,17 @@ async function handleIsbnRoute(
   const cacheKey = createIsbnCacheKey(request, isbn);
   return headOnly
     ? handleCachedHead(cacheKey)
-    : handleCachedLookup(ctx, cacheKey, () => searchBooksByIsbn(isbn));
+    : handleCachedLookup(
+        ctx,
+        cacheKey,
+        () => searchBooksByIsbn(isbn),
+        () => rateLimitResponse(request, env, 'isbn')
+      );
 }
 
 async function handleSearchRoute(
   request: Request,
+  env: Env,
   ctx: ExecutionContext,
   url: URL,
   headOnly = false
@@ -213,11 +226,17 @@ async function handleSearchRoute(
   const cacheKey = createSearchCacheKey(request, query);
   return headOnly
     ? handleCachedHead(cacheKey)
-    : handleCachedLookup(ctx, cacheKey, () => searchBooksByTitle(query));
+    : handleCachedLookup(
+        ctx,
+        cacheKey,
+        () => searchBooksByTitle(query),
+        () => rateLimitResponse(request, env, 'search')
+      );
 }
 
 async function handleBookByTitleRoute(
   request: Request,
+  env: Env,
   ctx: ExecutionContext,
   url: URL,
   headOnly = false
@@ -246,11 +265,15 @@ async function handleBookByTitleRoute(
   const cacheKey = createBookByTitleCacheKey(request, title, author || undefined);
   return headOnly
     ? handleCachedHead(cacheKey)
-    : handleCachedLookup(ctx, cacheKey, () =>
-        lookupBookByTitleAuthor({
-          title,
-          ...(author ? { author } : {}),
-        })
+    : handleCachedLookup(
+        ctx,
+        cacheKey,
+        () =>
+          lookupBookByTitleAuthor({
+            title,
+            ...(author ? { author } : {}),
+          }),
+        () => rateLimitResponse(request, env, 'book-by-title')
       );
 }
 
@@ -293,21 +316,15 @@ export default {
     const isbnParam = matchIsbnPath(pathname);
 
     if (isbnParam) {
-      const limited = await rateLimitResponse(request, env, 'isbn');
-      if (limited) return respond(limited);
-      return respond(await handleIsbnRoute(request, ctx, isbnParam, method === 'HEAD'));
+      return respond(await handleIsbnRoute(request, env, ctx, isbnParam, method === 'HEAD'));
     }
 
     if (pathname === '/search') {
-      const limited = await rateLimitResponse(request, env, 'search');
-      if (limited) return respond(limited);
-      return respond(await handleSearchRoute(request, ctx, url, method === 'HEAD'));
+      return respond(await handleSearchRoute(request, env, ctx, url, method === 'HEAD'));
     }
 
     if (pathname === '/book/by-title') {
-      const limited = await rateLimitResponse(request, env, 'book-by-title');
-      if (limited) return respond(limited);
-      return respond(await handleBookByTitleRoute(request, ctx, url, method === 'HEAD'));
+      return respond(await handleBookByTitleRoute(request, env, ctx, url, method === 'HEAD'));
     }
 
     return respond(
