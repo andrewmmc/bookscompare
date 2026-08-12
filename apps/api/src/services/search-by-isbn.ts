@@ -32,6 +32,12 @@ export async function searchBooksByIsbn(isbn: string): Promise<BookDetailRespons
   });
 
   const offers = fanout.offers.filter((offer) => isCompatibleWithIsbn(offer.isbn, isbn));
+  const compatibleSources = new Set(offers.map((offer) => offer.sourceId));
+  const sources = fanout.sources.map((source) =>
+    source.status === 'ready' && !compatibleSources.has(source.id)
+      ? { ...source, message: `No ${source.name} search results matched this ISBN.` }
+      : source
+  );
   const clusters = clusterOffersIntoBooks(offers);
   const cluster = selectIsbnCluster(clusters, isbn);
   const detail = cluster ? clusterToBookDetail(cluster) : null;
@@ -40,7 +46,7 @@ export async function searchBooksByIsbn(isbn: string): Promise<BookDetailRespons
   return createBookDetailResponse({
     query: { isbn },
     book,
-    sources: fanout.sources,
+    sources,
     liveScraping: fanout.liveScraping,
     ...(fanout.message ? { message: fanout.message } : {}),
   });

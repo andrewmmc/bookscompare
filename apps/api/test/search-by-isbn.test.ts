@@ -142,6 +142,28 @@ test('searchBooksByIsbn rejects offers carrying a different ISBN', async (t) => 
     response.book?.offers.map((offer) => offer.sourceProductId),
     ['eslite-offer']
   );
+  assert.equal(response.sources.find((source) => source.id === 'eslite')?.message, undefined);
+});
+
+test('searchBooksByIsbn reports a provider as empty when all its offers mismatch', async (t) => {
+  const bookProviders = getBookProviders();
+  const original = bookProviders.map((provider) => ({
+    provider,
+    searchByIsbn: provider.searchByIsbn,
+  }));
+  t.after(() =>
+    original.forEach(({ provider, searchByIsbn }) => (provider.searchByIsbn = searchByIsbn))
+  );
+  for (const provider of bookProviders) {
+    provider.searchByIsbn = async () =>
+      provider.id === 'eslite' ? [{ ...createOffer(provider), isbn: '9786264560092' }] : [];
+  }
+
+  const response = await searchBooksByIsbn('9786267569337');
+  assert.equal(
+    response.sources.find((source) => source.id === 'eslite')?.message,
+    'No 誠品線上 search results matched this ISBN.'
+  );
 });
 
 test('searchBooksByIsbn accepts the equivalent ISBN-10 for an ISBN-13 query', async (t) => {
