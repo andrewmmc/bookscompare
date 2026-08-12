@@ -63,6 +63,27 @@ export function isValidIsbn(input: string): boolean {
   return isValidIsbn13(isbn) || isValidIsbn10(isbn);
 }
 
+/** Return a valid ISBN in its canonical ISBN-13 representation. */
+export function canonicalizeIsbn(input: string): string | null {
+  const isbn = normalizeIsbn(input);
+
+  if (isValidIsbn13(isbn)) {
+    return isbn;
+  }
+
+  if (!isValidIsbn10(isbn)) {
+    return null;
+  }
+
+  const firstTwelveDigits = `978${isbn.slice(0, 9)}`;
+  let sum = 0;
+  for (let index = 0; index < firstTwelveDigits.length; index += 1) {
+    sum += (index % 2 === 0 ? 1 : 3) * Number(firstTwelveDigits[index]);
+  }
+
+  return `${firstTwelveDigits}${(10 - (sum % 10)) % 10}`;
+}
+
 export type SourceStatus = 'disabled' | 'ready' | 'error';
 
 export const API_ERROR_CODES = [

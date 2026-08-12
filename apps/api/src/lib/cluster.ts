@@ -1,4 +1,5 @@
 import {
+  canonicalizeIsbn,
   isValidIsbn,
   normalizeIsbn,
   type BookOffer,
@@ -43,7 +44,7 @@ function pickIsbnFromOffer(offer: BookOffer): string | undefined {
 
   const normalized = normalizeIsbn(offer.isbn);
 
-  return isValidIsbn(normalized) ? normalized : undefined;
+  return isValidIsbn(normalized) ? (canonicalizeIsbn(normalized) ?? undefined) : undefined;
 }
 
 function clusterKeyForOffer(offer: BookOffer): string {

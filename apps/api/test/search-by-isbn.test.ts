@@ -143,3 +143,46 @@ test('searchBooksByIsbn rejects offers carrying a different ISBN', async (t) => 
     ['eslite-offer']
   );
 });
+
+test('searchBooksByIsbn accepts the equivalent ISBN-10 for an ISBN-13 query', async (t) => {
+  const bookProviders = getBookProviders();
+  const original = bookProviders.map((provider) => ({
+    provider,
+    searchByIsbn: provider.searchByIsbn,
+  }));
+  t.after(() =>
+    original.forEach(({ provider, searchByIsbn }) => (provider.searchByIsbn = searchByIsbn))
+  );
+
+  for (const provider of bookProviders) {
+    provider.searchByIsbn = async () =>
+      provider.id === 'eslite' ? [{ ...createOffer(provider), isbn: '0306406152' }] : [];
+  }
+
+  const response = await searchBooksByIsbn('9780306406157');
+  assert.equal(response.book?.offers[0]?.isbn, '0306406152');
+});
+
+test('searchBooksByIsbn rejects ambiguous ISBN-less title clusters', async (t) => {
+  const bookProviders = getBookProviders();
+  const original = bookProviders.map((provider) => ({
+    provider,
+    searchByIsbn: provider.searchByIsbn,
+  }));
+  t.after(() =>
+    original.forEach(({ provider, searchByIsbn }) => (provider.searchByIsbn = searchByIsbn))
+  );
+
+  for (const provider of bookProviders) {
+    provider.searchByIsbn = async () =>
+      provider.id === 'eslite'
+        ? [
+            createOffer(provider),
+            { ...createOffer(provider), sourceProductId: 'other', title: 'Other title' },
+          ]
+        : [];
+  }
+
+  const response = await searchBooksByIsbn('9786267569337');
+  assert.equal(response.book, null);
+});

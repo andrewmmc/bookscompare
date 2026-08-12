@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { isValidIsbn, normalizeIsbn } from '@bookscompare/contracts';
+import { canonicalizeIsbn, isValidIsbn, normalizeIsbn } from '@bookscompare/contracts';
 
 test('normalizeIsbn strips separators and uppercases', () => {
   assert.equal(normalizeIsbn(' 978-1-4028-9462-6 '), '9781402894626');
@@ -24,4 +24,10 @@ test('isValidIsbn rejects malformed values', () => {
 test('isValidIsbn rejects values with an invalid check digit', () => {
   assert.equal(isValidIsbn('9781402894627'), false);
   assert.equal(isValidIsbn('1234567890'), false);
+});
+
+test('canonicalizeIsbn converts ISBN-10 to its equivalent ISBN-13', () => {
+  assert.equal(canonicalizeIsbn('0-306-40615-2'), '9780306406157');
+  assert.equal(canonicalizeIsbn('9780306406157'), '9780306406157');
+  assert.equal(canonicalizeIsbn('invalid'), null);
 });
