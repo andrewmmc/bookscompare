@@ -43,21 +43,21 @@
     "prepare": "lefthook install"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
-    "@react-native/eslint-plugin": "^0.87.0",
-    "@react-native/jest-preset": "^0.86.2",
-    "@typescript-eslint/eslint-plugin": "^8.67.0",
-    "@typescript-eslint/parser": "^8.67.0",
-    "eslint": "^9.39.5",
+    "@eslint/js": "^10.0.1",
+    "@react-native/eslint-plugin": "^0.87.1",
+    "@react-native/jest-preset": "^0.87.1",
+    "@typescript-eslint/eslint-plugin": "^8.68.0",
+    "@typescript-eslint/parser": "^8.68.0",
+    "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.11.0",
-    "jest": "^29.7.0",
-    "lefthook": "^2.1.10",
+    "jest": "^30.5.0",
+    "lefthook": "^2.1.12",
     "prettier": "^3.9.6",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.67.0"
+    "typescript": "^7.0.2",
+    "typescript-eslint": "^8.68.0"
   }
 }
