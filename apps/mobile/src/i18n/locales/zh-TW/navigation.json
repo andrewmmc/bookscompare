@@ -1,0 +1,17 @@
+{
+  "tabs": {
+    "home": "書本搜尋",
+    "favourites": "我的收藏",
+    "about": "關於我們",
+    "settings": "設定"
+  },
+  "navigation": {
+    "home": "好書價 BooksCompare",
+    "barcodeScanner": "國際標準書號掃描",
+    "searchResult": "搜尋結果",
+    "favourites": "我的收藏",
+    "about": "關於我們",
+    "history": "搜尋記錄",
+    "settings": "設定"
+  }
+}

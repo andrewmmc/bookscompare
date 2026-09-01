@@ -1,0 +1,17 @@
+{
+  "tabs": {
+    "home": "Search",
+    "favourites": "Favourites",
+    "about": "About",
+    "settings": "Settings"
+  },
+  "navigation": {
+    "home": "BooksCompare",
+    "barcodeScanner": "Scan ISBN",
+    "searchResult": "Results",
+    "favourites": "Favourites",
+    "about": "About",
+    "history": "History",
+    "settings": "Settings"
+  }
+}

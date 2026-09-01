@@ -1,0 +1,38 @@
+{
+  "history": {
+    "title": "History",
+    "emptyTitle": "No history yet",
+    "emptyDescription": "Books you search or scan will appear here for quick access.",
+    "viewedOn": "{{dateText}}",
+    "isbnLabel": "ISBN {{isbn}}",
+    "deleteAction": "Remove",
+    "deleteAccessibilityLabel": "Delete history entry",
+    "deletedUndoHint": "Deleted. Shake your phone to undo.",
+    "clearAllAction": "Clear all",
+    "clearAllConfirmTitle": "Clear all history?",
+    "clearAllConfirmMessage": "This cannot be undone. All search and scan history will be removed.",
+    "clearAllConfirmAction": "Clear all",
+    "cancelAction": "Cancel",
+    "sortAction": "Sort",
+    "newestFirstAction": "Newest first",
+    "oldestFirstAction": "Oldest first"
+  },
+  "favourites": {
+    "title": "Favourites",
+    "emptyTitle": "No favourites yet",
+    "emptyDescription": "Tap the heart on a search result to save it here.",
+    "addedOn": "{{dateText}}",
+    "removeAction": "Remove",
+    "addAccessibilityLabel": "Add to favourites",
+    "removeAccessibilityLabel": "Remove from favourites",
+    "deletedUndoHint": "Removed from favourites. Shake your phone to undo.",
+    "clearAllAction": "Clear all",
+    "clearAllConfirmTitle": "Clear all favourites?",
+    "clearAllConfirmMessage": "This cannot be undone. All saved books will be removed.",
+    "clearAllConfirmAction": "Clear all",
+    "cancelAction": "Cancel",
+    "sortAction": "Sort",
+    "newestFirstAction": "Newest first",
+    "oldestFirstAction": "Oldest first"
+  }
+}

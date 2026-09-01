@@ -1,0 +1,26 @@
+{
+  "app": {
+    "brand": "好書價 BooksCompare"
+  },
+  "loading": {
+    "defaultLabel": "載入中…"
+  },
+  "externalLink": {
+    "errorTitle": "無法開啟連結",
+    "errorDescription": "目前無法在裝置上開啟這個連結。請稍後再試。",
+    "errorAction": "知道了"
+  },
+  "webview": {
+    "shareAccessibility": "分享",
+    "loadingLabel": "正在打開書店頁面…",
+    "notFoundTitle": "頁面仍在準備中",
+    "notFoundDescription": "這個連結目前回傳 404。等 marketing site 上線後，這些頁面會直接顯示。",
+    "notFoundAction": "在瀏覽器開啟",
+    "errorTitle": "未能載入內容",
+    "errorDescription": "請檢查您的網絡連接。如持續遇到此問題，請稍後再試。",
+    "errorAction": "在瀏覽器開啟"
+  },
+  "priceTag": {
+    "discountTag": "{{discountRate}}折"
+  }
+}

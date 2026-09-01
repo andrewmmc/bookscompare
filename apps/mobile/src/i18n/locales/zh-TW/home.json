@@ -1,0 +1,22 @@
+{
+  "home": {
+    "leadText": "掃描或輸入書本的國際標準書號 (ISBN 碼)，輕鬆找到最心儀的價格！",
+    "leadTextWithTitleSearch": "掃描或輸入書本的國際標準書號 (ISBN 碼)，或直接輸入書名，輕鬆找到最心儀的價格！",
+    "isbnTab": "ISBN 碼",
+    "titleTab": "書名",
+    "isbnPlaceholder": "ISBN 碼",
+    "titlePlaceholder": "輸入書名",
+    "scanAction": "掃描",
+    "clearAction": "清除",
+    "searchAction": "搜尋好書價",
+    "historyAction": "搜尋記錄"
+  },
+  "scanner": {
+    "permissionCheckingLabel": "正在檢查相機權限…",
+    "permissionRequiredTitle": "需要相機權限",
+    "permissionRequiredDescription": "請允許相機存取，才能直接掃描書本背面的 ISBN 條碼。",
+    "permissionRequiredAction": "允許相機權限",
+    "permissionSettingsAction": "前往設定",
+    "helpText": "請將國際標準書號 (ISBN 碼) 放進掃描框內。"
+  }
+}

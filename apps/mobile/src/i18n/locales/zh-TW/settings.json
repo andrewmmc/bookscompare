@@ -1,0 +1,53 @@
+{
+  "settings": {
+    "title": "設定",
+    "generalSection": "一般",
+    "appearanceSection": "外觀",
+    "contentSection": "內容",
+    "syncSection": "同步",
+    "dataSection": "資料",
+    "openLinksIn": "開啟連結",
+    "openLinksDescription": "選擇點開書店連結時要在 App 內顯示，還是交由瀏覽器開啟。",
+    "openLinksInApp": "在 App 內開啟",
+    "openLinksInBrowser": "在瀏覽器開啟",
+    "appearance": "外觀",
+    "appearanceDescription": "選擇 App 外觀，或跟隨裝置目前的系統顯示模式。",
+    "appearanceSystem": "跟隨系統",
+    "appearanceLight": "淺色",
+    "appearanceDark": "深色",
+    "bookType": "書籍類型",
+    "bookTypeDescription": "選擇要顯示的書籍類型。未選擇任何類型時，將顯示全部結果。",
+    "bookTypeAll": "全部",
+    "bookTypePhysical": "實體書",
+    "bookTypeEbook": "電子書",
+    "icloudSync": "iCloud 同步",
+    "icloudSyncOn": "開啟",
+    "icloudSyncOff": "關閉",
+    "analytics": "分享匿名使用分析",
+    "analyticsOn": "開啟",
+    "analyticsOff": "關閉",
+    "resetAllData": "重設所有資料",
+    "resetAllDataConfirmTitle": "重設所有資料？",
+    "resetAllDataConfirmMessage": "此動作無法復原，所有本機設定、搜尋記錄與收藏都會被移除。",
+    "resetAllDataConfirmMessageWithIcloud": "此動作無法復原，所有本機設定、搜尋記錄與收藏都會被移除，並同時清除 iCloud 上的同步資料。",
+    "resetAllDataConfirmAction": "重設",
+    "cancelAction": "取消"
+  },
+  "storePreferences": {
+    "title": "書店偏好",
+    "settingsRow": "書店偏好",
+    "settingsRowValue": "已選 {{count}} 家",
+    "settingsRowValueAll": "全部",
+    "description": "選擇您想要比較的書店。未選擇任何書店時，將顯示所有書店的結果。"
+  },
+  "about": {
+    "title": "好書價 BooksCompare",
+    "version": "版本 v{{appVersion}}{{buildNumber}}",
+    "disclaimer": "好書價是獨立的開源專案，與博客來、金石堂、城邦讀書花園、誠品線上等網路書店均無任何隸屬、合作或贊助關係。所有商標屬於其原始持有者，引用僅為描述用途。售價以各書店官方網站為準，App 僅彙整公開資料供讀者參考。",
+    "items": {
+      "privacy": "使用條款及私隱政策",
+      "feedback": "提交意見",
+      "copyright": "© 2026 Andrew Mok"
+    }
+  }
+}

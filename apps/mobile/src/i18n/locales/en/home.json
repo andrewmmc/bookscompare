@@ -1,0 +1,22 @@
+{
+  "home": {
+    "leadText": "Scan or type an ISBN to find the best price across Taiwan's online bookstores.",
+    "leadTextWithTitleSearch": "Scan an ISBN, or type an ISBN or book title to find the best price across Taiwan's online bookstores.",
+    "isbnTab": "ISBN",
+    "titleTab": "Title",
+    "isbnPlaceholder": "ISBN",
+    "titlePlaceholder": "Book title",
+    "scanAction": "Scan",
+    "clearAction": "Clear",
+    "searchAction": "Compare prices",
+    "historyAction": "History"
+  },
+  "scanner": {
+    "permissionCheckingLabel": "Checking camera permission…",
+    "permissionRequiredTitle": "Camera permission needed",
+    "permissionRequiredDescription": "Allow camera access so we can scan the ISBN barcode on the back cover.",
+    "permissionRequiredAction": "Grant camera permission",
+    "permissionSettingsAction": "Open settings",
+    "helpText": "Position the ISBN barcode inside the frame."
+  }
+}

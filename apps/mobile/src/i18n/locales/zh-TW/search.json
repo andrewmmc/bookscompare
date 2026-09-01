@@ -1,0 +1,42 @@
+{
+  "searchResult": {
+    "sourceStatus": {
+      "ready": "已比對",
+      "error": "暫時無法連線",
+      "disabled": "尚未支援"
+    },
+    "sourceChipsAccessibilityLabel": "書店狀態",
+    "ebookBadge": "電子書",
+    "lowestPriceBadge": "最低價",
+    "copyIsbnAccessibilityLabel": "複製 ISBN",
+    "copyTitleAccessibilityLabel": "複製書名",
+    "copiedAccessibilityLabel": "已複製",
+    "sortByLabel": "排序方式",
+    "sortAccessibilityLabel": "搜尋結果排序方式",
+    "cancelAction": "取消",
+    "sortOptions": {
+      "price": "價錢最低",
+      "store": "書店偏好",
+      "physical": "實體書優先",
+      "ebook": "電子書優先"
+    },
+    "resultsCount_one": "共找到 {{count}} 個結果。",
+    "resultsCount_other": "共找到 {{count}} 個結果。",
+    "fromPrice": "{{price}} 起",
+    "storeCount_one": "{{count}} 家書店",
+    "storeCount_other": "{{count}} 家書店",
+    "loadingLabel": "正在比對最新書價…",
+    "networkErrorTitle": "未能載入內容",
+    "networkErrorDescription": "請檢查您的網絡連接。\n如持續遇到此問題，請聯絡我們以取得協助。",
+    "retryAction": "重新載入",
+    "allErroredTitle": "書店暫時無法回應",
+    "allErroredDescription": "所有書店連線都失敗了。\n請稍後再試，或下拉重新整理。",
+    "notLiveTitle": "即時搜尋尚未啟用",
+    "notLiveDescription": "目前沒有可用的書店即時資料。\n請稍後再試。",
+    "notFoundTitle": "未能找到結果",
+    "notFoundIsbnDescription": "抱歉，找不到這個 ISBN 的價格資料。\n請確認 ISBN 是否正確，或回到首頁改用書名搜尋。",
+    "notFoundTitleDescription": "抱歉，找不到這本書的價格資料。\n請檢查書名是否正確，或回到首頁改用 ISBN 搜尋。",
+    "filteredEmptyTitle": "沒有符合篩選條件的結果",
+    "filteredEmptyDescription": "已找到書價，但都被您目前的書店或書籍類型篩選排除了。\n請到「設定」調整偏好後再試。"
+  }
+}

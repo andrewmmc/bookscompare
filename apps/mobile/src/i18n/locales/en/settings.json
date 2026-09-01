@@ -1,0 +1,53 @@
+{
+  "settings": {
+    "title": "Settings",
+    "generalSection": "General",
+    "appearanceSection": "Appearance",
+    "contentSection": "Content",
+    "syncSection": "Sync",
+    "dataSection": "Data",
+    "openLinksIn": "Open links",
+    "openLinksDescription": "Choose whether bookstore links open inside the app or in your browser.",
+    "openLinksInApp": "In app",
+    "openLinksInBrowser": "Browser",
+    "appearance": "Appearance",
+    "appearanceDescription": "Choose the app appearance or follow your device system setting.",
+    "appearanceSystem": "System",
+    "appearanceLight": "Light",
+    "appearanceDark": "Dark",
+    "bookType": "Book type",
+    "bookTypeDescription": "Choose which book types to show. When none are selected, all results are shown.",
+    "bookTypeAll": "All",
+    "bookTypePhysical": "Physical books",
+    "bookTypeEbook": "eBooks",
+    "icloudSync": "iCloud Sync",
+    "icloudSyncOn": "On",
+    "icloudSyncOff": "Off",
+    "analytics": "Share anonymous usage analytics",
+    "analyticsOn": "On",
+    "analyticsOff": "Off",
+    "resetAllData": "Reset all data",
+    "resetAllDataConfirmTitle": "Reset all data?",
+    "resetAllDataConfirmMessage": "This cannot be undone. All local settings, history, and favourites will be removed.",
+    "resetAllDataConfirmMessageWithIcloud": "This cannot be undone. All local settings, history, and favourites will be removed, and synced iCloud data will be deleted too.",
+    "resetAllDataConfirmAction": "Reset",
+    "cancelAction": "Cancel"
+  },
+  "storePreferences": {
+    "title": "Bookstore Preferences",
+    "settingsRow": "Bookstores",
+    "settingsRowValue": "{{count}} selected",
+    "settingsRowValueAll": "All",
+    "description": "Choose which bookstores to compare. When none are selected, results from all stores are shown."
+  },
+  "about": {
+    "title": "BooksCompare",
+    "version": "Version v{{appVersion}}{{buildNumber}}",
+    "disclaimer": "BooksCompare is an independent open-source project and is not affiliated with, partnered with, or sponsored by Books.com.tw, KingStone, Cite Book Garden, eslite.com, or any other online bookstore. All trademarks belong to their original owners and are referenced for descriptive purposes only. Prices are based on each bookstore’s official website; the app only aggregates public information for readers’ reference.",
+    "items": {
+      "privacy": "Terms & Privacy Policy",
+      "feedback": "Send feedback",
+      "copyright": "© 2026 Andrew Mok"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "app": {
+    "brand": "BooksCompare"
+  },
+  "loading": {
+    "defaultLabel": "Loading…"
+  },
+  "externalLink": {
+    "errorTitle": "Could not open link",
+    "errorDescription": "This link could not be opened on your device right now. Please try again later.",
+    "errorAction": "OK"
+  },
+  "webview": {
+    "shareAccessibility": "Share",
+    "loadingLabel": "Opening the bookstore…",
+    "notFoundTitle": "Page is not ready yet",
+    "notFoundDescription": "This link currently returns 404. Once the marketing site is live, this page will load here.",
+    "notFoundAction": "Open in browser",
+    "errorTitle": "Could not load content",
+    "errorDescription": "Please check your internet connection. If the issue persists, please try again later.",
+    "errorAction": "Open in browser"
+  },
+  "priceTag": {
+    "discountTag": "{{discountRate}}% list"
+  }
+}

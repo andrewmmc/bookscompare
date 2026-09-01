@@ -1,0 +1,42 @@
+{
+  "searchResult": {
+    "sourceStatus": {
+      "ready": "Available",
+      "error": "Unreachable",
+      "disabled": "Not supported"
+    },
+    "sourceChipsAccessibilityLabel": "Bookstore status",
+    "ebookBadge": "eBook",
+    "lowestPriceBadge": "Lowest",
+    "copyIsbnAccessibilityLabel": "Copy ISBN",
+    "copyTitleAccessibilityLabel": "Copy title",
+    "copiedAccessibilityLabel": "Copied",
+    "sortByLabel": "Sort by",
+    "sortAccessibilityLabel": "Search result sort order",
+    "cancelAction": "Cancel",
+    "sortOptions": {
+      "price": "Lowest price",
+      "store": "Bookstore preference",
+      "physical": "Physical first",
+      "ebook": "eBook first"
+    },
+    "resultsCount_one": "Found {{count}} result.",
+    "resultsCount_other": "Found {{count}} results.",
+    "fromPrice": "from {{price}}",
+    "storeCount_one": "{{count}} store",
+    "storeCount_other": "{{count}} stores",
+    "loadingLabel": "Comparing the latest prices…",
+    "networkErrorTitle": "Could not load content",
+    "networkErrorDescription": "Please check your internet connection.\nIf the issue persists, contact us for help.",
+    "retryAction": "Retry",
+    "allErroredTitle": "Bookstores are not responding",
+    "allErroredDescription": "All bookstore connections failed.\nPlease try again later or pull to refresh.",
+    "notLiveTitle": "Live search is not yet enabled",
+    "notLiveDescription": "No live bookstore data is available right now.\nPlease try again later.",
+    "notFoundTitle": "No results found",
+    "notFoundIsbnDescription": "Sorry, we couldn't find pricing for that ISBN.\nCheck the ISBN, or go back and search by title instead.",
+    "notFoundTitleDescription": "Sorry, we couldn't find pricing for that title.\nCheck the title, or go back and search by ISBN instead.",
+    "filteredEmptyTitle": "No results match your filters",
+    "filteredEmptyDescription": "We found prices, but your current bookstore or book-type filters hid them all.\nAdjust your preferences in Settings and try again."
+  }
+}
