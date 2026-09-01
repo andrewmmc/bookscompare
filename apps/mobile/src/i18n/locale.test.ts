@@ -39,12 +39,16 @@ describe('resolveDeviceLocale', () => {
     expect(resolveDeviceLocale()).toBe('zh-TW');
   });
 
-  it('falls back to default when the matched locale is not enabled', () => {
-    const { DEFAULT_LOCALE, resolveDeviceLocale } = loadLocaleWithLocales([
-      { languageTag: 'en-US' },
-    ]);
+  it('resolves supported English locale tags', () => {
+    const { resolveDeviceLocale } = loadLocaleWithLocales([{ languageTag: 'en-US' }]);
 
-    expect(resolveDeviceLocale()).toBe(DEFAULT_LOCALE);
+    expect(resolveDeviceLocale()).toBe('en');
+  });
+
+  it('uses an explicit preference before the device locale', () => {
+    const { resolveLocale } = loadLocaleWithLocales([{ languageTag: 'en-US' }]);
+
+    expect(resolveLocale('zh-TW', [{ languageTag: 'en-US', languageCode: 'en' }])).toBe('zh-TW');
   });
 
   it('falls back to default when localization throws or has no match', () => {

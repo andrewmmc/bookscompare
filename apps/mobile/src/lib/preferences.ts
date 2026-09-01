@@ -5,6 +5,7 @@ import { BOOK_SOURCES } from '@bookscompare/contracts';
 import { loadJsonValue, saveJsonValue } from './jsonStorage';
 
 import type { BookSourceId } from '@bookscompare/contracts';
+import type { LanguagePreference } from '../i18n/locale';
 
 export const PREFERENCES_STORAGE_KEY = 'bookscompare:preferences:v1';
 export const PREFERENCES_UPDATED_AT_STORAGE_KEY = 'bookscompare:preferences-updated-at:v1';
@@ -17,6 +18,7 @@ export type AddedTimeSortDirection = 'desc' | 'asc';
 export interface Preferences {
   openLinksIn: OpenLinksIn;
   themeMode: ThemeMode;
+  languagePreference?: LanguagePreference;
   preferredSources: BookSourceId[];
   preferredBookTypes: BookTypePreference[];
   icloudSyncEnabled: boolean;
@@ -25,7 +27,10 @@ export interface Preferences {
   historySortDirection?: AddedTimeSortDirection;
 }
 
-export type SyncablePreferences = Omit<Preferences, 'icloudSyncEnabled' | 'analyticsEnabled'>;
+export type SyncablePreferences = Omit<
+  Preferences,
+  'icloudSyncEnabled' | 'analyticsEnabled' | 'languagePreference'
+>;
 
 type PreferenceKey = keyof Preferences;
 
@@ -34,6 +39,7 @@ const validSourceIds = new Set<string>(BOOK_SOURCES.map((s) => s.id));
 export const DEFAULT_PREFERENCES: Preferences = {
   openLinksIn: 'app',
   themeMode: 'system',
+  languagePreference: 'system',
   preferredSources: [],
   preferredBookTypes: [],
   icloudSyncEnabled: true,
@@ -48,6 +54,8 @@ const validators: {
   openLinksIn: (value): value is OpenLinksIn => value === 'app' || value === 'browser',
   themeMode: (value): value is ThemeMode =>
     value === 'system' || value === 'light' || value === 'dark',
+  languagePreference: (value): value is LanguagePreference =>
+    value === 'system' || value === 'en' || value === 'zh-TW',
   preferredSources: (value): value is BookSourceId[] =>
     Array.isArray(value) && value.every((v) => typeof v === 'string' && validSourceIds.has(v)),
   preferredBookTypes: (value): value is BookTypePreference[] =>

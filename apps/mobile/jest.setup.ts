@@ -10,6 +10,7 @@ jest.mock('expo-blur', () => {
 
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageTag: 'zh-TW', languageCode: 'zh' }],
+  useLocales: () => [{ languageTag: 'zh-TW', languageCode: 'zh' }],
 }));
 
 jest.mock('expo-clipboard', () => ({

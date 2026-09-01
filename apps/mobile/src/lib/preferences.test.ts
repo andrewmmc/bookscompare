@@ -28,6 +28,7 @@ describe('preferences storage', () => {
     await expect(loadPreferences()).resolves.toEqual({
       openLinksIn: 'app',
       themeMode: 'system',
+      languagePreference: 'system',
       preferredSources: [],
       preferredBookTypes: [],
       icloudSyncEnabled: true,
@@ -41,6 +42,7 @@ describe('preferences storage', () => {
     const stored: Preferences = {
       openLinksIn: 'browser',
       themeMode: 'dark',
+      languagePreference: 'en',
       preferredSources: ['books-com-tw', 'kingstone'],
       preferredBookTypes: ['physical', 'ebook'],
       icloudSyncEnabled: false,
@@ -61,6 +63,7 @@ describe('preferences storage', () => {
       JSON.stringify({
         openLinksIn: 'sideways',
         themeMode: 'light',
+        languagePreference: 'fr',
         preferredSources: ['books-com-tw', 'unknown-source'],
         preferredBookTypes: ['ebook', 'ebook'],
         icloudSyncEnabled: 'yes',
@@ -72,6 +75,7 @@ describe('preferences storage', () => {
     await expect(loadPreferences()).resolves.toEqual({
       openLinksIn: 'app',
       themeMode: 'light',
+      languagePreference: 'system',
       preferredSources: [],
       preferredBookTypes: [],
       icloudSyncEnabled: true,
@@ -89,6 +93,7 @@ describe('preferences storage', () => {
     await expect(loadPreferences()).resolves.toEqual({
       openLinksIn: 'app',
       themeMode: 'system',
+      languagePreference: 'system',
       preferredSources: [],
       preferredBookTypes: [],
       icloudSyncEnabled: true,

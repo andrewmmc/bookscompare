@@ -11,6 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { initAnalytics, registerAnalyticsProperties, setAnalyticsEnabled } from './analytics';
 import { FAVOURITES_QUERY_KEY } from './api/favourites';
 import { HISTORY_QUERY_KEY } from './api/history';
+import { LanguageController } from './i18n/LanguageController';
 import { strings } from './i18n/strings';
 import { runInitialIcloudSync, type InitialIcloudSyncResult } from './lib/icloudSync';
 import { usePreferences, usePreferencesLoaded } from './lib/preferences';
@@ -156,9 +157,11 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider>
-            <AppContent />
-          </ThemeProvider>
+          <LanguageController>
+            <ThemeProvider>
+              <AppContent />
+            </ThemeProvider>
+          </LanguageController>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

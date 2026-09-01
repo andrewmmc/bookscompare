@@ -350,6 +350,7 @@ export async function runInitialIcloudSync(): Promise<InitialIcloudSyncResult> {
             ...remotePreferences.value,
             icloudSyncEnabled: preferences.icloudSyncEnabled,
             analyticsEnabled: Boolean(preferences.analyticsEnabled),
+            languagePreference: preferences.languagePreference ?? 'system',
           }
         : preferences;
     const nextPreferencesUpdatedAt = Math.max(
