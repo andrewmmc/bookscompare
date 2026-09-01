@@ -5,6 +5,7 @@ import { render } from '@testing-library/react-native';
 import { PaperProvider } from 'react-native-paper';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import '../i18n';
 import { paperThemeDark, paperThemeLight } from '../theme/paperTheme';
 import { ThemeProvider } from '../theme/ThemeProvider';
 

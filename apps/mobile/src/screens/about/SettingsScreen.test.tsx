@@ -91,7 +91,7 @@ describe('SettingsScreen', () => {
     );
 
     expect(screen.getByText(/在 App 內開啟/)).toBeOnTheScreen();
-    expect(screen.getByText(/跟隨系統/)).toBeOnTheScreen();
+    expect(screen.getAllByText(/跟隨系統/)).toHaveLength(2);
     expect(screen.getAllByText(/^全部$/)).toHaveLength(2);
   });
 
@@ -183,6 +183,21 @@ describe('SettingsScreen', () => {
     expect(navigation.navigate).toHaveBeenCalledWith('OpenLinksPreferences');
   });
 
+  it('navigates to language preferences', async () => {
+    const navigation = { navigate: jest.fn() };
+
+    const screen = await renderWithProviders(
+      <SettingsScreen
+        navigation={navigation as never}
+        route={{ key: 'Settings', name: 'Settings' } as never}
+      />
+    );
+
+    await fireEvent.press(screen.getByText('語言'));
+
+    expect(navigation.navigate).toHaveBeenCalledWith('LanguagePreferences');
+  });
+
   it('navigates to theme preferences', async () => {
     const navigation = { navigate: jest.fn() };
 
@@ -193,7 +208,7 @@ describe('SettingsScreen', () => {
       />
     );
 
-    await fireEvent.press(screen.getByText(/跟隨系統/));
+    await fireEvent.press(screen.getByLabelText('外觀, 跟隨系統'));
 
     expect(navigation.navigate).toHaveBeenCalledWith('ThemePreferences');
   });

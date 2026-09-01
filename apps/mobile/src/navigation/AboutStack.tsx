@@ -1,7 +1,9 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 
 import { AboutScreen } from '../screens/about/AboutScreen';
 import { BookTypePreferencesScreen } from '../screens/about/BookTypePreferencesScreen';
+import { LanguagePreferencesScreen } from '../screens/about/LanguagePreferencesScreen';
 import { OpenLinksPreferencesScreen } from '../screens/about/OpenLinksPreferencesScreen';
 import { SettingsScreen } from '../screens/about/SettingsScreen';
 import { StorePreferencesScreen } from '../screens/about/StorePreferencesScreen';
@@ -16,6 +18,7 @@ const Stack = createNativeStackNavigator<AboutStackParamList>();
 
 export function AboutStack() {
   const { colors } = useTheme();
+  const { t } = useTranslation('settings');
 
   return (
     <Stack.Navigator
@@ -39,6 +42,14 @@ export function AboutStack() {
         component={SettingsScreen}
         options={{
           title: strings.navigation.settings,
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      <Stack.Screen
+        name="LanguagePreferences"
+        component={LanguagePreferencesScreen}
+        options={{
+          title: t('settings.language'),
           headerBackButtonDisplayMode: 'minimal',
         }}
       />

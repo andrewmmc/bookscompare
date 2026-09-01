@@ -112,4 +112,12 @@ describe('preferences storage', () => {
     expect(next.openLinksIn).toBe('browser');
     expect(JSON.parse(stored ?? '{}')).toEqual(next);
   });
+
+  it('keeps the language preference out of iCloud-syncable preferences', () => {
+    const { DEFAULT_PREFERENCES, toSyncablePreferences } = importPreferences();
+
+    expect(
+      toSyncablePreferences({ ...DEFAULT_PREFERENCES, languagePreference: 'en' })
+    ).not.toHaveProperty('languagePreference');
+  });
 });

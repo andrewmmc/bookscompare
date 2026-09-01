@@ -1,6 +1,7 @@
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { setAnalyticsEnabled, track } from '../../analytics';
@@ -86,6 +87,7 @@ function SettingsRow({
 
 export function SettingsScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation('settings');
   const preferences = usePreferences();
   const queryClient = useQueryClient();
   const tabBarHeight = useBottomTabBarHeight();
@@ -168,6 +170,20 @@ export function SettingsScreen({ navigation }: Props) {
     >
       <Text style={styles.sectionHeader}>{strings.settings.generalSection}</Text>
       <View style={styles.group}>
+        <SettingsRow
+          icon="language-outline"
+          iconBackground={colors.accentDeep}
+          title={t('settings.language')}
+          value={
+            preferences.languagePreference === 'en'
+              ? t('settings.languageEnglish')
+              : preferences.languagePreference === 'zh-TW'
+                ? t('settings.languageTraditionalChinese')
+                : t('settings.languageSystem')
+          }
+          onPress={() => navigation.navigate('LanguagePreferences')}
+          isLast={false}
+        />
         <SettingsRow
           icon="link-outline"
           iconBackground={colors.accent}
