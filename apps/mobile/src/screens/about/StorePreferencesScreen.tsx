@@ -1,10 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
 
 import { BOOK_SOURCES } from '@bookscompare/contracts';
 
 import { track } from '../../analytics';
 import { ToggleListScreen } from '../../components/PreferenceListScreen';
-import { strings } from '../../i18n/strings';
 import { syncPreferencesToIcloud } from '../../lib/icloudSync';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 
@@ -20,6 +20,7 @@ const storeOptions: Array<{ value: BookSourceId; label: string }> = BOOK_SOURCES
 }));
 
 export function StorePreferencesScreen(_props: Props) {
+  const { t } = useTranslation('settings');
   const { preferredSources } = usePreferences();
   const preferredSet = useMemo(() => new Set(preferredSources), [preferredSources]);
 
@@ -38,7 +39,7 @@ export function StorePreferencesScreen(_props: Props) {
 
   return (
     <ToggleListScreen
-      description={strings.storePreferences.description}
+      description={t('settings:storePreferences.description')}
       options={storeOptions}
       isSelected={(value) => preferredSet.has(value)}
       onToggle={toggleSource}

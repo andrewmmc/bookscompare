@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Pressable, StyleSheet } from 'react-native';
@@ -8,7 +9,6 @@ import { BarcodeScannerScreen } from '../screens/home/BarcodeScannerScreen';
 import { HistoryScreen } from '../screens/home/HistoryScreen';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { SearchResultScreen } from '../screens/home/SearchResultScreen';
-import { strings } from '../i18n/strings';
 import { useTheme } from '../theme/ThemeProvider';
 
 import type { HomeStackParamList } from './types';
@@ -16,6 +16,7 @@ import type { HomeStackParamList } from './types';
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
 export function HomeStack() {
+  const { t } = useTranslation(['navigation', 'home']);
   const { colors } = useTheme();
 
   return (
@@ -38,12 +39,12 @@ export function HomeStack() {
         name="Home"
         component={HomeScreen}
         options={({ navigation }) => ({
-          title: strings.navigation.home,
+          title: t('navigation:navigation.home'),
           headerBackTitle: '',
           headerLargeTitle: true,
           headerLeft: () => (
             <Pressable
-              accessibilityLabel={strings.home.historyAction}
+              accessibilityLabel={t('home:home.historyAction')}
               accessibilityRole="button"
               hitSlop={8}
               onPress={() => {
@@ -60,13 +61,13 @@ export function HomeStack() {
       <Stack.Screen
         name="BarcodeScanner"
         component={BarcodeScannerScreen}
-        options={{ title: strings.navigation.barcodeScanner }}
+        options={{ title: t('navigation:navigation.barcodeScanner') }}
       />
       <Stack.Screen
         name="SearchResult"
         component={SearchResultScreen}
         options={{
-          title: strings.navigation.searchResult,
+          title: t('navigation:navigation.searchResult'),
           headerBackTitle: '',
           headerBackButtonDisplayMode: 'minimal',
           headerStyle: { backgroundColor: colors.groupedBackground },
@@ -77,7 +78,7 @@ export function HomeStack() {
         name="History"
         component={HistoryScreen}
         options={{
-          title: strings.navigation.history,
+          title: t('navigation:navigation.history'),
           headerBackTitle: '',
           headerBackButtonDisplayMode: 'minimal',
           headerLargeTitle: true,

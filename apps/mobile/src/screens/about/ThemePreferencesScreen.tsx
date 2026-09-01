@@ -1,6 +1,6 @@
+import { useTranslation } from 'react-i18next';
 import { track } from '../../analytics';
 import { SelectionListScreen } from '../../components/PreferenceListScreen';
-import { strings } from '../../i18n/strings';
 import { syncPreferencesToIcloud } from '../../lib/icloudSync';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 
@@ -10,13 +10,13 @@ import type { AboutStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AboutStackParamList, 'ThemePreferences'>;
 
-const options: Array<{ value: ThemeMode; label: string }> = [
-  { value: 'system', label: strings.settings.appearanceSystem },
-  { value: 'light', label: strings.settings.appearanceLight },
-  { value: 'dark', label: strings.settings.appearanceDark },
-];
-
 export function ThemePreferencesScreen(_props: Props) {
+  const { t } = useTranslation('settings');
+  const options: Array<{ value: ThemeMode; label: string }> = [
+    { value: 'system', label: t('settings:settings.appearanceSystem') },
+    { value: 'light', label: t('settings:settings.appearanceLight') },
+    { value: 'dark', label: t('settings:settings.appearanceDark') },
+  ];
   const { themeMode } = usePreferences();
 
   const selectOption = (value: ThemeMode) => {
@@ -34,7 +34,7 @@ export function ThemePreferencesScreen(_props: Props) {
 
   return (
     <SelectionListScreen
-      description={strings.settings.appearanceDescription}
+      description={t('settings:settings.appearanceDescription')}
       options={options}
       selectedValue={themeMode}
       onSelect={selectOption}

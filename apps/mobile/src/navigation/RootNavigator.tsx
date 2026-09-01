@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
@@ -7,7 +8,6 @@ import { AboutStack } from './AboutStack';
 import { FavouritesStack } from './FavouritesStack';
 import { HomeStack } from './HomeStack';
 
-import { strings } from '../i18n/strings';
 import { useTheme } from '../theme/ThemeProvider';
 import { typography } from '../theme/typography';
 
@@ -31,6 +31,7 @@ function tabIconName(
 }
 
 export function RootNavigator() {
+  const { t } = useTranslation('navigation');
   const { colors, scheme } = useTheme();
   const blurTint = scheme === 'dark' ? 'dark' : 'light';
   const useBlur = Platform.OS === 'ios';
@@ -66,13 +67,21 @@ export function RootNavigator() {
         ),
       })}
     >
-      <Tab.Screen name="HomeTab" component={HomeStack} options={{ title: strings.tabs.home }} />
+      <Tab.Screen
+        name="HomeTab"
+        component={HomeStack}
+        options={{ title: t('navigation:tabs.home') }}
+      />
       <Tab.Screen
         name="FavouritesTab"
         component={FavouritesStack}
-        options={{ title: strings.tabs.favourites }}
+        options={{ title: t('navigation:tabs.favourites') }}
       />
-      <Tab.Screen name="AboutTab" component={AboutStack} options={{ title: strings.tabs.about }} />
+      <Tab.Screen
+        name="AboutTab"
+        component={AboutStack}
+        options={{ title: t('navigation:tabs.about') }}
+      />
     </Tab.Navigator>
   );
 }

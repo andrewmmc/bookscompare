@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -12,7 +13,6 @@ import { initAnalytics, registerAnalyticsProperties, setAnalyticsEnabled } from 
 import { FAVOURITES_QUERY_KEY } from './api/favourites';
 import { HISTORY_QUERY_KEY } from './api/history';
 import { LanguageController } from './i18n/LanguageController';
-import { strings } from './i18n/strings';
 import { runInitialIcloudSync, type InitialIcloudSyncResult } from './lib/icloudSync';
 import { usePreferences, usePreferencesLoaded } from './lib/preferences';
 import { RootNavigator } from './navigation/RootNavigator';
@@ -24,6 +24,7 @@ import { typography } from './theme/typography';
 const queryClient = new QueryClient();
 
 function AppStartupSkeleton() {
+  const { t } = useTranslation('common');
   const { colors } = useTheme();
 
   return (
@@ -32,7 +33,7 @@ function AppStartupSkeleton() {
         <View style={[styles.startupIconCircle, { backgroundColor: colors.highlightSoft }]}>
           <View style={[styles.startupIconGlyph, { backgroundColor: colors.accent }]} />
         </View>
-        <Text style={[styles.startupTitle, { color: colors.ink }]}>{strings.app.brand}</Text>
+        <Text style={[styles.startupTitle, { color: colors.ink }]}>{t('common:app.brand')}</Text>
         <View style={styles.startupBody}>
           <View style={[styles.startupLeadBar, { backgroundColor: colors.highlightSoft }]} />
           <View style={[styles.startupLeadBarShort, { backgroundColor: colors.highlightSoft }]} />
@@ -46,7 +47,7 @@ function AppStartupSkeleton() {
         </View>
       </View>
       <Text style={[styles.startupLabel, { color: colors.inkMuted }]}>
-        {strings.loading.defaultLabel}
+        {t('common:loading.defaultLabel')}
       </Text>
     </View>
   );

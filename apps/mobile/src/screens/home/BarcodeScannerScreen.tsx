@@ -1,10 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { BlurView } from 'expo-blur';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
 import { Linking, StyleSheet, Text, View } from 'react-native';
 
 import { track } from '../../analytics';
-import { strings } from '../../i18n/strings';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
@@ -27,24 +27,25 @@ function CornerBracket({ style }: { style: object }) {
 }
 
 export function BarcodeScannerScreen({ navigation }: Props) {
+  const { t } = useTranslation('home');
   const { colors } = useTheme();
   const [permission, requestPermission] = useCameraPermissions();
   const [hasScanned, setHasScanned] = useState(false);
 
   if (!permission) {
-    return <LoadingOverlay label={strings.scanner.permissionCheckingLabel} />;
+    return <LoadingOverlay label={t('home:scanner.permissionCheckingLabel')} />;
   }
 
   if (!permission.granted) {
     return (
       <EmptyState
         icon="camera"
-        title={strings.scanner.permissionRequiredTitle}
-        description={strings.scanner.permissionRequiredDescription}
+        title={t('home:scanner.permissionRequiredTitle')}
+        description={t('home:scanner.permissionRequiredDescription')}
         actionLabel={
           permission.canAskAgain
-            ? strings.scanner.permissionRequiredAction
-            : strings.scanner.permissionSettingsAction
+            ? t('home:scanner.permissionRequiredAction')
+            : t('home:scanner.permissionSettingsAction')
         }
         onAction={() =>
           void (permission.canAskAgain ? requestPermission() : Linking.openSettings())
@@ -85,7 +86,7 @@ export function BarcodeScannerScreen({ navigation }: Props) {
       <View style={styles.overlay} pointerEvents="none">
         <View style={styles.helpPillWrapper}>
           <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
-          <Text style={styles.helpText}>{strings.scanner.helpText}</Text>
+          <Text style={styles.helpText}>{t('home:scanner.helpText')}</Text>
         </View>
 
         <View style={styles.scanFrame}>

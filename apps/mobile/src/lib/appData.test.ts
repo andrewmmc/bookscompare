@@ -20,6 +20,7 @@ describe('app data reset', () => {
 
     await expect(resetAppData()).resolves.toEqual({
       preferences: {
+        languagePreference: 'system',
         openLinksIn: 'app',
         themeMode: 'system',
         preferredSources: [],

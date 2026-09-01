@@ -1,8 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
 
 import { track } from '../../analytics';
 import { ToggleListScreen } from '../../components/PreferenceListScreen';
-import { strings } from '../../i18n/strings';
 import { syncPreferencesToIcloud } from '../../lib/icloudSync';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 
@@ -12,12 +12,12 @@ import type { AboutStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AboutStackParamList, 'BookTypePreferences'>;
 
-const bookTypeOptions: Array<{ value: BookTypePreference; label: string }> = [
-  { value: 'physical', label: strings.settings.bookTypePhysical },
-  { value: 'ebook', label: strings.settings.bookTypeEbook },
-];
-
 export function BookTypePreferencesScreen(_props: Props) {
+  const { t } = useTranslation('settings');
+  const bookTypeOptions: Array<{ value: BookTypePreference; label: string }> = [
+    { value: 'physical', label: t('settings:settings.bookTypePhysical') },
+    { value: 'ebook', label: t('settings:settings.bookTypeEbook') },
+  ];
   const { preferredBookTypes } = usePreferences();
   const preferredSet = useMemo(() => new Set(preferredBookTypes), [preferredBookTypes]);
 
@@ -38,7 +38,7 @@ export function BookTypePreferencesScreen(_props: Props) {
 
   return (
     <ToggleListScreen
-      description={strings.settings.bookTypeDescription}
+      description={t('settings:settings.bookTypeDescription')}
       options={bookTypeOptions}
       isSelected={(value) => preferredSet.has(value)}
       onToggle={toggleBookType}

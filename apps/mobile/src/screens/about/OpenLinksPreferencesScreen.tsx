@@ -1,6 +1,6 @@
+import { useTranslation } from 'react-i18next';
 import { track } from '../../analytics';
 import { SelectionListScreen } from '../../components/PreferenceListScreen';
-import { strings } from '../../i18n/strings';
 import { syncPreferencesToIcloud } from '../../lib/icloudSync';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 
@@ -10,12 +10,12 @@ import type { AboutStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AboutStackParamList, 'OpenLinksPreferences'>;
 
-const options: Array<{ value: OpenLinksIn; label: string }> = [
-  { value: 'app', label: strings.settings.openLinksInApp },
-  { value: 'browser', label: strings.settings.openLinksInBrowser },
-];
-
 export function OpenLinksPreferencesScreen(_props: Props) {
+  const { t } = useTranslation('settings');
+  const options: Array<{ value: OpenLinksIn; label: string }> = [
+    { value: 'app', label: t('settings:settings.openLinksInApp') },
+    { value: 'browser', label: t('settings:settings.openLinksInBrowser') },
+  ];
   const { openLinksIn } = usePreferences();
 
   const selectOption = (value: OpenLinksIn) => {
@@ -33,7 +33,7 @@ export function OpenLinksPreferencesScreen(_props: Props) {
 
   return (
     <SelectionListScreen
-      description={strings.settings.openLinksDescription}
+      description={t('settings:settings.openLinksDescription')}
       options={options}
       selectedValue={openLinksIn}
       onSelect={selectOption}

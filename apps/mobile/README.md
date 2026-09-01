@@ -10,7 +10,7 @@ The mobile app lives here as an Expo SDK 54 workspace app with an iOS-first rele
 - In-app bookstore browsing with `react-native-webview`
 - About page links routed through the shared web view screen
 - Friendly empty/error states when the API or marketing pages are unavailable
-- Traditional Chinese UI (`zh-TW`) with English strings kept in the codebase for future use
+- Traditional Chinese and English UI with an in-app language preference
 - Optional PostHog analytics — disabled at build time when no key is provided
 
 ## Stack
@@ -106,18 +106,15 @@ Expo loads `apps/mobile/.env` automatically. See `.env.example` for the full lis
 
 ## Localization
 
-Strings live in [`src/i18n/dictionaries.ts`](./src/i18n/dictionaries.ts). The active locale is resolved at startup by `src/i18n/locale.ts` from `expo-localization`:
+Translations live in JSON namespace files under [`src/i18n/locales`](./src/i18n/locales). The active locale follows the saved language preference or the device locale, with `zh-TW` as the fallback.
 
-- `zh-TW` is currently the only enabled locale and the fallback for every device language.
-- `en` strings remain in the dictionary for future use, but English is not currently enabled.
-
-Re-export the resolved dictionary via `import { strings } from '../../i18n/strings'` from any screen or component. There is no runtime locale switcher.
+React components use `useTranslation` from `react-i18next` with the relevant namespace so mounted UI updates immediately when the language changes.
 
 When adding a new user-facing string:
 
-1. Extend the `Dictionary` type in `dictionaries.ts`.
-2. Provide both `zh-TW` and `en` values.
-3. Reference the new key through `strings.<group>.<key>`.
+1. Add the key to the matching namespace JSON file for both `zh-TW` and `en`.
+2. Load that namespace with `useTranslation`.
+3. Reference the key through `t`, using interpolation and i18next plural keys where needed.
 
 ## Analytics
 

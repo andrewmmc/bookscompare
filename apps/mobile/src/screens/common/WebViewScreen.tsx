@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useLayoutEffect, useMemo, useState } from 'react';
@@ -7,7 +8,6 @@ import { WebView } from 'react-native-webview';
 import { track } from '../../analytics';
 import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
-import { strings } from '../../i18n/strings';
 import { getSecureWebOrigin, openExternalUrl } from '../../lib/linking';
 import { useTheme } from '../../theme/ThemeProvider';
 
@@ -27,6 +27,7 @@ type Props =
 type LoadState = 'loading' | 'ready' | 'not-found' | 'error';
 
 export function WebViewScreen({ navigation, route }: Props) {
+  const { t } = useTranslation('common');
   const { colors, scheme } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const tabBarHeight = useBottomTabBarHeight();
@@ -56,7 +57,7 @@ export function WebViewScreen({ navigation, route }: Props) {
         ? {
             headerRight: () => (
               <Pressable
-                accessibilityLabel={strings.webview.shareAccessibility}
+                accessibilityLabel={t('common:webview.shareAccessibility')}
                 accessibilityRole="button"
                 hitSlop={12}
                 onPress={() => {
@@ -87,9 +88,9 @@ export function WebViewScreen({ navigation, route }: Props) {
     return (
       <EmptyState
         icon="document-text"
-        title={strings.webview.notFoundTitle}
-        description={strings.webview.notFoundDescription}
-        actionLabel={strings.webview.notFoundAction}
+        title={t('common:webview.notFoundTitle')}
+        description={t('common:webview.notFoundDescription')}
+        actionLabel={t('common:webview.notFoundAction')}
         onAction={() => void openExternalUrl(route.params.url)}
         containerStyle={styles.container}
       />
@@ -100,9 +101,9 @@ export function WebViewScreen({ navigation, route }: Props) {
     return (
       <EmptyState
         icon="cloud-offline"
-        title={strings.webview.errorTitle}
-        description={strings.webview.errorDescription}
-        actionLabel={strings.webview.errorAction}
+        title={t('common:webview.errorTitle')}
+        description={t('common:webview.errorDescription')}
+        actionLabel={t('common:webview.errorAction')}
         onAction={() => void openExternalUrl(route.params.url)}
         containerStyle={styles.container}
       />
@@ -140,7 +141,7 @@ export function WebViewScreen({ navigation, route }: Props) {
         source={{ uri: route.params.url }}
         style={[styles.webview, { marginBottom: tabBarHeight }]}
       />
-      {loadState === 'loading' ? <LoadingOverlay label={strings.webview.loadingLabel} /> : null}
+      {loadState === 'loading' ? <LoadingOverlay label={t('common:webview.loadingLabel')} /> : null}
     </View>
   );
 }

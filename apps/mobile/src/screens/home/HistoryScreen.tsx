@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo, useState } from 'react';
@@ -15,7 +16,6 @@ import { useClearAllHeaderAction } from '../../components/ClearAllHeaderButton';
 import { EmptyState } from '../../components/EmptyState';
 import { SwipeToDeleteRow } from '../../components/SwipeToDeleteRow';
 import { useShakeToUndo } from '../../hooks/useShakeToUndo';
-import { strings } from '../../i18n/strings';
 import { formatDateTime } from '../../lib/datetime';
 import { getHistoryEntryId } from '../../lib/history';
 import { updatePreference, usePreferences } from '../../lib/preferences';
@@ -31,6 +31,7 @@ import type { HomeStackParamList } from '../../navigation/types';
 type Props = NativeStackScreenProps<HomeStackParamList, 'History'>;
 
 export function HistoryScreen({ navigation }: Props) {
+  const { t } = useTranslation('library');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const tabBarHeight = useBottomTabBarHeight();
@@ -42,6 +43,19 @@ export function HistoryScreen({ navigation }: Props) {
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [undoCandidate, setUndoCandidate] = useState<HistoryEntry | null>(null);
   const [showUndoHint, setShowUndoHint] = useState(false);
+  const headerStrings = useMemo(
+    () => ({
+      clearAllAction: t('library:history.clearAllAction'),
+      clearAllConfirmTitle: t('library:history.clearAllConfirmTitle'),
+      clearAllConfirmMessage: t('library:history.clearAllConfirmMessage'),
+      clearAllConfirmAction: t('library:history.clearAllConfirmAction'),
+      cancelAction: t('library:history.cancelAction'),
+      sortAction: t('library:history.sortAction'),
+      newestFirstAction: t('library:history.newestFirstAction'),
+      oldestFirstAction: t('library:history.oldestFirstAction'),
+    }),
+    [t]
+  );
 
   const entries = useMemo(
     () =>
@@ -85,7 +99,7 @@ export function HistoryScreen({ navigation }: Props) {
 
   useClearAllHeaderAction({
     navigation,
-    strings: strings.history,
+    strings: headerStrings,
     clickEvent: 'history_click_clear_all',
     confirmEvent: 'history_clear_all_confirm',
     onConfirm: () => clearHistory.mutate(),
@@ -101,8 +115,8 @@ export function HistoryScreen({ navigation }: Props) {
     !isLoading && (!data || data.length === 0) ? (
       <EmptyState
         icon="time-outline"
-        title={strings.history.emptyTitle}
-        description={strings.history.emptyDescription}
+        title={t('library:history.emptyTitle')}
+        description={t('library:history.emptyDescription')}
       />
     ) : (
       <FlatList
@@ -114,15 +128,19 @@ export function HistoryScreen({ navigation }: Props) {
         renderItem={({ item, index }) => {
           const hasIsbnTitle = item.type === 'isbn' && Boolean(item.title);
           const primaryText =
-            item.type === 'isbn' ? item.title || strings.history.isbnLabel(item.isbn) : item.title;
-          const isbnLine = hasIsbnTitle ? strings.history.isbnLabel(item.isbn) : null;
+            item.type === 'isbn'
+              ? item.title || t('library:history.isbnLabel', { isbn: item.isbn })
+              : item.title;
+          const isbnLine = hasIsbnTitle
+            ? t('library:history.isbnLabel', { isbn: item.isbn })
+            : null;
           const isFirst = index === 0;
           const isLast = index === entries.length - 1;
           const itemId = getHistoryEntryId(item);
           return (
             <SwipeToDeleteRow
-              deleteAccessibilityLabel={strings.history.deleteAccessibilityLabel}
-              deleteLabel={strings.history.deleteAction}
+              deleteAccessibilityLabel={t('library:history.deleteAccessibilityLabel')}
+              deleteLabel={t('library:history.deleteAction')}
               isFirst={isFirst}
               isLast={isLast}
               isOpen={openItemId === itemId}
@@ -163,7 +181,7 @@ export function HistoryScreen({ navigation }: Props) {
                     </Text>
                   ) : null}
                   <Text style={styles.meta} numberOfLines={1}>
-                    {strings.history.viewedOn(formatDateTime(item.viewedAt))}
+                    {t('library:history.viewedOn', { dateText: formatDateTime(item.viewedAt) })}
                   </Text>
                 </View>
                 <Ionicons color={colors.inkMuted} name="chevron-forward" size={16} />
@@ -186,7 +204,7 @@ export function HistoryScreen({ navigation }: Props) {
         visible={showUndoHint}
         wrapperStyle={{ bottom: tabBarHeight }}
       >
-        {strings.history.deletedUndoHint}
+        {t('library:history.deletedUndoHint')}
       </Snackbar>
     </View>
   );

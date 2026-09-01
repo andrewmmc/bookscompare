@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -17,7 +18,6 @@ import { useIsbnLookup, useTitleSearch } from '../../api/queries';
 import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { PriceTag } from '../../components/PriceTag';
-import { strings } from '../../i18n/strings';
 import { openExternalUrl } from '../../lib/linking';
 import { usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
@@ -42,12 +42,6 @@ type SearchResultData = BookDetailResponse | SearchResponse;
 type ResultSortMode = 'price' | 'store' | 'physical' | 'ebook';
 
 const defaultSourceOrder = BOOK_SOURCES.map((source) => source.id);
-const sortOptions: Array<{ value: ResultSortMode; label: string }> = [
-  { value: 'price', label: strings.searchResult.sortOptions.price },
-  { value: 'store', label: strings.searchResult.sortOptions.store },
-  { value: 'physical', label: strings.searchResult.sortOptions.physical },
-  { value: 'ebook', label: strings.searchResult.sortOptions.ebook },
-];
 
 function isEbookOffer(item: BookOffer): boolean {
   return item.productType.includes('電子書') || item.title.includes('電子書');
@@ -159,6 +153,7 @@ function OfferRow({
   onOpen,
   onToggleFavourite,
 }: OfferRowProps) {
+  const { t } = useTranslation(['search', 'library']);
   const showRowFavourite = !isbnParam && Boolean(item.isbn);
   const rowIsFavourite = showRowFavourite && item.isbn ? favouriteIsbnSet.has(item.isbn) : false;
   const showLowestBadge = totalCount > 1 && lowestPrice !== null && item.price === lowestPrice;
@@ -188,12 +183,14 @@ function OfferRow({
             {showLowestBadge ? (
               <View style={styles.lowestBadge}>
                 <Ionicons name="pricetag" size={11} color={colors.surface} />
-                <Text style={styles.lowestBadgeText}>{strings.searchResult.lowestPriceBadge}</Text>
+                <Text style={styles.lowestBadgeText}>
+                  {t('search:searchResult.lowestPriceBadge')}
+                </Text>
               </View>
             ) : null}
             {isEbookOffer(item) ? (
               <View style={styles.ebookBadge}>
-                <Text style={styles.ebookBadgeText}>{strings.searchResult.ebookBadge}</Text>
+                <Text style={styles.ebookBadgeText}>{t('search:searchResult.ebookBadge')}</Text>
               </View>
             ) : null}
           </View>
@@ -217,8 +214,8 @@ function OfferRow({
           <Pressable
             accessibilityLabel={
               rowIsFavourite
-                ? strings.favourites.removeAccessibilityLabel
-                : strings.favourites.addAccessibilityLabel
+                ? t('library:favourites.removeAccessibilityLabel')
+                : t('library:favourites.addAccessibilityLabel')
             }
             accessibilityRole="button"
             hitSlop={12}
@@ -246,6 +243,13 @@ function OfferRow({
 }
 
 export function SearchResultScreen({ navigation, route }: Props) {
+  const { t } = useTranslation(['search', 'library']);
+  const sortOptions: Array<{ value: ResultSortMode; label: string }> = [
+    { value: 'price', label: t('search:searchResult.sortOptions.price') },
+    { value: 'store', label: t('search:searchResult.sortOptions.store') },
+    { value: 'physical', label: t('search:searchResult.sortOptions.physical') },
+    { value: 'ebook', label: t('search:searchResult.sortOptions.ebook') },
+  ];
   const { colors, scheme } = useTheme();
   const { showActionSheetWithOptions } = useActionSheet();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -374,10 +378,10 @@ export function SearchResultScreen({ navigation, route }: Props) {
           <Pressable
             accessibilityLabel={
               copiedQuery
-                ? strings.searchResult.copiedAccessibilityLabel
+                ? t('search:searchResult.copiedAccessibilityLabel')
                 : isbnParam
-                  ? strings.searchResult.copyIsbnAccessibilityLabel
-                  : strings.searchResult.copyTitleAccessibilityLabel
+                  ? t('search:searchResult.copyIsbnAccessibilityLabel')
+                  : t('search:searchResult.copyTitleAccessibilityLabel')
             }
             accessibilityRole="button"
             hitSlop={12}
@@ -400,7 +404,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
             />
           </Pressable>
           <Pressable
-            accessibilityLabel={strings.searchResult.sortAccessibilityLabel}
+            accessibilityLabel={t('search:searchResult.sortAccessibilityLabel')}
             accessibilityRole="button"
             accessibilityState={{ selected: sortMode !== 'price' }}
             hitSlop={12}
@@ -408,13 +412,13 @@ export function SearchResultScreen({ navigation, route }: Props) {
               const selectedPrefix = '✓ ';
               showActionSheetWithOptions(
                 {
-                  title: strings.searchResult.sortByLabel,
+                  title: t('search:searchResult.sortByLabel'),
                   options: [
                     ...sortOptions.map(
                       (option) =>
                         `${option.value === sortMode ? selectedPrefix : ''}${option.label}`
                     ),
-                    strings.searchResult.cancelAction,
+                    t('search:searchResult.cancelAction'),
                   ],
                   cancelButtonIndex: sortOptions.length,
                   tintColor: colors.navigationAction,
@@ -442,8 +446,8 @@ export function SearchResultScreen({ navigation, route }: Props) {
             <Pressable
               accessibilityLabel={
                 isbnIsFavourite
-                  ? strings.favourites.removeAccessibilityLabel
-                  : strings.favourites.addAccessibilityLabel
+                  ? t('library:favourites.removeAccessibilityLabel')
+                  : t('library:favourites.addAccessibilityLabel')
               }
               accessibilityRole="button"
               hitSlop={12}
@@ -537,9 +541,9 @@ export function SearchResultScreen({ navigation, route }: Props) {
     return (
       <EmptyState
         icon="cloud-offline-outline"
-        title={strings.searchResult.networkErrorTitle}
-        description={strings.searchResult.networkErrorDescription}
-        actionLabel={strings.searchResult.retryAction}
+        title={t('search:searchResult.networkErrorTitle')}
+        description={t('search:searchResult.networkErrorDescription')}
+        actionLabel={t('search:searchResult.retryAction')}
         onAction={() => void refetch()}
         containerStyle={styles.container}
       />
@@ -552,8 +556,8 @@ export function SearchResultScreen({ navigation, route }: Props) {
         <View style={styles.container}>
           <EmptyState
             icon="funnel-outline"
-            title={strings.searchResult.filteredEmptyTitle}
-            description={strings.searchResult.filteredEmptyDescription}
+            title={t('search:searchResult.filteredEmptyTitle')}
+            description={t('search:searchResult.filteredEmptyDescription')}
           />
         </View>
       );
@@ -564,9 +568,9 @@ export function SearchResultScreen({ navigation, route }: Props) {
         <View style={styles.container}>
           <EmptyState
             icon="cloud-offline-outline"
-            title={strings.searchResult.allErroredTitle}
-            description={strings.searchResult.allErroredDescription}
-            actionLabel={strings.searchResult.retryAction}
+            title={t('search:searchResult.allErroredTitle')}
+            description={t('search:searchResult.allErroredDescription')}
+            actionLabel={t('search:searchResult.retryAction')}
             onAction={() => void refetch()}
           />
         </View>
@@ -578,9 +582,9 @@ export function SearchResultScreen({ navigation, route }: Props) {
         <View style={styles.container}>
           <EmptyState
             icon="construct-outline"
-            title={strings.searchResult.notLiveTitle}
-            description={strings.searchResult.notLiveDescription}
-            actionLabel={strings.searchResult.retryAction}
+            title={t('search:searchResult.notLiveTitle')}
+            description={t('search:searchResult.notLiveDescription')}
+            actionLabel={t('search:searchResult.retryAction')}
             onAction={() => void refetch()}
           />
         </View>
@@ -591,13 +595,13 @@ export function SearchResultScreen({ navigation, route }: Props) {
       <View style={styles.container}>
         <EmptyState
           icon="sad-outline"
-          title={strings.searchResult.notFoundTitle}
+          title={t('search:searchResult.notFoundTitle')}
           description={
             isbnParam
-              ? strings.searchResult.notFoundIsbnDescription
-              : strings.searchResult.notFoundTitleDescription
+              ? t('search:searchResult.notFoundIsbnDescription')
+              : t('search:searchResult.notFoundTitleDescription')
           }
-          actionLabel={strings.searchResult.retryAction}
+          actionLabel={t('search:searchResult.retryAction')}
           onAction={() => void refetch()}
         />
       </View>
@@ -607,7 +611,9 @@ export function SearchResultScreen({ navigation, route }: Props) {
   const listHeader =
     resultCount > 0 ? (
       <View style={styles.listHeader}>
-        <Text style={styles.sectionHeader}>{strings.searchResult.resultsCount(resultCount)}</Text>
+        <Text style={styles.sectionHeader}>
+          {t('search:searchResult.resultsCount', { count: resultCount })}
+        </Text>
       </View>
     ) : undefined;
 
@@ -626,7 +632,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
         refreshing={isRefetching}
         renderItem={renderOffer}
       />
-      {isLoading ? <LoadingOverlay label={strings.searchResult.loadingLabel} /> : null}
+      {isLoading ? <LoadingOverlay label={t('search:searchResult.loadingLabel')} /> : null}
     </View>
   );
 }

@@ -9,7 +9,6 @@ import { SettingsScreen } from '../screens/about/SettingsScreen';
 import { StorePreferencesScreen } from '../screens/about/StorePreferencesScreen';
 import { ThemePreferencesScreen } from '../screens/about/ThemePreferencesScreen';
 import { WebViewScreen } from '../screens/common/WebViewScreen';
-import { strings } from '../i18n/strings';
 import { useTheme } from '../theme/ThemeProvider';
 
 import type { AboutStackParamList } from './types';
@@ -17,8 +16,8 @@ import type { AboutStackParamList } from './types';
 const Stack = createNativeStackNavigator<AboutStackParamList>();
 
 export function AboutStack() {
+  const { t } = useTranslation(['navigation', 'settings']);
   const { colors } = useTheme();
-  const { t } = useTranslation('settings');
 
   return (
     <Stack.Navigator
@@ -41,7 +40,7 @@ export function AboutStack() {
         name="Settings"
         component={SettingsScreen}
         options={{
-          title: strings.navigation.settings,
+          title: t('navigation:navigation.settings'),
           headerBackButtonDisplayMode: 'minimal',
         }}
       />
@@ -57,7 +56,7 @@ export function AboutStack() {
         name="OpenLinksPreferences"
         component={OpenLinksPreferencesScreen}
         options={{
-          title: strings.settings.openLinksIn,
+          title: t('settings:settings.openLinksIn'),
           headerBackButtonDisplayMode: 'minimal',
         }}
       />
@@ -65,7 +64,7 @@ export function AboutStack() {
         name="ThemePreferences"
         component={ThemePreferencesScreen}
         options={{
-          title: strings.settings.appearance,
+          title: t('settings:settings.appearance'),
           headerBackButtonDisplayMode: 'minimal',
         }}
       />
@@ -73,7 +72,7 @@ export function AboutStack() {
         name="StorePreferences"
         component={StorePreferencesScreen}
         options={{
-          title: strings.storePreferences.title,
+          title: t('settings:storePreferences.title'),
           headerBackButtonDisplayMode: 'minimal',
         }}
       />
@@ -81,7 +80,7 @@ export function AboutStack() {
         name="BookTypePreferences"
         component={BookTypePreferencesScreen}
         options={{
-          title: strings.settings.bookType,
+          title: t('settings:settings.bookType'),
           headerBackButtonDisplayMode: 'minimal',
         }}
       />

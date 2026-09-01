@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo, useState } from 'react';
@@ -17,7 +18,6 @@ import { AppButton } from '../../components/AppButton';
 import { AppTextField } from '../../components/AppTextField';
 import { track } from '../../analytics';
 import { featureFlags } from '../../config/featureFlags';
-import { strings } from '../../i18n/strings';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
@@ -75,6 +75,7 @@ function SegmentedToggle<T extends string>({ value, options, onChange }: Segment
 }
 
 export function HomeScreen({ navigation }: Props) {
+  const { t } = useTranslation('home');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const tabBarHeight = useBottomTabBarHeight();
@@ -125,7 +126,9 @@ export function HomeScreen({ navigation }: Props) {
               <Ionicons color={colors.accent} name="search" size={36} />
             </View>
             <Text style={styles.leadText}>
-              {titleSearchEnabled ? strings.home.leadTextWithTitleSearch : strings.home.leadText}
+              {titleSearchEnabled
+                ? t('home:home.leadTextWithTitleSearch')
+                : t('home:home.leadText')}
             </Text>
           </View>
 
@@ -138,8 +141,8 @@ export function HomeScreen({ navigation }: Props) {
                   setMode(next);
                 }}
                 options={[
-                  { value: 'isbn', label: strings.home.isbnTab },
-                  { value: 'title', label: strings.home.titleTab },
+                  { value: 'isbn', label: t('home:home.isbnTab') },
+                  { value: 'title', label: t('home:home.titleTab') },
                 ]}
               />
             </View>
@@ -161,11 +164,11 @@ export function HomeScreen({ navigation }: Props) {
                 onBlur={() => setIsInputFocused(false)}
                 onFocus={() => setIsInputFocused(true)}
                 onSubmitEditing={handleSearch}
-                placeholder={strings.home.isbnPlaceholder}
+                placeholder={t('home:home.isbnPlaceholder')}
                 returnKeyType="search"
                 value={isbn}
                 onClear={() => setIsbn('')}
-                clearAccessibilityLabel={strings.home.clearAction}
+                clearAccessibilityLabel={t('home:home.clearAction')}
               />
             ) : (
               <AppTextField
@@ -184,16 +187,16 @@ export function HomeScreen({ navigation }: Props) {
                 onBlur={() => setIsInputFocused(false)}
                 onFocus={() => setIsInputFocused(true)}
                 onSubmitEditing={handleSearch}
-                placeholder={strings.home.titlePlaceholder}
+                placeholder={t('home:home.titlePlaceholder')}
                 returnKeyType="search"
                 value={title}
                 onClear={() => setTitle('')}
-                clearAccessibilityLabel={strings.home.clearAction}
+                clearAccessibilityLabel={t('home:home.clearAction')}
               />
             )}
             {mode === 'isbn' ? (
               <Pressable
-                accessibilityLabel={strings.home.scanAction}
+                accessibilityLabel={t('home:home.scanAction')}
                 accessibilityRole="button"
                 android_ripple={{ color: colors.rowPressed }}
                 onPress={() => {
@@ -210,7 +213,7 @@ export function HomeScreen({ navigation }: Props) {
           <AppButton
             disabled={!canSearch}
             fullWidth
-            label={strings.home.searchAction}
+            label={t('home:home.searchAction')}
             onPress={handleSearch}
             size="large"
             style={styles.searchButton}

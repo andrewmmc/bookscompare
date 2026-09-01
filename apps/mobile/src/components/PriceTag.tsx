@@ -1,7 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { strings } from '../i18n/strings';
 import { spacing } from '../theme/spacing';
 import { useTheme } from '../theme/ThemeProvider';
 import { typography } from '../theme/typography';
@@ -15,6 +15,7 @@ interface PriceTagProps {
 }
 
 export function PriceTag({ currency, price, discountRate }: PriceTagProps) {
+  const { t } = useTranslation('common');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -26,7 +27,9 @@ export function PriceTag({ currency, price, discountRate }: PriceTagProps) {
       </View>
       {discountRate ? (
         <View style={styles.discountChip}>
-          <Text style={styles.discountText}>{strings.priceTag.discountTag(discountRate)}</Text>
+          <Text style={styles.discountText}>
+            {t('common:priceTag.discountTag', { discountRate: discountRate })}
+          </Text>
         </View>
       ) : null}
     </View>

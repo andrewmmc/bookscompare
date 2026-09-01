@@ -1,9 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { WebViewScreen } from '../screens/common/WebViewScreen';
 import { FavouritesScreen } from '../screens/favourites/FavouritesScreen';
 import { SearchResultScreen } from '../screens/home/SearchResultScreen';
-import { strings } from '../i18n/strings';
 import { useTheme } from '../theme/ThemeProvider';
 
 import type { FavouritesStackParamList } from './types';
@@ -11,6 +11,7 @@ import type { FavouritesStackParamList } from './types';
 const Stack = createNativeStackNavigator<FavouritesStackParamList>();
 
 export function FavouritesStack() {
+  const { t } = useTranslation('navigation');
   const { colors } = useTheme();
 
   return (
@@ -33,7 +34,7 @@ export function FavouritesStack() {
         name="Favourites"
         component={FavouritesScreen}
         options={{
-          title: strings.navigation.favourites,
+          title: t('navigation:navigation.favourites'),
           headerBackTitle: '',
           headerLargeTitle: true,
         }}
@@ -42,7 +43,7 @@ export function FavouritesStack() {
         name="SearchResult"
         component={SearchResultScreen}
         options={{
-          title: strings.navigation.searchResult,
+          title: t('navigation:navigation.searchResult'),
           headerBackTitle: '',
           headerBackButtonDisplayMode: 'minimal',
           headerStyle: { backgroundColor: colors.groupedBackground },

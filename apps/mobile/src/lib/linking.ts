@@ -1,11 +1,13 @@
 import { Alert, Linking } from 'react-native';
 
-import { strings } from '../i18n/strings';
+import { i18n } from '../i18n';
 
 function showExternalLinkErrorAlert() {
-  Alert.alert(strings.externalLink.errorTitle, strings.externalLink.errorDescription, [
-    { text: strings.externalLink.errorAction },
-  ]);
+  Alert.alert(
+    i18n.t('externalLink.errorTitle', { ns: 'common' }),
+    i18n.t('externalLink.errorDescription', { ns: 'common' }),
+    [{ text: i18n.t('externalLink.errorAction', { ns: 'common' }) }]
+  );
 }
 
 export function getSecureWebOrigin(url: string): string | null {

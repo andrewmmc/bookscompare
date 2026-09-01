@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Constants from 'expo-constants';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo } from 'react';
@@ -9,7 +10,6 @@ import { ListRow } from '../../components/ListRow';
 import { track } from '../../analytics';
 import { openExternalUrl } from '../../lib/linking';
 import { usePreferences } from '../../lib/preferences';
-import { strings } from '../../i18n/strings';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
@@ -23,32 +23,32 @@ const buildNumber = Constants.nativeBuildVersion ?? '';
 
 type Props = NativeStackScreenProps<AboutStackParamList, 'About'>;
 
-const aboutItems = [
-  {
-    key: 'privacy',
-    title: strings.about.items.privacy,
-    icon: 'shield-checkmark',
-    url: 'https://bookscompare.mmc.dev/privacy?embed=1',
-  },
-  {
-    key: 'feedback',
-    title: strings.about.items.feedback,
-    icon: 'chatbubble-ellipses',
-    url: 'https://github.com/andrewmmc/bookscompare/issues',
-  },
-  {
-    key: 'copyright',
-    title: strings.about.items.copyright,
-    icon: 'globe',
-    url: 'https://andrewmmc.com',
-  },
-] as const;
-
 export function AboutScreen({ navigation }: Props) {
+  const { t } = useTranslation(['settings', 'navigation']);
   const { colors } = useTheme();
   const preferences = usePreferences();
   const tabBarHeight = useBottomTabBarHeight();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const aboutItems = [
+    {
+      key: 'privacy',
+      title: t('settings:about.items.privacy'),
+      icon: 'shield-checkmark',
+      url: 'https://bookscompare.mmc.dev/privacy?embed=1',
+    },
+    {
+      key: 'feedback',
+      title: t('settings:about.items.feedback'),
+      icon: 'chatbubble-ellipses',
+      url: 'https://github.com/andrewmmc/bookscompare/issues',
+    },
+    {
+      key: 'copyright',
+      title: t('settings:about.items.copyright'),
+      icon: 'globe',
+      url: 'https://andrewmmc.com',
+    },
+  ] as const;
 
   return (
     <ScrollView
@@ -61,8 +61,13 @@ export function AboutScreen({ navigation }: Props) {
     >
       <View style={styles.hero}>
         <Image source={logo} style={styles.logo} />
-        <Text style={styles.title}>{strings.about.title}</Text>
-        <Text style={styles.version}>{strings.about.version(appVersion, buildNumber)}</Text>
+        <Text style={styles.title}>{t('settings:about.title')}</Text>
+        <Text style={styles.version}>
+          {t('settings:about.version', {
+            appVersion,
+            buildNumber: buildNumber ? ` (${buildNumber})` : '',
+          })}
+        </Text>
       </View>
 
       <View style={styles.group}>
@@ -73,7 +78,7 @@ export function AboutScreen({ navigation }: Props) {
             track('about_open_settings');
             navigation.navigate('Settings');
           }}
-          title={strings.navigation.settings}
+          title={t('navigation:navigation.settings')}
           isLast
         />
       </View>
@@ -103,7 +108,7 @@ export function AboutScreen({ navigation }: Props) {
         ))}
       </View>
 
-      <Text style={styles.disclaimer}>{strings.about.disclaimer}</Text>
+      <Text style={styles.disclaimer}>{t('settings:about.disclaimer')}</Text>
     </ScrollView>
   );
 }

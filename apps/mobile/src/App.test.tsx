@@ -3,7 +3,7 @@ import 'react-native-gesture-handler/jestSetup';
 import { render, screen, waitFor } from '@testing-library/react-native';
 
 import App from './App';
-import { strings } from './i18n/strings';
+import { i18n } from './i18n';
 
 jest.mock('./analytics', () => ({
   initAnalytics: jest.fn(),
@@ -42,9 +42,9 @@ describe('App', () => {
     await render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText(strings.tabs.home)).toBeTruthy();
+      expect(screen.getByText(i18n.t('tabs.home', { ns: 'navigation' }))).toBeTruthy();
     });
-    expect(screen.getByText(strings.tabs.favourites)).toBeTruthy();
-    expect(screen.getByText(strings.tabs.about)).toBeTruthy();
+    expect(screen.getByText(i18n.t('tabs.favourites', { ns: 'navigation' }))).toBeTruthy();
+    expect(screen.getByText(i18n.t('tabs.about', { ns: 'navigation' }))).toBeTruthy();
   });
 });

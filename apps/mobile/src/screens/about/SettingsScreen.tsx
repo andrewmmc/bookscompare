@@ -8,7 +8,6 @@ import { setAnalyticsEnabled, track } from '../../analytics';
 import { FAVOURITES_QUERY_KEY } from '../../api/favourites';
 import { HISTORY_QUERY_KEY } from '../../api/history';
 import { ListRow } from '../../components/ListRow';
-import { strings } from '../../i18n/strings';
 import { resetAppData } from '../../lib/appData';
 import { clearIcloudData, runInitialIcloudSync } from '../../lib/icloudSync';
 import { updatePreference, usePreferences } from '../../lib/preferences';
@@ -17,6 +16,7 @@ import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { TFunction } from 'i18next';
 import type { BookTypePreference, OpenLinksIn, ThemeMode } from '../../lib/preferences';
 import type { ThemeColors } from '../../theme/colors';
 import type { AboutStackParamList } from '../../navigation/types';
@@ -27,30 +27,32 @@ export function shouldShowIcloudSyncSetting(platformOS = Platform.OS): boolean {
   return platformOS === 'ios';
 }
 
-function openLinksLabel(value: OpenLinksIn): string {
-  return value === 'app' ? strings.settings.openLinksInApp : strings.settings.openLinksInBrowser;
+function openLinksLabel(t: TFunction, value: OpenLinksIn): string {
+  return value === 'app'
+    ? t('settings:settings.openLinksInApp')
+    : t('settings:settings.openLinksInBrowser');
 }
 
-function themeModeLabel(value: ThemeMode): string {
+function themeModeLabel(t: TFunction, value: ThemeMode): string {
   switch (value) {
     case 'light':
-      return strings.settings.appearanceLight;
+      return t('settings:settings.appearanceLight');
     case 'dark':
-      return strings.settings.appearanceDark;
+      return t('settings:settings.appearanceDark');
     case 'system':
     default:
-      return strings.settings.appearanceSystem;
+      return t('settings:settings.appearanceSystem');
   }
 }
 
-function bookTypePreferenceLabel(values: BookTypePreference[]): string {
+function bookTypePreferenceLabel(t: TFunction, values: BookTypePreference[]): string {
   if (values.length === 0 || values.length === 2) {
-    return strings.settings.bookTypeAll;
+    return t('settings:settings.bookTypeAll');
   }
 
   return values[0] === 'physical'
-    ? strings.settings.bookTypePhysical
-    : strings.settings.bookTypeEbook;
+    ? t('settings:settings.bookTypePhysical')
+    : t('settings:settings.bookTypeEbook');
 }
 
 interface SettingsRowProps {
@@ -95,8 +97,10 @@ export function SettingsScreen({ navigation }: Props) {
 
   const storePrefsValue =
     preferences.preferredSources.length === 0
-      ? strings.storePreferences.settingsRowValueAll
-      : strings.storePreferences.settingsRowValue(preferences.preferredSources.length);
+      ? t('settings:storePreferences.settingsRowValueAll')
+      : t('settings:storePreferences.settingsRowValue', {
+          count: preferences.preferredSources.length,
+        });
   const showIcloudSync = shouldShowIcloudSyncSetting();
   const resetAllData = useMutation({
     mutationFn: async () => {
@@ -141,14 +145,14 @@ export function SettingsScreen({ navigation }: Props) {
   const confirmResetAllData = () => {
     track('settings_click_reset_all_data');
     Alert.alert(
-      strings.settings.resetAllDataConfirmTitle,
+      t('settings:settings.resetAllDataConfirmTitle'),
       preferences.icloudSyncEnabled
-        ? strings.settings.resetAllDataConfirmMessageWithIcloud
-        : strings.settings.resetAllDataConfirmMessage,
+        ? t('settings:settings.resetAllDataConfirmMessageWithIcloud')
+        : t('settings:settings.resetAllDataConfirmMessage'),
       [
-        { text: strings.settings.cancelAction, style: 'cancel' },
+        { text: t('settings:settings.cancelAction'), style: 'cancel' },
         {
-          text: strings.settings.resetAllDataConfirmAction,
+          text: t('settings:settings.resetAllDataConfirmAction'),
           style: 'destructive',
           onPress: () => {
             track('settings_reset_all_data_confirm');
@@ -168,7 +172,7 @@ export function SettingsScreen({ navigation }: Props) {
       ]}
       contentInsetAdjustmentBehavior="automatic"
     >
-      <Text style={styles.sectionHeader}>{strings.settings.generalSection}</Text>
+      <Text style={styles.sectionHeader}>{t('settings:settings.generalSection')}</Text>
       <View style={styles.group}>
         <SettingsRow
           icon="language-outline"
@@ -187,41 +191,41 @@ export function SettingsScreen({ navigation }: Props) {
         <SettingsRow
           icon="link-outline"
           iconBackground={colors.accent}
-          title={strings.settings.openLinksIn}
-          value={openLinksLabel(preferences.openLinksIn)}
+          title={t('settings:settings.openLinksIn')}
+          value={openLinksLabel(t, preferences.openLinksIn)}
           onPress={() => navigation.navigate('OpenLinksPreferences')}
         />
       </View>
 
       <Text style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>
-        {strings.settings.appearanceSection}
+        {t('settings:settings.appearanceSection')}
       </Text>
       <View style={styles.group}>
         <SettingsRow
           icon="contrast-outline"
           iconBackground={colors.accentDeep}
-          title={strings.settings.appearance}
-          value={themeModeLabel(preferences.themeMode)}
+          title={t('settings:settings.appearance')}
+          value={themeModeLabel(t, preferences.themeMode)}
           onPress={() => navigation.navigate('ThemePreferences')}
         />
       </View>
 
       <Text style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>
-        {strings.settings.contentSection}
+        {t('settings:settings.contentSection')}
       </Text>
       <View style={styles.group}>
         <SettingsRow
           icon="library-outline"
           iconBackground={colors.accent}
-          title={strings.settings.bookType}
-          value={bookTypePreferenceLabel(preferences.preferredBookTypes)}
+          title={t('settings:settings.bookType')}
+          value={bookTypePreferenceLabel(t, preferences.preferredBookTypes)}
           onPress={() => navigation.navigate('BookTypePreferences')}
           isLast={false}
         />
         <SettingsRow
           icon="storefront-outline"
           iconBackground={colors.success}
-          title={strings.storePreferences.settingsRow}
+          title={t('settings:storePreferences.settingsRow')}
           value={storePrefsValue}
           onPress={() => navigation.navigate('StorePreferences')}
           isLast
@@ -231,17 +235,17 @@ export function SettingsScreen({ navigation }: Props) {
       {showIcloudSync ? (
         <>
           <Text style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>
-            {strings.settings.syncSection}
+            {t('settings:settings.syncSection')}
           </Text>
           <View style={styles.group}>
             <SettingsRow
               icon="cloud-outline"
               iconBackground={colors.accentDeep}
-              title={strings.settings.icloudSync}
+              title={t('settings:settings.icloudSync')}
               value={
                 preferences.icloudSyncEnabled
-                  ? strings.settings.icloudSyncOn
-                  : strings.settings.icloudSyncOff
+                  ? t('settings:settings.icloudSyncOn')
+                  : t('settings:settings.icloudSyncOff')
               }
               onPress={toggleIcloudSync}
               hideChevron
@@ -252,17 +256,17 @@ export function SettingsScreen({ navigation }: Props) {
       ) : null}
 
       <Text style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>
-        {strings.settings.dataSection}
+        {t('settings:settings.dataSection')}
       </Text>
       <View style={styles.group}>
         <SettingsRow
           icon="analytics-outline"
           iconBackground={colors.accentDeep}
-          title={strings.settings.analytics}
+          title={t('settings:settings.analytics')}
           value={
             preferences.analyticsEnabled
-              ? strings.settings.analyticsOn
-              : strings.settings.analyticsOff
+              ? t('settings:settings.analyticsOn')
+              : t('settings:settings.analyticsOff')
           }
           onPress={toggleAnalytics}
           hideChevron
@@ -270,7 +274,7 @@ export function SettingsScreen({ navigation }: Props) {
         />
         <ListRow
           icon="trash-outline"
-          title={strings.settings.resetAllData}
+          title={t('settings:settings.resetAllData')}
           onPress={confirmResetAllData}
           destructive
           hideChevron

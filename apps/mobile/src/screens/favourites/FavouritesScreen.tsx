@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo, useState } from 'react';
@@ -15,7 +16,6 @@ import { useClearAllHeaderAction } from '../../components/ClearAllHeaderButton';
 import { EmptyState } from '../../components/EmptyState';
 import { SwipeToDeleteRow } from '../../components/SwipeToDeleteRow';
 import { useShakeToUndo } from '../../hooks/useShakeToUndo';
-import { strings } from '../../i18n/strings';
 import { formatDateTime } from '../../lib/datetime';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
@@ -30,6 +30,7 @@ import type { FavouritesStackParamList } from '../../navigation/types';
 type Props = NativeStackScreenProps<FavouritesStackParamList, 'Favourites'>;
 
 export function FavouritesScreen({ navigation }: Props) {
+  const { t } = useTranslation('library');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const tabBarHeight = useBottomTabBarHeight();
@@ -41,6 +42,19 @@ export function FavouritesScreen({ navigation }: Props) {
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [undoCandidate, setUndoCandidate] = useState<Favourite | null>(null);
   const [showUndoHint, setShowUndoHint] = useState(false);
+  const headerStrings = useMemo(
+    () => ({
+      clearAllAction: t('library:favourites.clearAllAction'),
+      clearAllConfirmTitle: t('library:favourites.clearAllConfirmTitle'),
+      clearAllConfirmMessage: t('library:favourites.clearAllConfirmMessage'),
+      clearAllConfirmAction: t('library:favourites.clearAllConfirmAction'),
+      cancelAction: t('library:favourites.cancelAction'),
+      sortAction: t('library:favourites.sortAction'),
+      newestFirstAction: t('library:favourites.newestFirstAction'),
+      oldestFirstAction: t('library:favourites.oldestFirstAction'),
+    }),
+    [t]
+  );
 
   const entries = useMemo(
     () =>
@@ -80,7 +94,7 @@ export function FavouritesScreen({ navigation }: Props) {
 
   useClearAllHeaderAction({
     navigation,
-    strings: strings.favourites,
+    strings: headerStrings,
     clickEvent: 'favourites_click_clear_all',
     confirmEvent: 'favourites_clear_all_confirm',
     onConfirm: () => clearFavourites.mutate(),
@@ -96,8 +110,8 @@ export function FavouritesScreen({ navigation }: Props) {
     !isLoading && (!data || data.length === 0) ? (
       <EmptyState
         icon="heart-outline"
-        title={strings.favourites.emptyTitle}
-        description={strings.favourites.emptyDescription}
+        title={t('library:favourites.emptyTitle')}
+        description={t('library:favourites.emptyDescription')}
       />
     ) : (
       <FlatList
@@ -111,8 +125,8 @@ export function FavouritesScreen({ navigation }: Props) {
           const isLast = index === entries.length - 1;
           return (
             <SwipeToDeleteRow
-              deleteAccessibilityLabel={strings.favourites.removeAccessibilityLabel}
-              deleteLabel={strings.favourites.removeAction}
+              deleteAccessibilityLabel={t('library:favourites.removeAccessibilityLabel')}
+              deleteLabel={t('library:favourites.removeAction')}
               isFirst={isFirst}
               isLast={isLast}
               isOpen={openItemId === item.isbn}
@@ -137,10 +151,10 @@ export function FavouritesScreen({ navigation }: Props) {
                     {item.title}
                   </Text>
                   <Text style={styles.isbn} numberOfLines={1}>
-                    {strings.history.isbnLabel(item.isbn)}
+                    {t('library:history.isbnLabel', { isbn: item.isbn })}
                   </Text>
                   <Text style={styles.meta} numberOfLines={1}>
-                    {strings.favourites.addedOn(formatDateTime(item.addedAt))}
+                    {t('library:favourites.addedOn', { dateText: formatDateTime(item.addedAt) })}
                   </Text>
                 </View>
                 <Ionicons color={colors.inkMuted} name="chevron-forward" size={16} />
@@ -163,7 +177,7 @@ export function FavouritesScreen({ navigation }: Props) {
         visible={showUndoHint}
         wrapperStyle={{ bottom: tabBarHeight }}
       >
-        {strings.favourites.deletedUndoHint}
+        {t('library:favourites.deletedUndoHint')}
       </Snackbar>
     </View>
   );

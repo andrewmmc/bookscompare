@@ -2,7 +2,7 @@ import { fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 
 import { BarcodeScannerScreen } from './BarcodeScannerScreen';
-import { strings } from '../../i18n/strings';
+import { i18n } from '../../i18n';
 import { renderWithProviders } from '../../test/test-utils';
 
 const mockUseCameraPermissions = jest.fn();
@@ -66,7 +66,9 @@ describe('BarcodeScannerScreen', () => {
 
     const screen = await renderScanner({});
 
-    expect(screen.getByText(strings.scanner.permissionCheckingLabel)).toBeTruthy();
+    expect(
+      screen.getByText(i18n.t('scanner.permissionCheckingLabel', { ns: 'home' }))
+    ).toBeTruthy();
     expect(screen.queryByTestId('camera-view')).toBeNull();
   });
 
@@ -79,8 +81,12 @@ describe('BarcodeScannerScreen', () => {
 
     const screen = await renderScanner({});
 
-    expect(screen.getByText(strings.scanner.permissionRequiredTitle)).toBeTruthy();
-    await fireEvent.press(screen.getByText(strings.scanner.permissionRequiredAction));
+    expect(
+      screen.getByText(i18n.t('scanner.permissionRequiredTitle', { ns: 'home' }))
+    ).toBeTruthy();
+    await fireEvent.press(
+      screen.getByText(i18n.t('scanner.permissionRequiredAction', { ns: 'home' }))
+    );
 
     expect(requestPermission).toHaveBeenCalledTimes(1);
   });
@@ -95,7 +101,9 @@ describe('BarcodeScannerScreen', () => {
 
     const screen = await renderScanner({});
 
-    await fireEvent.press(screen.getByText(strings.scanner.permissionSettingsAction));
+    await fireEvent.press(
+      screen.getByText(i18n.t('scanner.permissionSettingsAction', { ns: 'home' }))
+    );
 
     expect(openSettings).toHaveBeenCalledTimes(1);
     expect(requestPermission).not.toHaveBeenCalled();

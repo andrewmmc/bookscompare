@@ -1,7 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import { BlurView } from 'expo-blur';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { strings } from '../i18n/strings';
 import { spacing } from '../theme/spacing';
 import { useTheme } from '../theme/ThemeProvider';
 import { typography } from '../theme/typography';
@@ -10,15 +10,19 @@ interface LoadingOverlayProps {
   label?: string;
 }
 
-export function LoadingOverlay({ label = strings.loading.defaultLabel }: LoadingOverlayProps) {
+export function LoadingOverlay({ label }: LoadingOverlayProps) {
+  const { t } = useTranslation('common');
   const { colors, scheme } = useTheme();
   const blurTint = scheme === 'dark' ? 'dark' : 'light';
+  const resolvedLabel = label ?? t('common:loading.defaultLabel');
 
   return (
     <View style={styles.overlay} pointerEvents="none">
       <BlurView intensity={60} tint={blurTint} style={styles.card}>
         <ActivityIndicator color={colors.ink} size="large" />
-        {label ? <Text style={[styles.label, { color: colors.ink }]}>{label}</Text> : null}
+        {resolvedLabel ? (
+          <Text style={[styles.label, { color: colors.ink }]}>{resolvedLabel}</Text>
+        ) : null}
       </BlurView>
     </View>
   );
