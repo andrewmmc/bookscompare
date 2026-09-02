@@ -20,7 +20,10 @@ describe('searchByTitle', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       'https://bookscompare-api.mmc.dev/search?q=%E5%93%88%E5%88%A9%E6%B3%A2%E7%89%B9%20%26%20magic',
-      { signal: expect.any(AbortSignal) }
+      expect.objectContaining({
+        headers: { 'Accept-Language': 'zh-TW' },
+        signal: expect.any(AbortSignal),
+      })
     );
     expect('title' in response.query && response.query.title).toBe('哈利波特 & magic');
   });

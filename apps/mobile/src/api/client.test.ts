@@ -52,6 +52,24 @@ describe('api client configuration', () => {
     expect(getApiBaseUrl()).toBe('https://bookscompare-api.mmc.dev');
   });
 
+  it('sends the resolved app locale as an advisory request header', async () => {
+    const { apiGet } = loadClient();
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { i18n } = require('../i18n') as typeof import('../i18n');
+    await i18n.changeLanguage('en');
+    const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    } as Response);
+
+    await apiGet('/health');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://bookscompare-api.mmc.dev/health',
+      expect.objectContaining({ headers: { 'Accept-Language': 'en' } })
+    );
+  });
+
   it('preserves structured API error payloads', async () => {
     const { ApiError, apiGet } = loadClient();
     jest.spyOn(global, 'fetch').mockResolvedValue({

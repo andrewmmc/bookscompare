@@ -1,5 +1,7 @@
 import Constants from 'expo-constants';
 
+import { i18n } from '../i18n';
+
 import type { ApiErrorCode, ApiErrorResponse } from '@bookscompare/contracts';
 
 interface AppExtra {
@@ -67,7 +69,12 @@ export async function apiGet<T>(
   }
 
   try {
-    const response = await fetch(`${getApiBaseUrl()}${path}`, { signal: controller.signal });
+    const response = await fetch(`${getApiBaseUrl()}${path}`, {
+      headers: {
+        'Accept-Language': i18n.resolvedLanguage === 'en' ? 'en' : 'zh-TW',
+      },
+      signal: controller.signal,
+    });
 
     if (!response.ok) {
       const body = await response.text();
