@@ -36,6 +36,10 @@ module.exports = ({ config }) => {
       autolinkingModuleResolution: true,
     },
     assetBundlePatterns: ['**/*'],
+    locales: {
+      en: './locales/en.json',
+      'zh-TW': './locales/zh-TW.json',
+    },
     ios: {
       bundleIdentifier: 'com.andrewmmc.BookPriceApp',
       buildNumber: iosBuildNumber,
@@ -48,6 +52,7 @@ module.exports = ({ config }) => {
           '$(TeamIdentifierPrefix)$(CFBundleIdentifier)',
       },
       infoPlist: {
+        CFBundleAllowMixedLocalizations: true,
         CFBundleDevelopmentRegion: 'zh_Hant_TW',
         ITSAppUsesNonExemptEncryption: false,
         NSCameraUsageDescription: '本應用程式需要使用相機掃描國際標準書號 (ISBN 碼)。',
@@ -103,6 +108,15 @@ module.exports = ({ config }) => {
     },
     plugins: [
       'expo-font',
+      [
+        'expo-localization',
+        {
+          supportedLocales: {
+            ios: ['en', 'zh-TW'],
+            android: ['en', 'zh-TW'],
+          },
+        },
+      ],
       [
         'expo-build-properties',
         {

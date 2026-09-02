@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "BooksCompare",
+    "NSCameraUsageDescription": "BooksCompare needs camera access to scan ISBN barcodes."
+  },
+  "android": {
+    "app_name": "BooksCompare"
+  }
+}

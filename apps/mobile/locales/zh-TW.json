@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "好書價 BooksCompare",
+    "NSCameraUsageDescription": "本應用程式需要使用相機掃描國際標準書號 (ISBN 碼)。"
+  },
+  "android": {
+    "app_name": "好書價 BooksCompare"
+  }
+}
