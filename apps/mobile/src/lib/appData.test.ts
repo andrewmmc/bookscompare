@@ -37,6 +37,7 @@ describe('app data reset', () => {
     await expect(loadPreferences()).resolves.toEqual({
       openLinksIn: 'app',
       themeMode: 'system',
+      languagePreference: 'system',
       preferredSources: [],
       preferredBookTypes: [],
       icloudSyncEnabled: true,
