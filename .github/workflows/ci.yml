@@ -31,7 +31,7 @@ jobs:
       - name: Detect API-related changes
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             api:
