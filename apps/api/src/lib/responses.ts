@@ -1,12 +1,13 @@
-import {
-  BOOK_SOURCES,
-  type ApiErrorResponse,
-  type BookDetail,
-  type BookDetailResponse,
-  type ResponseMeta,
-  type SearchResponse,
-  type SourceState,
+import type {
+  ApiErrorResponse,
+  BookDetail,
+  BookDetailResponse,
+  ResponseMeta,
+  SearchResponse,
+  SourceState,
 } from '@bookscompare/contracts';
+
+import { sourceMeta } from './source-meta';
 
 const disabledSourceMessage = 'This source does not yet have a live provider implementation.';
 
@@ -71,11 +72,7 @@ export function createBookDetailResponse({
 }
 
 export function createDisabledSourceState(sourceId: SourceState['id']): SourceState {
-  const source = BOOK_SOURCES.find((item) => item.id === sourceId);
-
-  if (!source) {
-    throw new Error(`Unknown source id: ${sourceId}`);
-  }
+  const source = sourceMeta(sourceId);
 
   return {
     id: source.id,
