@@ -1,14 +1,16 @@
+import { fetchWithTimeout } from './fetch-with-timeout';
+import { logFetchAttempt } from './logger';
+
+import type { BookSourceId } from '@bookscompare/contracts';
+
 interface FetchHtmlOptions {
   headers?: HeadersInit;
   notFoundStatus?: number;
   errorLabel?: string;
   timeoutMs?: number;
   retries?: number;
-  providerId?: string;
+  providerId?: BookSourceId;
 }
-
-import { fetchWithTimeout } from './fetch-with-timeout';
-import { logFetchAttempt } from './logger';
 
 const USER_AGENT_POOL = [
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15',
