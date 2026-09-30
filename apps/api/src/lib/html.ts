@@ -31,6 +31,10 @@ export function normalizeBookTitle(input: string): string {
     .trim();
 }
 
+export function hasEbookTitleMarker(input: string): boolean {
+  return /(^\s*(?:【|\[)\s*電子書\s*(?:】|\]))|([（(]\s*電子書\s*[）)]\s*$)/u.test(input);
+}
+
 export function toAbsoluteUrl(url: string): string {
   if (url.startsWith('//')) {
     return `https:${url}`;

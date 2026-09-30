@@ -1,7 +1,7 @@
 import { isValidIsbn, normalizeIsbn, type BookOffer } from '@bookscompare/contracts';
 
 import { fetchWithTimeout } from '../lib/fetch-with-timeout';
-import { normalizeBookTitle, normalizeWhitespace } from '../lib/html';
+import { hasEbookTitleMarker, normalizeBookTitle, normalizeWhitespace } from '../lib/html';
 import { logParseFailure } from '../lib/logger';
 import { DEFAULT_CURRENCY, sourceMeta } from './shared';
 import { DEFAULT_ACCEPT_LANGUAGE, DEFAULT_SCRAPER_USER_AGENT } from './http-defaults';
@@ -41,10 +41,6 @@ interface EsliteSearchResponse {
     found?: string | number;
     hit?: EsliteSearchHit[];
   };
-}
-
-function hasEbookTitleMarker(input: string): boolean {
-  return /(^\s*(?:【|\[)\s*電子書\s*(?:】|\]))|([（(]\s*電子書\s*[）)]\s*$)/u.test(input);
 }
 
 function toEsliteAbsoluteUrl(url: string): string {
