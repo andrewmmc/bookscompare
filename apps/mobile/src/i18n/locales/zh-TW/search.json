@@ -1,11 +1,5 @@
 {
   "searchResult": {
-    "sourceStatus": {
-      "ready": "已比對",
-      "error": "暫時無法連線",
-      "disabled": "尚未支援"
-    },
-    "sourceChipsAccessibilityLabel": "書店狀態",
     "ebookBadge": "電子書",
     "lowestPriceBadge": "最低價",
     "copyIsbnAccessibilityLabel": "複製 ISBN",
@@ -22,9 +16,6 @@
     },
     "resultsCount_one": "共找到 {{count}} 個結果。",
     "resultsCount_other": "共找到 {{count}} 個結果。",
-    "fromPrice": "{{price}} 起",
-    "storeCount_one": "{{count}} 家書店",
-    "storeCount_other": "{{count}} 家書店",
     "loadingLabel": "正在比對最新書價…",
     "networkErrorTitle": "未能載入內容",
     "networkErrorDescription": "請檢查您的網絡連接。\n如持續遇到此問題，請聯絡我們以取得協助。",

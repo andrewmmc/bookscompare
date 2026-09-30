@@ -1,6 +1,5 @@
 {
   "history": {
-    "title": "History",
     "emptyTitle": "No history yet",
     "emptyDescription": "Books you search or scan will appear here for quick access.",
     "viewedOn": "{{dateText}}",
@@ -18,7 +17,6 @@
     "oldestFirstAction": "Oldest first"
   },
   "favourites": {
-    "title": "Favourites",
     "emptyTitle": "No favourites yet",
     "emptyDescription": "Tap the heart on a search result to save it here.",
     "addedOn": "{{dateText}}",
