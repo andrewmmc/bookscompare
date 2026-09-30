@@ -4,6 +4,7 @@ import { fetchWithTimeout } from '../lib/fetch-with-timeout';
 import { normalizeBookTitle, normalizeWhitespace } from '../lib/html';
 import { logParseFailure } from '../lib/logger';
 import { DEFAULT_CURRENCY, sourceMeta } from './shared';
+import { DEFAULT_ACCEPT_LANGUAGE, DEFAULT_SCRAPER_USER_AGENT } from './http-defaults';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
@@ -11,8 +12,6 @@ const ESLITE_SOURCE_ID = 'eslite';
 const ESLITE_SOURCE = sourceMeta(ESLITE_SOURCE_ID);
 const ESLITE_SEARCH_URL = 'https://athena.eslite.com/api/v2/search?q=';
 const ESLITE_BASE_URL = 'https://www.eslite.com';
-const ESLITE_USER_AGENT =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36';
 
 interface EsliteSearchHitFields {
   name?: string;
@@ -213,8 +212,8 @@ export async function fetchEsliteOffers(
       {
         headers: {
           accept: 'application/json',
-          'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
-          'user-agent': ESLITE_USER_AGENT,
+          'accept-language': DEFAULT_ACCEPT_LANGUAGE,
+          'user-agent': DEFAULT_SCRAPER_USER_AGENT,
         },
       },
       options.timeoutMs
