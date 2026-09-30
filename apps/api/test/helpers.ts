@@ -1,3 +1,9 @@
+import type { BookOffer } from '@bookscompare/contracts';
+
+import { providers } from '../src/providers/registry';
+
+import type { BookProvider } from '../src/providers/types';
+
 export function createExecutionContext() {
   const pending: Promise<unknown>[] = [];
 
@@ -60,4 +66,58 @@ export function installFakeCaches(t: { after: (fn: () => void) => void }) {
   });
 
   return { store };
+}
+
+export function getBookProviders(): BookProvider[] {
+  return providers.filter((provider): provider is BookProvider => 'searchByIsbn' in provider);
+}
+
+export function createTestOffer(
+  provider: BookProvider,
+  overrides: Partial<BookOffer> = {}
+): BookOffer {
+  const price = overrides.price ?? 100;
+
+  return {
+    sourceId: provider.id,
+    sourceName: provider.name,
+    sourceProductId: `${provider.id}-offer`,
+    title: `${provider.name} title`,
+    productType: '中文書',
+    authors: ['Test Author'],
+    publisher: 'Test Publisher',
+    publicationDate: '2025-01-01',
+    summary: `${provider.name} summary`,
+    currency: 'TWD',
+    url: `https://example.com/${provider.id}`,
+    imageUrl: `https://example.com/${provider.id}.jpg`,
+    badges: [],
+    ...overrides,
+    price,
+    priceText: overrides.priceText ?? `${price} 元`,
+  };
+}
+
+export function stubProviderSearch<M extends 'searchByIsbn' | 'searchByTitle'>(
+  t: { after: (fn: () => void) => void },
+  method: M,
+  factory: (provider: BookProvider) => BookProvider[M]
+): BookProvider[] {
+  const bookProviders = getBookProviders();
+  const original = bookProviders.map((provider) => ({
+    provider,
+    impl: provider[method],
+  }));
+
+  t.after(() => {
+    for (const entry of original) {
+      entry.provider[method] = entry.impl;
+    }
+  });
+
+  for (const provider of bookProviders) {
+    provider[method] = factory(provider);
+  }
+
+  return bookProviders;
 }

@@ -1,69 +1,36 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import type { BookDetailResponse, BookOffer } from '@bookscompare/contracts';
+import type { BookDetailResponse } from '@bookscompare/contracts';
 
 import worker from '../src/index';
-import { providers } from '../src/providers/registry';
 
-import { createExecutionContext, createTestEnv, installFakeCaches } from './helpers';
+import {
+  createExecutionContext,
+  createTestEnv,
+  createTestOffer,
+  installFakeCaches,
+  stubProviderSearch,
+} from './helpers';
 
 import type { BookProvider } from '../src/providers/types';
-
-function getBookProviders(): BookProvider[] {
-  return providers.filter((provider): provider is BookProvider => 'searchByTitle' in provider);
-}
-
-function createOffer(provider: BookProvider, title: string, price: number): BookOffer {
-  return {
-    sourceId: provider.id,
-    sourceName: provider.name,
-    sourceProductId: `${provider.id}-offer`,
-    title,
-    productType: '中文書',
-    authors: ['James Clear'],
-    publisher: '方智',
-    publicationDate: '2025-01-01',
-    summary: `${provider.name} summary`,
-    price,
-    currency: 'TWD',
-    priceText: `${price} 元`,
-    url: `https://example.com/${provider.id}`,
-    imageUrl: `https://example.com/${provider.id}.jpg`,
-    badges: [],
-  };
-}
-
-function stubSearchByTitle(
-  t: { after: (fn: () => void) => void },
-  factory: (provider: BookProvider) => BookProvider['searchByTitle']
-) {
-  const bookProviders = getBookProviders();
-  const original = bookProviders.map((provider) => ({
-    provider,
-    searchByTitle: provider.searchByTitle,
-  }));
-
-  t.after(() => {
-    for (const entry of original) {
-      entry.provider.searchByTitle = entry.searchByTitle;
-    }
-  });
-
-  for (const provider of bookProviders) {
-    provider.searchByTitle = factory(provider);
-  }
-}
 
 test('worker /book/by-title returns the matching cluster as a BookDetail', async (t) => {
   installFakeCaches(t);
   const { env } = createTestEnv();
 
-  stubSearchByTitle(t, (provider) => async (title: string) => {
+  stubProviderSearch(t, 'searchByTitle', (provider) => async (title: string) => {
     if (provider.id === 'cite') {
       return [];
     }
-    return [createOffer(provider, title, provider.id === 'kingstone' ? 250 : 320)];
+    return [
+      createTestOffer(provider, {
+        title,
+        authors: ['James Clear'],
+        publisher: '方智',
+        price: provider.id === 'kingstone' ? 250 : 320,
+      }),
+    ];
   });
 
   const response = await worker.fetch(
@@ -91,9 +58,11 @@ test('worker /book/by-title caches successful lookups under a canonical key', as
   const { env } = createTestEnv();
   const callCounts = new Map<BookProvider['id'], number>();
 
-  stubSearchByTitle(t, (provider) => async (title: string) => {
+  stubProviderSearch(t, 'searchByTitle', (provider) => async (title: string) => {
     callCounts.set(provider.id, (callCounts.get(provider.id) ?? 0) + 1);
-    return provider.id === 'books-com-tw' ? [createOffer(provider, title, 320)] : [];
+    return provider.id === 'books-com-tw'
+      ? [createTestOffer(provider, { title, authors: ['James Clear'], publisher: '方智', price: 320 })]
+      : [];
   });
 
   const firstContext = createExecutionContext();
@@ -142,8 +111,15 @@ test('worker /book/by-title returns book: null when no cluster matches', async (
   installFakeCaches(t);
   const { env } = createTestEnv();
 
-  stubSearchByTitle(t, (provider) => async (title: string) => {
-    return [createOffer(provider, title, 320)];
+  stubProviderSearch(t, 'searchByTitle', (provider) => async (title: string) => {
+    return [
+      createTestOffer(provider, {
+        title,
+        authors: ['James Clear'],
+        publisher: '方智',
+        price: 320,
+      }),
+    ];
   });
 
   const response = await worker.fetch(

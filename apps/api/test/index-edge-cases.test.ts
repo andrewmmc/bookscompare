@@ -2,14 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import worker from '../src/index';
-import { installFakeCaches } from './helpers';
-
-function createExecutionContext(): ExecutionContext {
-  return {
-    waitUntil() {},
-    passThroughOnException() {},
-  } as unknown as ExecutionContext;
-}
+import { createExecutionContext, installFakeCaches } from './helpers';
 
 const env = {} as Record<string, never>;
 
