@@ -23,110 +23,21 @@ import { usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
-
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
-  BOOK_SOURCES,
-  type BookDetailResponse,
-  type BookOffer,
-  type BookSourceId,
-  type SearchResponse,
-  type SourceState,
-} from '@bookscompare/contracts';
-import type { BookTypePreference } from '../../lib/preferences';
+  allSourcesErrored,
+  extractOffers,
+  filterOffers,
+  isEbookOffer,
+  sortOffers,
+  type ResultSortMode,
+} from './searchResultUtils';
+
+import type { BookOffer } from '@bookscompare/contracts';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ThemeColors } from '../../theme/colors';
 import type { SearchResultRoutes } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<SearchResultRoutes, 'SearchResult'>;
-type SearchResultData = BookDetailResponse | SearchResponse;
-type ResultSortMode = 'price' | 'store' | 'physical' | 'ebook';
-
-const defaultSourceOrder = BOOK_SOURCES.map((source) => source.id);
-
-function isEbookOffer(item: BookOffer): boolean {
-  return item.productType.includes('電子書') || item.title.includes('電子書');
-}
-
-function matchesBookTypePreference(
-  item: BookOffer,
-  preferredBookTypes: BookTypePreference[]
-): boolean {
-  if (preferredBookTypes.length === 0) {
-    return true;
-  }
-
-  const isEbook = isEbookOffer(item);
-  return preferredBookTypes.includes(isEbook ? 'ebook' : 'physical');
-}
-
-function extractOffers(data: SearchResultData | undefined): BookOffer[] {
-  if (!data) {
-    return [];
-  }
-
-  if ('book' in data) {
-    return data.book ? data.book.offers : [];
-  }
-
-  return data.books.flatMap((book) => book.offers);
-}
-
-function filterOffers(
-  offers: BookOffer[],
-  preferredSources: Set<string>,
-  preferredBookTypes: BookTypePreference[]
-): BookOffer[] {
-  return offers.filter(
-    (offer) =>
-      (preferredSources.size === 0 || preferredSources.has(offer.sourceId)) &&
-      matchesBookTypePreference(offer, preferredBookTypes)
-  );
-}
-
-function compareByPrice(a: BookOffer, b: BookOffer): number {
-  return a.price - b.price;
-}
-
-function getSourceRank(sourceId: BookSourceId, preferredSources: BookSourceId[]): number {
-  const preferredIndex = preferredSources.indexOf(sourceId);
-  if (preferredIndex >= 0) {
-    return preferredIndex;
-  }
-
-  const defaultIndex = defaultSourceOrder.indexOf(sourceId);
-  return preferredSources.length + (defaultIndex >= 0 ? defaultIndex : defaultSourceOrder.length);
-}
-
-function sortOffers(
-  offers: BookOffer[],
-  sortMode: ResultSortMode,
-  preferredSources: BookSourceId[]
-): BookOffer[] {
-  return offers.slice().sort((a, b) => {
-    switch (sortMode) {
-      case 'store': {
-        const sourceRank =
-          getSourceRank(a.sourceId, preferredSources) - getSourceRank(b.sourceId, preferredSources);
-        return sourceRank || compareByPrice(a, b);
-      }
-      case 'physical': {
-        const bookTypeRank = Number(isEbookOffer(a)) - Number(isEbookOffer(b));
-        return bookTypeRank || compareByPrice(a, b);
-      }
-      case 'ebook': {
-        const bookTypeRank = Number(isEbookOffer(b)) - Number(isEbookOffer(a));
-        return bookTypeRank || compareByPrice(a, b);
-      }
-      case 'price':
-      default:
-        return compareByPrice(a, b);
-    }
-  });
-}
-
-function allSourcesErrored(sources: SourceState[]): boolean {
-  return sources.length > 0 && sources.every((source) => source.status === 'error');
-}
 
 interface OfferRowProps {
   item: BookOffer;
