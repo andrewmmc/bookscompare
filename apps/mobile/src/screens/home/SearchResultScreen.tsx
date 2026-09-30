@@ -39,6 +39,8 @@ import type { SearchResultRoutes } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<SearchResultRoutes, 'SearchResult'>;
 
+const COPY_FEEDBACK_MS = 1600;
+
 interface OfferRowProps {
   item: BookOffer;
   index: number;
@@ -64,7 +66,7 @@ function OfferRow({
   onOpen,
   onToggleFavourite,
 }: OfferRowProps) {
-  const { t } = useTranslation(['search', 'library']);
+  const { t } = useTranslation(['search', 'library', 'common']);
   const showRowFavourite = !isbnParam && Boolean(item.isbn);
   const rowIsFavourite = showRowFavourite && item.isbn ? favouriteIsbnSet.has(item.isbn) : false;
   const showLowestBadge = totalCount > 1 && lowestPrice !== null && item.price === lowestPrice;
@@ -111,7 +113,7 @@ function OfferRow({
         </Text>
         {item.authors.length > 0 ? (
           <Text style={styles.note} numberOfLines={1}>
-            {item.authors.join('、')}
+            {item.authors.join(t('common:list.separator'))}
           </Text>
         ) : null}
         {item.publisher ? (
@@ -154,13 +156,16 @@ function OfferRow({
 }
 
 export function SearchResultScreen({ navigation, route }: Props) {
-  const { t } = useTranslation(['search', 'library']);
-  const sortOptions: Array<{ value: ResultSortMode; label: string }> = [
-    { value: 'price', label: t('search:searchResult.sortOptions.price') },
-    { value: 'store', label: t('search:searchResult.sortOptions.store') },
-    { value: 'physical', label: t('search:searchResult.sortOptions.physical') },
-    { value: 'ebook', label: t('search:searchResult.sortOptions.ebook') },
-  ];
+  const { t } = useTranslation(['search', 'library', 'common']);
+  const sortOptions: Array<{ value: ResultSortMode; label: string }> = useMemo(
+    () => [
+      { value: 'price', label: t('search:searchResult.sortOptions.price') },
+      { value: 'store', label: t('search:searchResult.sortOptions.store') },
+      { value: 'physical', label: t('search:searchResult.sortOptions.physical') },
+      { value: 'ebook', label: t('search:searchResult.sortOptions.ebook') },
+    ],
+    [t]
+  );
   const { colors, scheme } = useTheme();
   const { showActionSheetWithOptions } = useActionSheet();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -297,14 +302,21 @@ export function SearchResultScreen({ navigation, route }: Props) {
             accessibilityRole="button"
             hitSlop={12}
             onPress={() => {
-              void Clipboard.setStringAsync(copyValue).then(() => {
-                track('search_result_copy_query', { searchType });
-                setCopiedQuery(true);
-                if (copyResetTimer.current) {
-                  clearTimeout(copyResetTimer.current);
-                }
-                copyResetTimer.current = setTimeout(() => setCopiedQuery(false), 1600);
-              });
+              void Clipboard.setStringAsync(copyValue)
+                .then(() => {
+                  track('search_result_copy_query', { searchType });
+                  setCopiedQuery(true);
+                  if (copyResetTimer.current) {
+                    clearTimeout(copyResetTimer.current);
+                  }
+                  copyResetTimer.current = setTimeout(
+                    () => setCopiedQuery(false),
+                    COPY_FEEDBACK_MS
+                  );
+                })
+                .catch(() => {
+                  setCopiedQuery(false);
+                });
             }}
             style={styles.headerButton}
           >
@@ -320,7 +332,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
             accessibilityState={{ selected: sortMode !== 'price' }}
             hitSlop={12}
             onPress={() => {
-              const selectedPrefix = '✓ ';
+              const selectedPrefix = t('common:actionSheet.selectedPrefix');
               showActionSheetWithOptions(
                 {
                   title: t('search:searchResult.sortByLabel'),
@@ -398,6 +410,8 @@ export function SearchResultScreen({ navigation, route }: Props) {
     scheme,
     showActionSheetWithOptions,
     sortMode,
+    sortOptions,
+    t,
   ]);
 
   const favouriteIsbnSet = useMemo(
