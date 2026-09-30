@@ -118,3 +118,9 @@ test('parseEsliteSearchResults throws when every book hit is malformed', () => {
     /could not parse any search result rows/
   );
 });
+
+test('parseEsliteSearchResults rejects payloads that are not an Eslite search response', () => {
+  assert.throws(() => parseEsliteSearchResults('<html>not json</html>'), /unexpected search payload/);
+  assert.throws(() => parseEsliteSearchResults({ hits: 'nope' }), /unexpected search payload/);
+  assert.throws(() => parseEsliteSearchResults({ hits: { hit: {} } }), /unexpected search payload/);
+});
