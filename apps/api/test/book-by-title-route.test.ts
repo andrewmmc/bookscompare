@@ -61,7 +61,14 @@ test('worker /book/by-title caches successful lookups under a canonical key', as
   stubProviderSearch(t, 'searchByTitle', (provider) => async (title: string) => {
     callCounts.set(provider.id, (callCounts.get(provider.id) ?? 0) + 1);
     return provider.id === 'books-com-tw'
-      ? [createTestOffer(provider, { title, authors: ['James Clear'], publisher: '方智', price: 320 })]
+      ? [
+          createTestOffer(provider, {
+            title,
+            authors: ['James Clear'],
+            publisher: '方智',
+            price: 320,
+          }),
+        ]
       : [];
   });
 

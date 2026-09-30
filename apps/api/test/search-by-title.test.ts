@@ -58,13 +58,19 @@ test('searchBooksByTitle clusters offers across providers into full book entries
 });
 
 test('searchBooksByTitle excludes unrelated low-price provider results', async (t) => {
-  stubProviderSearch(t, 'searchByTitle', (provider) => async () =>
-    provider.id === 'books-com-tw'
-      ? [
-          createTestOffer(provider, { title: 'Unrelated cheap book', price: 45 }),
-          createTestOffer(provider, { title: 'Machine Learning: The Complete Guide', price: 800 }),
-        ]
-      : []
+  stubProviderSearch(
+    t,
+    'searchByTitle',
+    (provider) => async () =>
+      provider.id === 'books-com-tw'
+        ? [
+            createTestOffer(provider, { title: 'Unrelated cheap book', price: 45 }),
+            createTestOffer(provider, {
+              title: 'Machine Learning: The Complete Guide',
+              price: 800,
+            }),
+          ]
+        : []
   );
 
   const response = await searchBooksByTitle('Machine Learning');

@@ -71,17 +71,20 @@ test('searchBooksByIsbn runs provider lookups in parallel and returns a clustere
 });
 
 test('searchBooksByIsbn rejects offers carrying a different ISBN', async (t) => {
-  stubProviderSearch(t, 'searchByIsbn', (provider) => async () =>
-    provider.id === 'eslite'
-      ? [
-          { ...createTestOffer(provider, { title: 'Shared title' }), isbn: '9786267569337' },
-          {
-            ...createTestOffer(provider, { title: 'Shared title' }),
-            sourceProductId: 'wrong-edition',
-            isbn: '9786264560092',
-          },
-        ]
-      : []
+  stubProviderSearch(
+    t,
+    'searchByIsbn',
+    (provider) => async () =>
+      provider.id === 'eslite'
+        ? [
+            { ...createTestOffer(provider, { title: 'Shared title' }), isbn: '9786267569337' },
+            {
+              ...createTestOffer(provider, { title: 'Shared title' }),
+              sourceProductId: 'wrong-edition',
+              isbn: '9786264560092',
+            },
+          ]
+        : []
   );
 
   const response = await searchBooksByIsbn('9786267569337');
@@ -94,10 +97,13 @@ test('searchBooksByIsbn rejects offers carrying a different ISBN', async (t) => 
 });
 
 test('searchBooksByIsbn reports a provider as empty when all its offers mismatch', async (t) => {
-  stubProviderSearch(t, 'searchByIsbn', (provider) => async () =>
-    provider.id === 'eslite'
-      ? [{ ...createTestOffer(provider, { title: 'Shared title' }), isbn: '9786264560092' }]
-      : []
+  stubProviderSearch(
+    t,
+    'searchByIsbn',
+    (provider) => async () =>
+      provider.id === 'eslite'
+        ? [{ ...createTestOffer(provider, { title: 'Shared title' }), isbn: '9786264560092' }]
+        : []
   );
 
   const response = await searchBooksByIsbn('9786267569337');
@@ -108,10 +114,13 @@ test('searchBooksByIsbn reports a provider as empty when all its offers mismatch
 });
 
 test('searchBooksByIsbn accepts the equivalent ISBN-10 for an ISBN-13 query', async (t) => {
-  stubProviderSearch(t, 'searchByIsbn', (provider) => async () =>
-    provider.id === 'eslite'
-      ? [{ ...createTestOffer(provider, { title: 'Shared title' }), isbn: '0306406152' }]
-      : []
+  stubProviderSearch(
+    t,
+    'searchByIsbn',
+    (provider) => async () =>
+      provider.id === 'eslite'
+        ? [{ ...createTestOffer(provider, { title: 'Shared title' }), isbn: '0306406152' }]
+        : []
   );
 
   const response = await searchBooksByIsbn('9780306406157');
@@ -119,17 +128,20 @@ test('searchBooksByIsbn accepts the equivalent ISBN-10 for an ISBN-13 query', as
 });
 
 test('searchBooksByIsbn rejects ambiguous ISBN-less title clusters', async (t) => {
-  stubProviderSearch(t, 'searchByIsbn', (provider) => async () =>
-    provider.id === 'eslite'
-      ? [
-          createTestOffer(provider, { title: 'Shared title' }),
-          {
-            ...createTestOffer(provider, { title: 'Shared title' }),
-            sourceProductId: 'other',
-            title: 'Other title',
-          },
-        ]
-      : []
+  stubProviderSearch(
+    t,
+    'searchByIsbn',
+    (provider) => async () =>
+      provider.id === 'eslite'
+        ? [
+            createTestOffer(provider, { title: 'Shared title' }),
+            {
+              ...createTestOffer(provider, { title: 'Shared title' }),
+              sourceProductId: 'other',
+              title: 'Other title',
+            },
+          ]
+        : []
   );
 
   const response = await searchBooksByIsbn('9786267569337');

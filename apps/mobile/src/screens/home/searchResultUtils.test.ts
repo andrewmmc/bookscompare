@@ -95,7 +95,9 @@ describe('searchResultUtils', () => {
       'cheap',
       'item-1',
     ]);
-    expect(sortOffers(offers, 'store', ['eslite']).map((offer) => offer.sourceId)[0]).toBe('eslite');
+    expect(sortOffers(offers, 'store', ['eslite']).map((offer) => offer.sourceId)[0]).toBe(
+      'eslite'
+    );
     expect(sortOffers(offers, 'physical', [])[0]?.productType).toBe('紙本書');
     expect(sortOffers(offers, 'ebook', [])[0]?.productType).toBe('電子書');
   });

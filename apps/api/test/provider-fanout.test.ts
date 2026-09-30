@@ -32,10 +32,7 @@ test('runProviderSearch records disabled providers without calling search', asyn
 
   const disabled = result.sources.find((source) => source.id === provider.id);
   assert.equal(disabled?.status, 'disabled');
-  assert.equal(
-    disabled?.message,
-    'This source does not yet have a live provider implementation.'
-  );
+  assert.equal(disabled?.message, 'This source does not yet have a live provider implementation.');
   assert.equal(result.liveScraping, true);
 });
 

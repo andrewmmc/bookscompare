@@ -1,10 +1,7 @@
 import type { ApiErrorResponse, BookDetailResponse, SearchResponse } from '@bookscompare/contracts';
 
 export type JsonResponsePayload =
-  | SearchResponse
-  | BookDetailResponse
-  | ApiErrorResponse
-  | Record<string, string | boolean>;
+  SearchResponse | BookDetailResponse | ApiErrorResponse | Record<string, string | boolean>;
 
 export function jsonResponse(
   payload: JsonResponsePayload,
