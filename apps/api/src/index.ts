@@ -81,14 +81,10 @@ async function handleIsbnRoute(
   }
 
   const cacheKey = createIsbnCacheKey(request, isbn);
+  const beforeLookup = () => rateLimitResponse(request, env, 'isbn');
   return headOnly
-    ? handleCachedHead(cacheKey)
-    : handleCachedLookup(
-        ctx,
-        cacheKey,
-        () => searchBooksByIsbn(isbn),
-        () => rateLimitResponse(request, env, 'isbn')
-      );
+    ? handleCachedHead(cacheKey, beforeLookup)
+    : handleCachedLookup(ctx, cacheKey, () => searchBooksByIsbn(isbn), beforeLookup);
 }
 
 async function handleSearchRoute(
@@ -112,14 +108,10 @@ async function handleSearchRoute(
   }
 
   const cacheKey = createSearchCacheKey(request, query);
+  const beforeLookup = () => rateLimitResponse(request, env, 'search');
   return headOnly
-    ? handleCachedHead(cacheKey)
-    : handleCachedLookup(
-        ctx,
-        cacheKey,
-        () => searchBooksByTitle(query),
-        () => rateLimitResponse(request, env, 'search')
-      );
+    ? handleCachedHead(cacheKey, beforeLookup)
+    : handleCachedLookup(ctx, cacheKey, () => searchBooksByTitle(query), beforeLookup);
 }
 
 async function handleBookByTitleRoute(
@@ -151,8 +143,9 @@ async function handleBookByTitleRoute(
   }
 
   const cacheKey = createBookByTitleCacheKey(request, title, author || undefined);
+  const beforeLookup = () => rateLimitResponse(request, env, 'book-by-title');
   return headOnly
-    ? handleCachedHead(cacheKey)
+    ? handleCachedHead(cacheKey, beforeLookup)
     : handleCachedLookup(
         ctx,
         cacheKey,
@@ -161,7 +154,7 @@ async function handleBookByTitleRoute(
             title,
             ...(author ? { author } : {}),
           }),
-        () => rateLimitResponse(request, env, 'book-by-title')
+        beforeLookup
       );
 }
 

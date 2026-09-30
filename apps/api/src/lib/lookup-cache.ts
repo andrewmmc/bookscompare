@@ -82,10 +82,18 @@ export async function handleCachedLookup(
   return withLookupCacheStatus(response, 'MISS');
 }
 
-export async function handleCachedHead(cacheKey: Request): Promise<Response> {
+export async function handleCachedHead(
+  cacheKey: Request,
+  beforeLookup?: () => Promise<Response | null>
+): Promise<Response> {
   const cachedResponse = await getLookupCache().match(cacheKey);
   if (cachedResponse) {
     return withoutBody(withLookupCacheStatus(cachedResponse, 'HIT'));
+  }
+
+  const blockedResponse = await beforeLookup?.();
+  if (blockedResponse) {
+    return blockedResponse;
   }
 
   // HEAD never warms the cache: it only probes whether a GET already populated it.
