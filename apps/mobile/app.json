@@ -6,8 +6,6 @@
       "apiBaseUrl": "https://bookscompare-api.mmc.dev",
       "posthogKey": "",
       "posthogHost": "",
-      "supabaseUrl": "",
-      "supabaseAnonKey": "",
       "eas": {
         "projectId": "647381a8-91d5-4d1b-b868-f4ad7f95b895"
       }
