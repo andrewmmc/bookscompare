@@ -3,6 +3,7 @@ import { BlurView } from 'expo-blur';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
 import { Linking, StyleSheet, Text, View } from 'react-native';
+import { Snackbar } from 'react-native-paper';
 
 import { track } from '../../analytics';
 import { spacing } from '../../theme/spacing';
@@ -31,6 +32,7 @@ export function BarcodeScannerScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const [permission, requestPermission] = useCameraPermissions();
   const [hasScanned, setHasScanned] = useState(false);
+  const [invalidBarcodeVisible, setInvalidBarcodeVisible] = useState(false);
 
   if (!permission) {
     return <LoadingOverlay label={t('home:scanner.permissionCheckingLabel')} />;
@@ -70,6 +72,7 @@ export function BarcodeScannerScreen({ navigation }: Props) {
 
                 if (!isValidIsbn(isbn)) {
                   track('barcode_scanner_invalid_barcode');
+                  setInvalidBarcodeVisible(true);
                   return;
                 }
 
@@ -96,6 +99,13 @@ export function BarcodeScannerScreen({ navigation }: Props) {
           <CornerBracket style={styles.cornerBottomRight} />
         </View>
       </View>
+      <Snackbar
+        visible={invalidBarcodeVisible}
+        onDismiss={() => setInvalidBarcodeVisible(false)}
+        duration={2500}
+      >
+        {t('home:scanner.invalidBarcode')}
+      </Snackbar>
     </View>
   );
 }
