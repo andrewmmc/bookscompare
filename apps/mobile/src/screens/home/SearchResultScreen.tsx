@@ -259,7 +259,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
   }, [isLoading, error, data, resultCount, searchType]);
 
   useEffect(() => {
-    if (!isbnParam || isLoading) {
+    if (!isbnParam || isLoading || error) {
       return;
     }
 
@@ -275,7 +275,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
       isbn: isbnParam,
       ...(isbnBookTitle ? { title: isbnBookTitle } : {}),
     });
-  }, [isbnParam, isbnBookTitle, isLoading, addHistoryEntry]);
+  }, [isbnParam, isbnBookTitle, isLoading, error, addHistoryEntry]);
 
   useLayoutEffect(() => {
     if (!copyValue) {
