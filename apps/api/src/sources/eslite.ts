@@ -38,20 +38,27 @@ interface EsliteSearchHit {
 interface EsliteSearchResponse {
   hits?: {
     found?: string | number;
-    hit?: EsliteSearchHit[];
-  };
+    hit?: EsliteSearchHit[] | null;
+  } | null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+// Missing or null `hits` / `hit` means no results, not a malformed payload.
 function isEsliteSearchResponse(value: unknown): value is EsliteSearchResponse {
-  if (!isRecord(value) || !isRecord(value.hits)) {
+  if (!isRecord(value)) {
     return false;
   }
 
-  return value.hits.hit === undefined || Array.isArray(value.hits.hit);
+  const { hits } = value;
+
+  if (hits === undefined || hits === null) {
+    return true;
+  }
+
+  return isRecord(hits) && (hits.hit === undefined || hits.hit === null || Array.isArray(hits.hit));
 }
 
 function toEsliteAbsoluteUrl(url: string): string {
