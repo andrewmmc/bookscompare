@@ -57,6 +57,15 @@ test('parseEsliteSearchResults returns empty array for empty payload', async () 
   assert.deepEqual(parseEsliteSearchResults(await readFixture('not-found.json')), []);
 });
 
+test('parseEsliteSearchResults returns no offers when every hit is intentionally excluded', () => {
+  assert.deepEqual(
+    parseEsliteSearchResults({
+      hits: { hit: [{ fields: { is_book: 'no' } }, { fields: { restricted: 'yes' } }] },
+    }),
+    []
+  );
+});
+
 test('parseEsliteSearchResults rejects partial results instead of caching incomplete data', async () => {
   const payload = await readFixture('found.json');
   const hits = (payload.hits as { hit: unknown[] }).hit;

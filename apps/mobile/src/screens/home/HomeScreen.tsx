@@ -154,9 +154,10 @@ export function HomeScreen({ navigation }: Props) {
                 key="isbn"
                 autoFocus={isInputFocused}
                 containerStyle={styles.input}
-                inputMode="numeric"
-                keyboardType="numeric"
-                maxLength={13}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                inputMode="text"
+                keyboardType="default"
                 onChangeText={(value) => {
                   track('home_type_isbn');
                   setIsbn(value);

@@ -189,10 +189,6 @@ export function parseEsliteSearchResults(payload: unknown, requestUrl?: string):
     incompleteRowMessage: 'Eslite parser found a search result without fields.',
   });
 
-  if (results.length === 0) {
-    throw new Error('Eslite parser could not parse any search result rows.');
-  }
-
   return results;
 }
 

@@ -65,6 +65,30 @@ test('parseBooksComTwSearchResults returns empty array for not-found fixture', a
   assert.deepEqual(parseBooksComTwSearchResults(html), []);
 });
 
+test('parseBooksComTwSearchResults returns no offers when every row is intentionally excluded', () => {
+  assert.deepEqual(
+    parseBooksComTwSearchResults(`
+      搜尋結果共 <span>1</span> 筆
+      <table id="itemlist_table">
+        <tbody id="itemlist_0011049950">
+          <ul class="list-date clearfix"><span>電子雜誌</span></ul>
+        </tbody>
+      </table>
+    `),
+    []
+  );
+});
+
+test('parseBooksComTwSearchResults rejects malformed rows even without a result count', () => {
+  assert.throws(
+    () =>
+      parseBooksComTwSearchResults(
+        '<table id="itemlist_table"><tbody id="itemlist_0011049950">missing fields</tbody></table>'
+      ),
+    /could not parse any search result rows/
+  );
+});
+
 test('parseBooksComTwSearchResults throws when announced results cannot be parsed', () => {
   assert.throws(
     () => parseBooksComTwSearchResults('搜尋結果共 <span>1</span> 筆'),

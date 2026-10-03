@@ -181,10 +181,11 @@ export function findClusterByTitleAuthor(
 
   // Exact match first.
   for (const cluster of clusters) {
-    const primary = pickPrimaryOffer(cluster.offers);
-    const candidateKey = buildTitleAuthorClusterKey(primary.title, primary.authors[0]);
-
-    if (candidateKey === targetKey) {
+    if (
+      cluster.offers.some(
+        (offer) => buildTitleAuthorClusterKey(offer.title, offer.authors[0]) === targetKey
+      )
+    ) {
       return cluster;
     }
   }
@@ -194,9 +195,7 @@ export function findClusterByTitleAuthor(
     const targetTitle = normalizeForClusterKey(title);
 
     for (const cluster of clusters) {
-      const primary = pickPrimaryOffer(cluster.offers);
-
-      if (normalizeForClusterKey(primary.title) === targetTitle) {
+      if (cluster.offers.some((offer) => normalizeForClusterKey(offer.title) === targetTitle)) {
         return cluster;
       }
     }
