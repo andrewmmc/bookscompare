@@ -5,6 +5,8 @@ on:
   pull_request:
     branches:
       - master
+      # Run CI for follow-ups based on an unmerged dependency update.
+      - 'dependabot/**'
   push:
     branches:
       - master
