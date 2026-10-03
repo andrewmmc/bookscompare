@@ -1,68 +1,26 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import type { BookOffer } from '@bookscompare/contracts';
-
 import worker from '../src/index';
-import { providers } from '../src/providers/registry';
 
-import { createExecutionContext, createTestEnv, installFakeCaches } from './helpers';
+import {
+  createExecutionContext,
+  createTestEnv,
+  createTestOffer,
+  installFakeCaches,
+  stubProviderSearch,
+} from './helpers';
 
 import type { BookProvider } from '../src/providers/types';
-
-function getBookProviders(): BookProvider[] {
-  return providers.filter((provider): provider is BookProvider => 'searchByTitle' in provider);
-}
-
-function createOffer(provider: BookProvider, title: string): BookOffer {
-  return {
-    sourceId: provider.id,
-    sourceName: provider.name,
-    sourceProductId: `${provider.id}-offer`,
-    title,
-    productType: '中文書',
-    authors: ['Test Author'],
-    publisher: 'Test Publisher',
-    publicationDate: '2025-01-01',
-    summary: `${provider.name} summary`,
-    price: 100,
-    currency: 'TWD',
-    priceText: '100 元',
-    url: `https://example.com/${provider.id}`,
-    imageUrl: `https://example.com/${provider.id}.jpg`,
-    badges: [],
-  };
-}
-
-function stubSearchByTitle(
-  t: { after: (fn: () => void) => void },
-  factory: (provider: BookProvider) => BookProvider['searchByTitle']
-) {
-  const bookProviders = getBookProviders();
-  const original = bookProviders.map((provider) => ({
-    provider,
-    searchByTitle: provider.searchByTitle,
-  }));
-
-  t.after(() => {
-    for (const entry of original) {
-      entry.provider.searchByTitle = entry.searchByTitle;
-    }
-  });
-
-  for (const provider of bookProviders) {
-    provider.searchByTitle = factory(provider);
-  }
-}
 
 test('worker /search caches successful title lookups under a canonical key', async (t) => {
   const { store } = installFakeCaches(t);
   const { env } = createTestEnv();
   const callCounts = new Map<BookProvider['id'], number>();
 
-  stubSearchByTitle(t, (provider) => async (title: string) => {
+  stubProviderSearch(t, 'searchByTitle', (provider) => async (title: string) => {
     callCounts.set(provider.id, (callCounts.get(provider.id) ?? 0) + 1);
-    return provider.id === 'books-com-tw' ? [createOffer(provider, title)] : [];
+    return provider.id === 'books-com-tw' ? [createTestOffer(provider, { title })] : [];
   });
 
   const firstContext = createExecutionContext();

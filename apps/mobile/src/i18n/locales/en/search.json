@@ -1,11 +1,5 @@
 {
   "searchResult": {
-    "sourceStatus": {
-      "ready": "Available",
-      "error": "Unreachable",
-      "disabled": "Not supported"
-    },
-    "sourceChipsAccessibilityLabel": "Bookstore status",
     "ebookBadge": "eBook",
     "lowestPriceBadge": "Lowest",
     "copyIsbnAccessibilityLabel": "Copy ISBN",
@@ -22,9 +16,6 @@
     },
     "resultsCount_one": "Found {{count}} result.",
     "resultsCount_other": "Found {{count}} results.",
-    "fromPrice": "from {{price}}",
-    "storeCount_one": "{{count}} store",
-    "storeCount_other": "{{count}} stores",
     "loadingLabel": "Comparing the latest prices…",
     "networkErrorTitle": "Could not load content",
     "networkErrorDescription": "Please check your internet connection.\nIf the issue persists, contact us for help.",

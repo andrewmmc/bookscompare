@@ -9,6 +9,7 @@ import {
   normalizeWhitespace,
   stripTags,
   toAbsoluteUrl,
+  hasEbookTitleMarker,
 } from '../src/lib/html';
 
 test('decodeHtmlEntities decodes named, decimal, and hex entities', () => {
@@ -37,6 +38,14 @@ test('normalizeBookTitle strips leading and trailing ebook markers', () => {
   assert.equal(normalizeBookTitle('原子習慣（電子書）'), '原子習慣');
   assert.equal(normalizeBookTitle('原子習慣 (電子書)'), '原子習慣');
   assert.equal(normalizeBookTitle('  原子習慣  '), '原子習慣');
+});
+
+test('hasEbookTitleMarker detects leading and trailing ebook labels', () => {
+  assert.equal(hasEbookTitleMarker('【電子書】原子習慣'), true);
+  assert.equal(hasEbookTitleMarker('[電子書] 原子習慣'), true);
+  assert.equal(hasEbookTitleMarker('原子習慣（電子書）'), true);
+  assert.equal(hasEbookTitleMarker('原子習慣 (電子書)'), true);
+  assert.equal(hasEbookTitleMarker('原子習慣'), false);
 });
 
 test('toAbsoluteUrl upgrades protocol-relative urls and leaves others untouched', () => {

@@ -1,13 +1,12 @@
 import { fetchKingstoneOffers } from '../sources/kingstone';
 
-import type { BookProvider } from './types';
+import { KINGSTONE_PROVIDER_TIMEOUT_MS, type BookProvider } from './types';
 
 export const kingstoneProvider: BookProvider = {
   id: 'kingstone',
   name: '金石堂',
   enabled: true,
-  usesJsonApi: false,
-  timeoutMs: 10000,
+  timeoutMs: KINGSTONE_PROVIDER_TIMEOUT_MS,
   searchByIsbn: fetchKingstoneOffers,
   searchByTitle: fetchKingstoneOffers,
 };

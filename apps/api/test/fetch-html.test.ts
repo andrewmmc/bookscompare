@@ -89,6 +89,27 @@ test('fetchHtml retries retryable HTTP statuses before returning text', async (t
   assert.equal(calls, 2);
 });
 
+test('fetchHtml includes providerId in fetch attempt logs when set', async (t) => {
+  const originalLog = console.log;
+  const lines: string[] = [];
+
+  console.log = (line: string) => {
+    lines.push(line);
+  };
+  t.after(() => {
+    console.log = originalLog;
+  });
+
+  installFetch(t, async () => new Response('ok', { status: 200 }));
+
+  await fetchHtml('https://example.com/book', {
+    providerId: 'books-com-tw',
+    retries: 0,
+  });
+
+  assert.equal(JSON.parse(lines[0] ?? '{}').providerId, 'books-com-tw');
+});
+
 test('fetchHtml throws labelled timeout errors when an abort occurs', async (t) => {
   const abortError = new Error('aborted');
   abortError.name = 'TimeoutError';

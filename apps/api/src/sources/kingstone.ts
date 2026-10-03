@@ -15,6 +15,7 @@ import {
   parseSearchResultRows,
   sourceMeta,
 } from './shared';
+import { DEFAULT_ACCEPT_LANGUAGE } from './http-defaults';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
@@ -211,10 +212,11 @@ export async function fetchKingstoneOffers(
       const url = buildKingstoneSearchUrl(zone, keyword);
       const html = await fetchHtml(url, {
         headers: {
-          'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
+          'accept-language': DEFAULT_ACCEPT_LANGUAGE,
         },
         notFoundStatus: 404,
         errorLabel: 'Kingstone',
+        providerId: KINGSTONE_SOURCE_ID,
         ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
       });
 

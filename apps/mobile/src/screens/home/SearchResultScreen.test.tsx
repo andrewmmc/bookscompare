@@ -243,6 +243,54 @@ describe('SearchResultScreen', () => {
     });
   });
 
+  it('records ISBN history after a successful lookup', async () => {
+    mockUseIsbnLookup.mockReturnValue({
+      data: createIsbnData(),
+      error: null,
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    });
+
+    const navigation = createNavigation();
+    await renderWithProviders(
+      <SearchResultScreen
+        navigation={navigation as never}
+        route={
+          { key: 'SearchResult', name: 'SearchResult', params: { isbn: '9781402894626' } } as never
+        }
+      />
+    );
+
+    expect(mockAddHistoryEntryMutate).toHaveBeenCalledWith({
+      type: 'isbn',
+      isbn: '9781402894626',
+      title: '設計中的書',
+    });
+  });
+
+  it('does not record ISBN history when the lookup fails', async () => {
+    mockUseIsbnLookup.mockReturnValue({
+      data: undefined,
+      error: new Error('network'),
+      isLoading: false,
+      isRefetching: false,
+      refetch: jest.fn(),
+    });
+
+    const navigation = createNavigation();
+    await renderWithProviders(
+      <SearchResultScreen
+        navigation={navigation as never}
+        route={
+          { key: 'SearchResult', name: 'SearchResult', params: { isbn: '9781402894626' } } as never
+        }
+      />
+    );
+
+    expect(mockAddHistoryEntryMutate).not.toHaveBeenCalled();
+  });
+
   it('shows a loading overlay while waiting for results', async () => {
     mockUseTitleSearch.mockReturnValue({
       data: undefined,

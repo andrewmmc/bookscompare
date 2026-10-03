@@ -1,20 +1,11 @@
-import { BOOK_SOURCES } from '@bookscompare/contracts';
-
 import { logParseFailure } from '../lib/logger';
+import { sourceMeta } from '../lib/source-meta';
 
 import type { BookOffer, BookSourceId, Currency } from '@bookscompare/contracts';
 
+export { sourceMeta };
+
 export const DEFAULT_CURRENCY: Currency = 'TWD';
-
-export function sourceMeta(sourceId: BookSourceId): { id: BookSourceId; name: string } {
-  const source = BOOK_SOURCES.find((item) => item.id === sourceId);
-
-  if (!source) {
-    throw new Error(`Unknown source id: ${sourceId}`);
-  }
-
-  return source;
-}
 
 interface ParseRowsInput<Row> {
   providerId: BookSourceId;

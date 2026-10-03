@@ -11,6 +11,7 @@ import { HomeScreen } from '../screens/home/HomeScreen';
 import { SearchResultScreen } from '../screens/home/SearchResultScreen';
 import { useTheme } from '../theme/ThemeProvider';
 
+import { getCanvasStackScreenOptions } from './stackScreenOptions';
 import type { HomeStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
@@ -20,21 +21,7 @@ export function HomeStack() {
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: colors.canvas },
-        headerTintColor: colors.navigationAction,
-        headerTitleStyle: {
-          color: colors.ink,
-          fontSize: 17,
-          fontWeight: '600',
-        },
-        contentStyle: {
-          backgroundColor: colors.canvas,
-        },
-      }}
-    >
+    <Stack.Navigator screenOptions={getCanvasStackScreenOptions(colors)}>
       <Stack.Screen
         name="Home"
         component={HomeScreen}

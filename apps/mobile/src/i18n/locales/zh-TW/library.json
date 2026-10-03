@@ -1,6 +1,5 @@
 {
   "history": {
-    "title": "搜尋記錄",
     "emptyTitle": "還沒有任何搜尋記錄",
     "emptyDescription": "搜尋或掃描過的書本會出現在這裡，方便您再次查看。",
     "viewedOn": "{{dateText}}",
@@ -18,7 +17,6 @@
     "oldestFirstAction": "最舊優先"
   },
   "favourites": {
-    "title": "我的收藏",
     "emptyTitle": "還沒有收藏任何書",
     "emptyDescription": "在搜尋結果中點擊愛心，將書本加入您的收藏。",
     "addedOn": "{{dateText}}",

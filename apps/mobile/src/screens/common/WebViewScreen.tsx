@@ -82,7 +82,15 @@ export function WebViewScreen({ navigation, route }: Props) {
           }
         : {}),
     });
-  }, [navigation, route.params.showOptions, route.params.title, route.params.url, colors, styles]);
+  }, [
+    navigation,
+    route.params.showOptions,
+    route.params.title,
+    route.params.url,
+    colors,
+    styles,
+    t,
+  ]);
 
   if (loadState === 'not-found') {
     return (

@@ -1,9 +1,9 @@
 import { isValidIsbn, normalizeIsbn, type BookOffer } from '@bookscompare/contracts';
 
 import { fetchWithTimeout } from '../lib/fetch-with-timeout';
-import { normalizeBookTitle, normalizeWhitespace } from '../lib/html';
-import { logParseFailure } from '../lib/logger';
-import { DEFAULT_CURRENCY, sourceMeta } from './shared';
+import { hasEbookTitleMarker, normalizeBookTitle, normalizeWhitespace } from '../lib/html';
+import { DEFAULT_ACCEPT_LANGUAGE, DEFAULT_SCRAPER_USER_AGENT } from './http-defaults';
+import { DEFAULT_CURRENCY, parseSearchResultRows, sourceMeta } from './shared';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
@@ -11,8 +11,6 @@ const ESLITE_SOURCE_ID = 'eslite';
 const ESLITE_SOURCE = sourceMeta(ESLITE_SOURCE_ID);
 const ESLITE_SEARCH_URL = 'https://athena.eslite.com/api/v2/search?q=';
 const ESLITE_BASE_URL = 'https://www.eslite.com';
-const ESLITE_USER_AGENT =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36';
 
 interface EsliteSearchHitFields {
   name?: string;
@@ -40,12 +38,27 @@ interface EsliteSearchHit {
 interface EsliteSearchResponse {
   hits?: {
     found?: string | number;
-    hit?: EsliteSearchHit[];
-  };
+    hit?: EsliteSearchHit[] | null;
+  } | null;
 }
 
-function hasEbookTitleMarker(input: string): boolean {
-  return /(^\s*(?:【|\[)\s*電子書\s*(?:】|\]))|([（(]\s*電子書\s*[）)]\s*$)/u.test(input);
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+// Missing or null `hits` / `hit` means no results, not a malformed payload.
+function isEsliteSearchResponse(value: unknown): value is EsliteSearchResponse {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const { hits } = value;
+
+  if (hits === undefined || hits === null) {
+    return true;
+  }
+
+  return isRecord(hits) && (hits.hit === undefined || hits.hit === null || Array.isArray(hits.hit));
 }
 
 function toEsliteAbsoluteUrl(url: string): string {
@@ -155,43 +168,26 @@ function parseEsliteOffer(hit: EsliteSearchHit): BookOffer {
   };
 }
 
-export function parseEsliteSearchResults(
-  payload: EsliteSearchResponse,
-  requestUrl?: string
-): BookOffer[] {
+export function parseEsliteSearchResults(payload: unknown, requestUrl?: string): BookOffer[] {
+  if (!isEsliteSearchResponse(payload)) {
+    throw new Error('Eslite returned an unexpected search payload.');
+  }
+
   const hits = payload.hits?.hit ?? [];
 
   if (hits.length === 0) {
     return [];
   }
 
-  const results: BookOffer[] = [];
-  let failedHits = 0;
-
-  for (const hit of hits) {
-    if (hit.fields?.is_book === 'no') {
-      continue;
-    }
-
-    if (hit.fields?.restricted === 'yes') {
-      continue;
-    }
-
-    try {
-      results.push(parseEsliteOffer(hit));
-    } catch (error) {
-      logParseFailure({
-        providerId: ESLITE_SOURCE_ID,
-        reason: error instanceof Error ? error.message : String(error),
-        ...(requestUrl ? { url: requestUrl } : {}),
-      });
-      failedHits += 1;
-    }
-  }
-
-  if (failedHits > 0 && results.length > 0) {
-    throw new Error(`Eslite parser rejected ${failedHits} search result row(s).`);
-  }
+  const results = parseSearchResultRows({
+    providerId: ESLITE_SOURCE_ID,
+    ...(requestUrl ? { requestUrl } : {}),
+    rows: hits,
+    getBlock: (hit) => (hit.fields ? 'hit' : undefined),
+    shouldSkip: (_block, hit) => hit.fields?.is_book === 'no' || hit.fields?.restricted === 'yes',
+    parseOffer: (_block, hit) => parseEsliteOffer(hit),
+    incompleteRowMessage: 'Eslite parser found a search result without fields.',
+  });
 
   if (results.length === 0) {
     throw new Error('Eslite parser could not parse any search result rows.');
@@ -213,8 +209,8 @@ export async function fetchEsliteOffers(
       {
         headers: {
           accept: 'application/json',
-          'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
-          'user-agent': ESLITE_USER_AGENT,
+          'accept-language': DEFAULT_ACCEPT_LANGUAGE,
+          'user-agent': DEFAULT_SCRAPER_USER_AGENT,
         },
       },
       options.timeoutMs
@@ -235,5 +231,5 @@ export async function fetchEsliteOffers(
     throw new Error(`Eslite returned ${response.status}.`);
   }
 
-  return parseEsliteSearchResults((await response.json()) as EsliteSearchResponse, url);
+  return parseEsliteSearchResults(await response.json(), url);
 }

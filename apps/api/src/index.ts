@@ -1,11 +1,14 @@
-import {
-  isValidIsbn,
-  normalizeIsbn,
-  type ApiErrorResponse,
-  type BookDetailResponse,
-  type SearchResponse,
-} from '@bookscompare/contracts';
+import { isValidIsbn, normalizeIsbn } from '@bookscompare/contracts';
 
+import { jsonResponse, withoutBody } from './lib/http';
+import {
+  createBookByTitleCacheKey,
+  createIsbnCacheKey,
+  createSearchCacheKey,
+  handleCachedHead,
+  handleCachedLookup,
+  withLookupCacheStatus,
+} from './lib/lookup-cache';
 import { createErrorResponse } from './lib/responses';
 import { lookupBookByTitleAuthor } from './services/book-by-title';
 import { searchBooksByIsbn } from './services/search-by-isbn';
@@ -19,88 +22,12 @@ interface Env {
   LOOKUP_RATE_LIMITER?: RateLimiter;
 }
 
-const LOOKUP_CACHE_CONTROL = 'public, max-age=0, s-maxage=1800';
-const LOOKUP_CACHE_HEADER = 'x-bookscompare-cache';
 const SEARCH_QUERY_MAX_LENGTH = 100;
 const AUTHOR_QUERY_MAX_LENGTH = 100;
-
-type CachedLookupPayload =
-  SearchResponse | BookDetailResponse | ApiErrorResponse | Record<string, string | boolean>;
-
-function jsonResponse(
-  payload: CachedLookupPayload,
-  status = 200,
-  cacheControl = 'no-store',
-  extraHeaders?: HeadersInit
-): Response {
-  const headers = new Headers(extraHeaders);
-  headers.set('cache-control', cacheControl);
-  headers.set('content-type', 'application/json; charset=utf-8');
-
-  return new Response(JSON.stringify(payload, null, 2), {
-    status,
-    headers,
-  });
-}
-
-function withoutBody(response: Response): Response {
-  return new Response(null, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: response.headers,
-  });
-}
-
-function matchIsbnPath(pathname: string): string | null {
-  const match = pathname.match(/^\/(?:book\/)?isbn\/([^/]+)$/);
-
-  return match?.[1] ?? null;
-}
-
-function createIsbnCacheKey(request: Request, isbn: string): Request {
-  return new Request(new URL(`/isbn/${encodeURIComponent(isbn)}`, request.url).toString(), {
-    method: 'GET',
-  });
-}
-
-function createSearchCacheKey(request: Request, query: string): Request {
-  const url = new URL('/search', request.url);
-  url.searchParams.set('q', query);
-
-  return new Request(url.toString(), { method: 'GET' });
-}
-
-function createBookByTitleCacheKey(request: Request, title: string, author?: string): Request {
-  const url = new URL('/book/by-title', request.url);
-  url.searchParams.set('title', title);
-  if (author) {
-    url.searchParams.set('author', author);
-  }
-
-  return new Request(url.toString(), { method: 'GET' });
-}
-
-function getLookupCache(): Cache {
-  return (caches as CacheStorage & { default: Cache }).default;
-}
+const LOOKUP_RATE_LIMIT_PERIOD_SECONDS = 60;
 
 function normalizeFreeTextQuery(input: string | null): string {
   return (input ?? '').trim().replace(/\s+/g, ' ');
-}
-
-function shouldCacheLookupResponse(payload: SearchResponse | BookDetailResponse): boolean {
-  return payload.sources.every((source) => source.status !== 'error');
-}
-
-function withLookupCacheStatus(response: Response, status: 'HIT' | 'MISS'): Response {
-  const headers = new Headers(response.headers);
-  headers.set(LOOKUP_CACHE_HEADER, status);
-
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
 }
 
 function invalidRequestResponse(
@@ -130,50 +57,14 @@ async function rateLimitResponse(
     createErrorResponse('RATE_LIMITED', 'Too many lookup requests. Try again shortly.'),
     429,
     'no-store',
-    { 'retry-after': '60' }
+    { 'retry-after': String(LOOKUP_RATE_LIMIT_PERIOD_SECONDS) }
   );
 }
 
-async function handleCachedLookup(
-  ctx: ExecutionContext,
-  cacheKey: Request,
-  runLookup: () => Promise<SearchResponse | BookDetailResponse>,
-  beforeLookup?: () => Promise<Response | null>
-): Promise<Response> {
-  const cache = getLookupCache();
-  const cachedResponse = await cache.match(cacheKey);
+function matchIsbnPath(pathname: string): string | null {
+  const match = pathname.match(/^\/(?:book\/)?isbn\/([^/]+)$/);
 
-  if (cachedResponse) {
-    return withLookupCacheStatus(cachedResponse, 'HIT');
-  }
-
-  const blockedResponse = await beforeLookup?.();
-  if (blockedResponse) {
-    return blockedResponse;
-  }
-
-  const lookupResponse = await runLookup();
-
-  if (!shouldCacheLookupResponse(lookupResponse)) {
-    return withLookupCacheStatus(jsonResponse(lookupResponse), 'MISS');
-  }
-
-  const response = jsonResponse(lookupResponse, 200, LOOKUP_CACHE_CONTROL);
-  ctx.waitUntil(cache.put(cacheKey, response.clone()));
-
-  return withLookupCacheStatus(response, 'MISS');
-}
-
-async function handleCachedHead(cacheKey: Request): Promise<Response> {
-  const cachedResponse = await getLookupCache().match(cacheKey);
-  if (cachedResponse) {
-    return withoutBody(withLookupCacheStatus(cachedResponse, 'HIT'));
-  }
-
-  return withLookupCacheStatus(
-    new Response(null, { status: 204, headers: { 'cache-control': 'no-store' } }),
-    'MISS'
-  );
+  return match?.[1] ?? null;
 }
 
 async function handleIsbnRoute(
@@ -190,14 +81,10 @@ async function handleIsbnRoute(
   }
 
   const cacheKey = createIsbnCacheKey(request, isbn);
+  const beforeLookup = () => rateLimitResponse(request, env, 'isbn');
   return headOnly
-    ? handleCachedHead(cacheKey)
-    : handleCachedLookup(
-        ctx,
-        cacheKey,
-        () => searchBooksByIsbn(isbn),
-        () => rateLimitResponse(request, env, 'isbn')
-      );
+    ? handleCachedHead(cacheKey, beforeLookup)
+    : handleCachedLookup(ctx, cacheKey, () => searchBooksByIsbn(isbn), beforeLookup);
 }
 
 async function handleSearchRoute(
@@ -221,14 +108,10 @@ async function handleSearchRoute(
   }
 
   const cacheKey = createSearchCacheKey(request, query);
+  const beforeLookup = () => rateLimitResponse(request, env, 'search');
   return headOnly
-    ? handleCachedHead(cacheKey)
-    : handleCachedLookup(
-        ctx,
-        cacheKey,
-        () => searchBooksByTitle(query),
-        () => rateLimitResponse(request, env, 'search')
-      );
+    ? handleCachedHead(cacheKey, beforeLookup)
+    : handleCachedLookup(ctx, cacheKey, () => searchBooksByTitle(query), beforeLookup);
 }
 
 async function handleBookByTitleRoute(
@@ -260,8 +143,9 @@ async function handleBookByTitleRoute(
   }
 
   const cacheKey = createBookByTitleCacheKey(request, title, author || undefined);
+  const beforeLookup = () => rateLimitResponse(request, env, 'book-by-title');
   return headOnly
-    ? handleCachedHead(cacheKey)
+    ? handleCachedHead(cacheKey, beforeLookup)
     : handleCachedLookup(
         ctx,
         cacheKey,
@@ -270,7 +154,7 @@ async function handleBookByTitleRoute(
             title,
             ...(author ? { author } : {}),
           }),
-        () => rateLimitResponse(request, env, 'book-by-title')
+        beforeLookup
       );
 }
 

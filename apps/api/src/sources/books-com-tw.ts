@@ -16,6 +16,7 @@ import {
   parseSearchResultRows,
   sourceMeta,
 } from './shared';
+import { DEFAULT_ACCEPT_LANGUAGE } from './http-defaults';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
@@ -25,6 +26,7 @@ const BOOKS_COM_TW_SEARCH_BASE_URL = 'https://search.books.com.tw/search/query/c
 const BOOKS_COM_TW_SEARCH_CATEGORIES = ['001', '6'] as const;
 
 const RESULT_BLOCK_PATTERN = /<tbody id="itemlist_([A-Z0-9]+)">([\s\S]*?)<\/tbody>/g;
+const PRODUCT_TYPE_PATTERN = /<ul class="list-date clearfix">[\s\S]*?<span>([^<]+)<\/span>/;
 const SKIP_PRODUCT_TYPES = new Set(['電子雜誌']);
 const RESULT_COUNT_PATTERN = /搜尋結果共\s*<span>(\d+)<\/span>\s*筆/;
 const RESULT_TABLE_PATTERN = /<table id="itemlist_table"[\s\S]*?>([\s\S]*?)<\/table>/;
@@ -73,10 +75,7 @@ function parseSummary(block: string): string {
 }
 
 function parseProductType(block: string): string {
-  const productType = matchFirst(
-    /<ul class="list-date clearfix">[\s\S]*?<span>([^<]+)<\/span>/,
-    block
-  );
+  const productType = matchFirst(PRODUCT_TYPE_PATTERN, block);
 
   if (!productType) {
     throw new Error('Books.com.tw parser could not find the product type.');
@@ -213,10 +212,7 @@ export function parseBooksComTwSearchResults(html: string, requestUrl?: string):
     rows,
     getBlock: (match) => (match[1] && match[2] ? match[2] : undefined),
     shouldSkip: (block) => {
-      const productType = matchFirst(
-        /<ul class="list-date clearfix">[\s\S]*?<span>([^<]+)<\/span>/,
-        block
-      );
+      const productType = matchFirst(PRODUCT_TYPE_PATTERN, block);
       return productType != null && SKIP_PRODUCT_TYPES.has(stripTags(productType));
     },
     parseOffer: (block, match) => parseOffer(match[1]!, block),
@@ -247,10 +243,11 @@ export async function fetchBooksComTwOffers(
       const url = buildBooksComTwSearchUrl(category, keyword);
       const html = await fetchHtml(url, {
         headers: {
-          'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
+          'accept-language': DEFAULT_ACCEPT_LANGUAGE,
         },
         notFoundStatus: 404,
         errorLabel: 'Books.com.tw',
+        providerId: BOOKS_COM_TW_SOURCE_ID,
         ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
       });
 

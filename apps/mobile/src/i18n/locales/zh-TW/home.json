@@ -17,6 +17,7 @@
     "permissionRequiredDescription": "請允許相機存取，才能直接掃描書本背面的 ISBN 條碼。",
     "permissionRequiredAction": "允許相機權限",
     "permissionSettingsAction": "前往設定",
-    "helpText": "請將國際標準書號 (ISBN 碼) 放進掃描框內。"
+    "helpText": "請將國際標準書號 (ISBN 碼) 放進掃描框內。",
+    "invalidBarcode": "這個條碼不是有效的 ISBN，請再試一次。"
   }
 }

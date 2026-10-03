@@ -111,10 +111,7 @@ export async function runProviderSearch({
       id: result.provider.id,
       name: result.provider.name,
       status: 'error',
-      message:
-        result.error instanceof Error
-          ? result.error.message
-          : `Unexpected ${result.provider.name} parser error.`,
+      message: result.error instanceof Error ? result.error.message : String(result.error),
     });
     message = failureMessage;
   }
