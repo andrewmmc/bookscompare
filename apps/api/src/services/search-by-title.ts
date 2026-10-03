@@ -42,23 +42,24 @@ export async function searchBooksByTitle(title: string): Promise<SearchResponse>
   const clusters = clusterOffersIntoBooks(fanout.offers);
   const books = clusters
     .map(clusterToBookDetail)
-    .filter((book) => Number.isFinite(titleRelevance(book, title)))
+    .map((book) => ({
+      book,
+      relevance: titleRelevance(book, title),
+      price: lowestOfferPrice(book),
+    }))
+    .filter((entry) => Number.isFinite(entry.relevance))
     .sort((left, right) => {
-      const relevanceDifference = titleRelevance(left, title) - titleRelevance(right, title);
-
-      if (relevanceDifference !== 0) {
-        return relevanceDifference;
+      if (left.relevance !== right.relevance) {
+        return left.relevance - right.relevance;
       }
 
-      const leftPrice = lowestOfferPrice(left);
-      const rightPrice = lowestOfferPrice(right);
-
-      if (leftPrice !== rightPrice) {
-        return leftPrice - rightPrice;
+      if (left.price !== right.price) {
+        return left.price - right.price;
       }
 
-      return right.offers.length - left.offers.length;
-    });
+      return right.book.offers.length - left.book.offers.length;
+    })
+    .map((entry) => entry.book);
 
   return createSearchResponse({
     query: { title },

@@ -121,5 +121,6 @@ describe('BarcodeScannerScreen', () => {
 
     expect(navigation.replace).not.toHaveBeenCalled();
     expect(mockTrack).toHaveBeenCalledWith('barcode_scanner_invalid_barcode');
+    expect(screen.getByText(i18n.t('scanner.invalidBarcode', { ns: 'home' }))).toBeTruthy();
   });
 });

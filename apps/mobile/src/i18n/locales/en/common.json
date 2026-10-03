@@ -22,5 +22,11 @@
   },
   "priceTag": {
     "discountTag": "{{discountRate}}% list"
+  },
+  "list": {
+    "separator": ", "
+  },
+  "actionSheet": {
+    "selectedPrefix": "✓ "
   }
 }

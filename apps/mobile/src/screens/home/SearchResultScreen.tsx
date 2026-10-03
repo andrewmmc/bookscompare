@@ -23,110 +23,23 @@ import { usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
-
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
-  BOOK_SOURCES,
-  type BookDetailResponse,
-  type BookOffer,
-  type BookSourceId,
-  type SearchResponse,
-  type SourceState,
-} from '@bookscompare/contracts';
-import type { BookTypePreference } from '../../lib/preferences';
+  allSourcesErrored,
+  extractOffers,
+  filterOffers,
+  isEbookOffer,
+  sortOffers,
+  type ResultSortMode,
+} from './searchResultUtils';
+
+import type { BookOffer } from '@bookscompare/contracts';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ThemeColors } from '../../theme/colors';
 import type { SearchResultRoutes } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<SearchResultRoutes, 'SearchResult'>;
-type SearchResultData = BookDetailResponse | SearchResponse;
-type ResultSortMode = 'price' | 'store' | 'physical' | 'ebook';
 
-const defaultSourceOrder = BOOK_SOURCES.map((source) => source.id);
-
-function isEbookOffer(item: BookOffer): boolean {
-  return item.productType.includes('電子書') || item.title.includes('電子書');
-}
-
-function matchesBookTypePreference(
-  item: BookOffer,
-  preferredBookTypes: BookTypePreference[]
-): boolean {
-  if (preferredBookTypes.length === 0) {
-    return true;
-  }
-
-  const isEbook = isEbookOffer(item);
-  return preferredBookTypes.includes(isEbook ? 'ebook' : 'physical');
-}
-
-function extractOffers(data: SearchResultData | undefined): BookOffer[] {
-  if (!data) {
-    return [];
-  }
-
-  if ('book' in data) {
-    return data.book ? data.book.offers : [];
-  }
-
-  return data.books.flatMap((book) => book.offers);
-}
-
-function filterOffers(
-  offers: BookOffer[],
-  preferredSources: Set<string>,
-  preferredBookTypes: BookTypePreference[]
-): BookOffer[] {
-  return offers.filter(
-    (offer) =>
-      (preferredSources.size === 0 || preferredSources.has(offer.sourceId)) &&
-      matchesBookTypePreference(offer, preferredBookTypes)
-  );
-}
-
-function compareByPrice(a: BookOffer, b: BookOffer): number {
-  return a.price - b.price;
-}
-
-function getSourceRank(sourceId: BookSourceId, preferredSources: BookSourceId[]): number {
-  const preferredIndex = preferredSources.indexOf(sourceId);
-  if (preferredIndex >= 0) {
-    return preferredIndex;
-  }
-
-  const defaultIndex = defaultSourceOrder.indexOf(sourceId);
-  return preferredSources.length + (defaultIndex >= 0 ? defaultIndex : defaultSourceOrder.length);
-}
-
-function sortOffers(
-  offers: BookOffer[],
-  sortMode: ResultSortMode,
-  preferredSources: BookSourceId[]
-): BookOffer[] {
-  return offers.slice().sort((a, b) => {
-    switch (sortMode) {
-      case 'store': {
-        const sourceRank =
-          getSourceRank(a.sourceId, preferredSources) - getSourceRank(b.sourceId, preferredSources);
-        return sourceRank || compareByPrice(a, b);
-      }
-      case 'physical': {
-        const bookTypeRank = Number(isEbookOffer(a)) - Number(isEbookOffer(b));
-        return bookTypeRank || compareByPrice(a, b);
-      }
-      case 'ebook': {
-        const bookTypeRank = Number(isEbookOffer(b)) - Number(isEbookOffer(a));
-        return bookTypeRank || compareByPrice(a, b);
-      }
-      case 'price':
-      default:
-        return compareByPrice(a, b);
-    }
-  });
-}
-
-function allSourcesErrored(sources: SourceState[]): boolean {
-  return sources.length > 0 && sources.every((source) => source.status === 'error');
-}
+const COPY_FEEDBACK_MS = 1600;
 
 interface OfferRowProps {
   item: BookOffer;
@@ -153,7 +66,7 @@ function OfferRow({
   onOpen,
   onToggleFavourite,
 }: OfferRowProps) {
-  const { t } = useTranslation(['search', 'library']);
+  const { t } = useTranslation(['search', 'library', 'common']);
   const showRowFavourite = !isbnParam && Boolean(item.isbn);
   const rowIsFavourite = showRowFavourite && item.isbn ? favouriteIsbnSet.has(item.isbn) : false;
   const showLowestBadge = totalCount > 1 && lowestPrice !== null && item.price === lowestPrice;
@@ -200,7 +113,7 @@ function OfferRow({
         </Text>
         {item.authors.length > 0 ? (
           <Text style={styles.note} numberOfLines={1}>
-            {item.authors.join('、')}
+            {item.authors.join(t('common:list.separator'))}
           </Text>
         ) : null}
         {item.publisher ? (
@@ -243,13 +156,16 @@ function OfferRow({
 }
 
 export function SearchResultScreen({ navigation, route }: Props) {
-  const { t } = useTranslation(['search', 'library']);
-  const sortOptions: Array<{ value: ResultSortMode; label: string }> = [
-    { value: 'price', label: t('search:searchResult.sortOptions.price') },
-    { value: 'store', label: t('search:searchResult.sortOptions.store') },
-    { value: 'physical', label: t('search:searchResult.sortOptions.physical') },
-    { value: 'ebook', label: t('search:searchResult.sortOptions.ebook') },
-  ];
+  const { t } = useTranslation(['search', 'library', 'common']);
+  const sortOptions: Array<{ value: ResultSortMode; label: string }> = useMemo(
+    () => [
+      { value: 'price', label: t('search:searchResult.sortOptions.price') },
+      { value: 'store', label: t('search:searchResult.sortOptions.store') },
+      { value: 'physical', label: t('search:searchResult.sortOptions.physical') },
+      { value: 'ebook', label: t('search:searchResult.sortOptions.ebook') },
+    ],
+    [t]
+  );
   const { colors, scheme } = useTheme();
   const { showActionSheetWithOptions } = useActionSheet();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -348,7 +264,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
   }, [isLoading, error, data, resultCount, searchType]);
 
   useEffect(() => {
-    if (!isbnParam || isLoading) {
+    if (!isbnParam || isLoading || error) {
       return;
     }
 
@@ -364,7 +280,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
       isbn: isbnParam,
       ...(isbnBookTitle ? { title: isbnBookTitle } : {}),
     });
-  }, [isbnParam, isbnBookTitle, isLoading, addHistoryEntry]);
+  }, [isbnParam, isbnBookTitle, isLoading, error, addHistoryEntry]);
 
   useLayoutEffect(() => {
     if (!copyValue) {
@@ -386,14 +302,21 @@ export function SearchResultScreen({ navigation, route }: Props) {
             accessibilityRole="button"
             hitSlop={12}
             onPress={() => {
-              void Clipboard.setStringAsync(copyValue).then(() => {
-                track('search_result_copy_query', { searchType });
-                setCopiedQuery(true);
-                if (copyResetTimer.current) {
-                  clearTimeout(copyResetTimer.current);
-                }
-                copyResetTimer.current = setTimeout(() => setCopiedQuery(false), 1600);
-              });
+              void Clipboard.setStringAsync(copyValue)
+                .then(() => {
+                  track('search_result_copy_query', { searchType });
+                  setCopiedQuery(true);
+                  if (copyResetTimer.current) {
+                    clearTimeout(copyResetTimer.current);
+                  }
+                  copyResetTimer.current = setTimeout(
+                    () => setCopiedQuery(false),
+                    COPY_FEEDBACK_MS
+                  );
+                })
+                .catch(() => {
+                  setCopiedQuery(false);
+                });
             }}
             style={styles.headerButton}
           >
@@ -409,7 +332,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
             accessibilityState={{ selected: sortMode !== 'price' }}
             hitSlop={12}
             onPress={() => {
-              const selectedPrefix = '✓ ';
+              const selectedPrefix = t('common:actionSheet.selectedPrefix');
               showActionSheetWithOptions(
                 {
                   title: t('search:searchResult.sortByLabel'),
@@ -487,6 +410,8 @@ export function SearchResultScreen({ navigation, route }: Props) {
     scheme,
     showActionSheetWithOptions,
     sortMode,
+    sortOptions,
+    t,
   ]);
 
   const favouriteIsbnSet = useMemo(

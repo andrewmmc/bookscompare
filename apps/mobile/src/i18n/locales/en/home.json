@@ -17,6 +17,7 @@
     "permissionRequiredDescription": "Allow camera access so we can scan the ISBN barcode on the back cover.",
     "permissionRequiredAction": "Grant camera permission",
     "permissionSettingsAction": "Open settings",
-    "helpText": "Position the ISBN barcode inside the frame."
+    "helpText": "Position the ISBN barcode inside the frame.",
+    "invalidBarcode": "That barcode is not a valid ISBN. Try again."
   }
 }

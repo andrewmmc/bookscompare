@@ -2,14 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import worker from '../src/index';
-import { installFakeCaches } from './helpers';
-
-function createExecutionContext(): ExecutionContext {
-  return {
-    waitUntil() {},
-    passThroughOnException() {},
-  } as unknown as ExecutionContext;
-}
+import { createExecutionContext, installFakeCaches } from './helpers';
 
 const env = {} as Record<string, never>;
 
@@ -209,4 +202,29 @@ test('HEAD lookup routes do not run providers on a cache miss', async (t) => {
   assert.equal(response.status, 204);
   assert.equal(response.headers.get('x-bookscompare-cache'), 'MISS');
   assert.equal(await response.text(), '');
+});
+
+test('HEAD lookup routes are rate limited on a cache miss', async (t) => {
+  installFakeCaches(t);
+  let calls = 0;
+  const response = await worker.fetch(
+    new Request('https://bookscompare-api.mmc.dev/isbn/9786267569337', {
+      method: 'HEAD',
+      headers: { 'cf-connecting-ip': '192.0.2.1' },
+    }),
+    {
+      LOOKUP_RATE_LIMITER: {
+        async limit() {
+          calls += 1;
+          return { success: false };
+        },
+      },
+    },
+    createExecutionContext()
+  );
+
+  assert.equal(response.status, 429);
+  assert.equal(response.headers.get('retry-after'), '60');
+  assert.equal(await response.text(), '');
+  assert.equal(calls, 1);
 });

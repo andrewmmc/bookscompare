@@ -1,80 +1,28 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import type { BookOffer } from '@bookscompare/contracts';
-
 import worker from '../src/index';
-import { providers } from '../src/providers/registry';
 
-import { createExecutionContext, createFakeCache, createTestEnv } from './helpers';
+import {
+  createExecutionContext,
+  createTestEnv,
+  createTestOffer,
+  installFakeCaches,
+  stubProviderSearch,
+} from './helpers';
 
 import type { BookProvider } from '../src/providers/types';
 
-function getBookProviders(): BookProvider[] {
-  return providers.filter((provider): provider is BookProvider => 'searchByIsbn' in provider);
-}
-
-function createOffer(provider: BookProvider): BookOffer {
-  return {
-    sourceId: provider.id,
-    sourceName: provider.name,
-    sourceProductId: `${provider.id}-offer`,
-    title: `${provider.name} title`,
-    productType: '中文書',
-    authors: ['Test Author'],
-    publisher: 'Test Publisher',
-    publicationDate: '2025-01-01',
-    summary: `${provider.name} summary`,
-    price: 100,
-    currency: 'TWD',
-    priceText: '100 元',
-    url: `https://example.com/${provider.id}`,
-    imageUrl: `https://example.com/${provider.id}.jpg`,
-    badges: [],
-  };
-}
-
 test('worker caches successful ISBN lookups under a canonical key', async (t) => {
-  const bookProviders = getBookProviders();
-  const originalSearchByIsbn = bookProviders.map((provider) => ({
-    provider,
-    searchByIsbn: provider.searchByIsbn,
-  }));
   const callCounts = new Map<BookProvider['id'], number>();
-  const { cache, store } = createFakeCache();
+  const { store } = installFakeCaches(t);
   const { env } = createTestEnv();
-  const originalCaches = globalThis.caches;
 
-  t.after(() => {
-    for (const entry of originalSearchByIsbn) {
-      entry.provider.searchByIsbn = entry.searchByIsbn;
-    }
+  stubProviderSearch(t, 'searchByIsbn', (provider) => async () => {
+    callCounts.set(provider.id, (callCounts.get(provider.id) ?? 0) + 1);
 
-    if (originalCaches) {
-      Object.defineProperty(globalThis, 'caches', {
-        value: originalCaches,
-        configurable: true,
-        writable: true,
-      });
-      return;
-    }
-
-    Reflect.deleteProperty(globalThis, 'caches');
+    return provider.id === 'kingstone' ? [createTestOffer(provider)] : [];
   });
-
-  Object.defineProperty(globalThis, 'caches', {
-    value: { default: cache },
-    configurable: true,
-    writable: true,
-  });
-
-  for (const provider of bookProviders) {
-    provider.searchByIsbn = async () => {
-      callCounts.set(provider.id, (callCounts.get(provider.id) ?? 0) + 1);
-
-      return provider.id === 'kingstone' ? [createOffer(provider)] : [];
-    };
-  }
 
   const firstContext = createExecutionContext();
   const firstResponse = await worker.fetch(
@@ -122,47 +70,16 @@ test('worker caches successful ISBN lookups under a canonical key', async (t) =>
 });
 
 test('worker does not cache ISBN lookups when any provider fails', async (t) => {
-  const bookProviders = getBookProviders();
-  const originalSearchByIsbn = bookProviders.map((provider) => ({
-    provider,
-    searchByIsbn: provider.searchByIsbn,
-  }));
-  const { cache, store } = createFakeCache();
+  const { store } = installFakeCaches(t);
   const { env } = createTestEnv();
-  const originalCaches = globalThis.caches;
 
-  t.after(() => {
-    for (const entry of originalSearchByIsbn) {
-      entry.provider.searchByIsbn = entry.searchByIsbn;
+  stubProviderSearch(t, 'searchByIsbn', (provider) => async () => {
+    if (provider.id === 'kingstone') {
+      throw new Error('Kingstone failed.');
     }
 
-    if (originalCaches) {
-      Object.defineProperty(globalThis, 'caches', {
-        value: originalCaches,
-        configurable: true,
-        writable: true,
-      });
-      return;
-    }
-
-    Reflect.deleteProperty(globalThis, 'caches');
+    return provider.id === 'books-com-tw' ? [createTestOffer(provider)] : [];
   });
-
-  Object.defineProperty(globalThis, 'caches', {
-    value: { default: cache },
-    configurable: true,
-    writable: true,
-  });
-
-  for (const provider of bookProviders) {
-    provider.searchByIsbn = async () => {
-      if (provider.id === 'kingstone') {
-        throw new Error('Kingstone failed.');
-      }
-
-      return provider.id === 'books-com-tw' ? [createOffer(provider)] : [];
-    };
-  }
 
   const context = createExecutionContext();
   const response = await worker.fetch(

@@ -11,6 +11,7 @@ import { ThemePreferencesScreen } from '../screens/about/ThemePreferencesScreen'
 import { WebViewScreen } from '../screens/common/WebViewScreen';
 import { useTheme } from '../theme/ThemeProvider';
 
+import { getGroupedStackScreenOptions } from './stackScreenOptions';
 import type { AboutStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<AboutStackParamList>();
@@ -20,21 +21,7 @@ export function AboutStack() {
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: colors.groupedBackground },
-        headerTintColor: colors.navigationAction,
-        headerTitleStyle: {
-          color: colors.ink,
-          fontSize: 17,
-          fontWeight: '600',
-        },
-        contentStyle: {
-          backgroundColor: colors.groupedBackground,
-        },
-      }}
-    >
+    <Stack.Navigator screenOptions={getGroupedStackScreenOptions(colors)}>
       <Stack.Screen name="About" component={AboutScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="Settings"
@@ -48,7 +35,7 @@ export function AboutStack() {
         name="LanguagePreferences"
         component={LanguagePreferencesScreen}
         options={{
-          title: t('settings.language'),
+          title: t('settings:settings.language'),
           headerBackButtonDisplayMode: 'minimal',
         }}
       />

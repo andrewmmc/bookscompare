@@ -9,6 +9,7 @@ import {
   stripTags,
 } from '../lib/html';
 import { DEFAULT_CURRENCY, parseSearchResultRows, sourceMeta } from './shared';
+import { DEFAULT_ACCEPT_LANGUAGE, DEFAULT_SCRAPER_USER_AGENT } from './http-defaults';
 
 import type { ProviderSearchOptions } from '../providers/types';
 
@@ -16,8 +17,6 @@ const CITE_BASE_URL = 'https://www.cite.com.tw';
 const CITE_SOURCE_ID = 'cite';
 const CITE_SOURCE = sourceMeta(CITE_SOURCE_ID);
 const CITE_SEARCH_URL = `${CITE_BASE_URL}/search_result?keywords=`;
-const CITE_USER_AGENT =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36';
 
 const NO_RESULTS_PATTERN = /您輸入的搜尋條件，無符合的資料[!！]/;
 const RESULT_CONTAINER_PATTERN =
@@ -211,11 +210,12 @@ export async function fetchCiteOffers(
   const url = `${CITE_SEARCH_URL}${encodeURIComponent(keyword)}`;
   const html = await fetchHtml(url, {
     headers: {
-      'accept-language': 'zh-TW,zh;q=0.9,en;q=0.8',
-      'user-agent': CITE_USER_AGENT,
+      'accept-language': DEFAULT_ACCEPT_LANGUAGE,
+      'user-agent': DEFAULT_SCRAPER_USER_AGENT,
     },
     notFoundStatus: 404,
     errorLabel: 'Cite',
+    providerId: CITE_SOURCE_ID,
     ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
   });
 

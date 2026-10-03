@@ -6,6 +6,7 @@ import { FavouritesScreen } from '../screens/favourites/FavouritesScreen';
 import { SearchResultScreen } from '../screens/home/SearchResultScreen';
 import { useTheme } from '../theme/ThemeProvider';
 
+import { getGroupedStackScreenOptions } from './stackScreenOptions';
 import type { FavouritesStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<FavouritesStackParamList>();
@@ -15,21 +16,7 @@ export function FavouritesStack() {
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: colors.groupedBackground },
-        headerTintColor: colors.navigationAction,
-        headerTitleStyle: {
-          color: colors.ink,
-          fontSize: 17,
-          fontWeight: '600',
-        },
-        contentStyle: {
-          backgroundColor: colors.groupedBackground,
-        },
-      }}
-    >
+    <Stack.Navigator screenOptions={getGroupedStackScreenOptions(colors)}>
       <Stack.Screen
         name="Favourites"
         component={FavouritesScreen}

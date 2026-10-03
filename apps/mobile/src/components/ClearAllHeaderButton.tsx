@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { useCallback, useLayoutEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { track } from '../analytics';
@@ -60,10 +61,11 @@ function HeaderSortAction({
   colors,
   scheme,
 }: HeaderSortActionProps) {
+  const { t } = useTranslation('common');
   const { showActionSheetWithOptions } = useActionSheet();
 
   const handleSortPress = () => {
-    const selectedPrefix = '✓ ';
+    const selectedPrefix = t('common:actionSheet.selectedPrefix');
     showActionSheetWithOptions(
       {
         title: strings.sortAction,

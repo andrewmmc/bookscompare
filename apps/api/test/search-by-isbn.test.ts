@@ -2,68 +2,29 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
 
-import type { BookOffer } from '@bookscompare/contracts';
-
-import { providers } from '../src/providers/registry';
 import { searchBooksByIsbn } from '../src/services/search-by-isbn';
 
-import type { BookProvider } from '../src/providers/types';
-
-function getBookProviders(): BookProvider[] {
-  return providers.filter((provider): provider is BookProvider => 'searchByIsbn' in provider);
-}
-
-function createOffer(provider: BookProvider): BookOffer {
-  return {
-    sourceId: provider.id,
-    sourceName: provider.name,
-    sourceProductId: `${provider.id}-offer`,
-    title: 'Shared title',
-    productType: '中文書',
-    authors: ['Test Author'],
-    publisher: 'Test Publisher',
-    publicationDate: '2025-01-01',
-    summary: `${provider.name} summary`,
-    price: 100,
-    currency: 'TWD',
-    priceText: '100 元',
-    url: `https://example.com/${provider.id}`,
-    imageUrl: `https://example.com/${provider.id}.jpg`,
-    badges: [],
-  };
-}
+import { createTestOffer, stubProviderSearch } from './helpers';
 
 test('searchBooksByIsbn runs provider lookups in parallel and returns a clustered book detail', async (t) => {
-  const bookProviders = getBookProviders();
-  const originalSearchByIsbn = bookProviders.map((provider) => ({
-    provider,
-    searchByIsbn: provider.searchByIsbn,
-  }));
-
-  t.after(() => {
-    for (const entry of originalSearchByIsbn) {
-      entry.provider.searchByIsbn = entry.searchByIsbn;
+  stubProviderSearch(t, 'searchByIsbn', (provider) => async () => {
+    switch (provider.id) {
+      case 'books-com-tw':
+        await delay(100);
+        return [createTestOffer(provider, { title: 'Shared title' })];
+      case 'kingstone':
+        await delay(80);
+        throw new Error('Kingstone failed.');
+      case 'cite':
+        await delay(60);
+        return [];
+      case 'eslite':
+        await delay(40);
+        return [createTestOffer(provider, { title: 'Shared title' })];
     }
-  });
 
-  for (const provider of bookProviders) {
-    provider.searchByIsbn = async () => {
-      switch (provider.id) {
-        case 'books-com-tw':
-          await delay(100);
-          return [createOffer(provider)];
-        case 'kingstone':
-          await delay(80);
-          throw new Error('Kingstone failed.');
-        case 'cite':
-          await delay(60);
-          return [];
-        case 'eslite':
-          await delay(40);
-          return [createOffer(provider)];
-      }
-    };
-  }
+    return [];
+  });
 
   const startedAt = Date.now();
   const response = await searchBooksByIsbn('9786267569337');
@@ -110,31 +71,21 @@ test('searchBooksByIsbn runs provider lookups in parallel and returns a clustere
 });
 
 test('searchBooksByIsbn rejects offers carrying a different ISBN', async (t) => {
-  const bookProviders = getBookProviders();
-  const original = bookProviders.map((provider) => ({
-    provider,
-    searchByIsbn: provider.searchByIsbn,
-  }));
-
-  t.after(() => {
-    for (const entry of original) {
-      entry.provider.searchByIsbn = entry.searchByIsbn;
-    }
-  });
-
-  for (const provider of bookProviders) {
-    provider.searchByIsbn = async () =>
+  stubProviderSearch(
+    t,
+    'searchByIsbn',
+    (provider) => async () =>
       provider.id === 'eslite'
         ? [
-            { ...createOffer(provider), isbn: '9786267569337' },
+            { ...createTestOffer(provider, { title: 'Shared title' }), isbn: '9786267569337' },
             {
-              ...createOffer(provider),
+              ...createTestOffer(provider, { title: 'Shared title' }),
               sourceProductId: 'wrong-edition',
               isbn: '9786264560092',
             },
           ]
-        : [];
-  }
+        : []
+  );
 
   const response = await searchBooksByIsbn('9786267569337');
 
@@ -146,18 +97,14 @@ test('searchBooksByIsbn rejects offers carrying a different ISBN', async (t) => 
 });
 
 test('searchBooksByIsbn reports a provider as empty when all its offers mismatch', async (t) => {
-  const bookProviders = getBookProviders();
-  const original = bookProviders.map((provider) => ({
-    provider,
-    searchByIsbn: provider.searchByIsbn,
-  }));
-  t.after(() =>
-    original.forEach(({ provider, searchByIsbn }) => (provider.searchByIsbn = searchByIsbn))
+  stubProviderSearch(
+    t,
+    'searchByIsbn',
+    (provider) => async () =>
+      provider.id === 'eslite'
+        ? [{ ...createTestOffer(provider, { title: 'Shared title' }), isbn: '9786264560092' }]
+        : []
   );
-  for (const provider of bookProviders) {
-    provider.searchByIsbn = async () =>
-      provider.id === 'eslite' ? [{ ...createOffer(provider), isbn: '9786264560092' }] : [];
-  }
 
   const response = await searchBooksByIsbn('9786267569337');
   assert.equal(
@@ -167,43 +114,35 @@ test('searchBooksByIsbn reports a provider as empty when all its offers mismatch
 });
 
 test('searchBooksByIsbn accepts the equivalent ISBN-10 for an ISBN-13 query', async (t) => {
-  const bookProviders = getBookProviders();
-  const original = bookProviders.map((provider) => ({
-    provider,
-    searchByIsbn: provider.searchByIsbn,
-  }));
-  t.after(() =>
-    original.forEach(({ provider, searchByIsbn }) => (provider.searchByIsbn = searchByIsbn))
+  stubProviderSearch(
+    t,
+    'searchByIsbn',
+    (provider) => async () =>
+      provider.id === 'eslite'
+        ? [{ ...createTestOffer(provider, { title: 'Shared title' }), isbn: '0306406152' }]
+        : []
   );
-
-  for (const provider of bookProviders) {
-    provider.searchByIsbn = async () =>
-      provider.id === 'eslite' ? [{ ...createOffer(provider), isbn: '0306406152' }] : [];
-  }
 
   const response = await searchBooksByIsbn('9780306406157');
   assert.equal(response.book?.offers[0]?.isbn, '0306406152');
 });
 
 test('searchBooksByIsbn rejects ambiguous ISBN-less title clusters', async (t) => {
-  const bookProviders = getBookProviders();
-  const original = bookProviders.map((provider) => ({
-    provider,
-    searchByIsbn: provider.searchByIsbn,
-  }));
-  t.after(() =>
-    original.forEach(({ provider, searchByIsbn }) => (provider.searchByIsbn = searchByIsbn))
-  );
-
-  for (const provider of bookProviders) {
-    provider.searchByIsbn = async () =>
+  stubProviderSearch(
+    t,
+    'searchByIsbn',
+    (provider) => async () =>
       provider.id === 'eslite'
         ? [
-            createOffer(provider),
-            { ...createOffer(provider), sourceProductId: 'other', title: 'Other title' },
+            createTestOffer(provider, { title: 'Shared title' }),
+            {
+              ...createTestOffer(provider, { title: 'Shared title' }),
+              sourceProductId: 'other',
+              title: 'Other title',
+            },
           ]
-        : [];
-  }
+        : []
+  );
 
   const response = await searchBooksByIsbn('9786267569337');
   assert.equal(response.book, null);
