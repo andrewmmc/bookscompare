@@ -70,7 +70,7 @@ Screenshots of the actual app to give you a quick look at BooksCompare before do
 
 - Compatible with iPhones running iOS 17 and above
 - iPad version is planned
-- Free to download with all features enabled; enjoy lifetime updates
+- Free for a limited time, with all features included and lifetime updates
 
 For more details and FAQs, visit **[bookscompare.mmc.dev](https://bookscompare.mmc.dev)**.
 
@@ -143,7 +143,7 @@ packages/
 
 ## Development
 
-> **Note**: This section is for those who want to contribute to development. If you just want to use BooksCompare, please [download the app](#下載) directly.
+> **Note**: This section is for those who want to contribute to development. If you just want to use BooksCompare, please [download the app](#download) directly.
 
 ### Prerequisites
 
