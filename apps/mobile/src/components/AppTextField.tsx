@@ -6,9 +6,11 @@ import { spacing } from '../theme/spacing';
 import { useTheme } from '../theme/ThemeProvider';
 import { typography } from '../theme/typography';
 
-import type { ReactNode } from 'react';
-import type { StyleProp, TextInputInstance, TextInputProps, ViewStyle } from 'react-native';
+import type { ComponentRef, ReactNode } from 'react';
+import type { StyleProp, TextInputProps, ViewStyle } from 'react-native';
 import type { ThemeColors } from '../theme/colors';
+
+type TextInputRef = ComponentRef<typeof TextInput>;
 
 interface AppTextFieldProps extends Omit<TextInputProps, 'style' | 'placeholderTextColor'> {
   /** Rendered before the input text (e.g. search glyph). */
@@ -25,7 +27,7 @@ interface AppTextFieldProps extends Omit<TextInputProps, 'style' | 'placeholderT
  * iOS 26 rounded-rect search/text field. Translucent grouped-background fill,
  * radius 10, height 44, optional leading icon and clear button. No underline.
  */
-export const AppTextField = forwardRef<TextInputInstance, AppTextFieldProps>(function AppTextField(
+export const AppTextField = forwardRef<TextInputRef, AppTextFieldProps>(function AppTextField(
   { leadingIcon, onClear, clearAccessibilityLabel, trailing, containerStyle, value, ...inputProps },
   ref
 ) {

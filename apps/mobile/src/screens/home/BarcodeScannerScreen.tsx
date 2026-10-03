@@ -13,6 +13,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
 
 import { isValidIsbn, normalizeIsbn } from '@bookscompare/contracts';
+import type { BarcodeScanningResult } from 'expo-camera';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '../../navigation/types';
 
@@ -67,7 +68,7 @@ export function BarcodeScannerScreen({ navigation }: Props) {
         onBarcodeScanned={
           hasScanned
             ? undefined
-            : ({ data }) => {
+            : ({ data }: BarcodeScanningResult) => {
                 const isbn = normalizeIsbn(data);
 
                 if (!isValidIsbn(isbn)) {
