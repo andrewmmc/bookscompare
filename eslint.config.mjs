@@ -1,3 +1,4 @@
+import { fixupConfigRules } from '@eslint/compat';
 import eslint from '@eslint/js';
 import globals from 'globals';
 import reactPlugin from 'eslint-plugin-react';
@@ -7,7 +8,7 @@ import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 import prettierPlugin from 'eslint-plugin-prettier';
 
-export default tseslint.config(
+const eslintConfig = tseslint.config(
   {
     ignores: [
       '**/node_modules/**',
@@ -91,3 +92,6 @@ export default tseslint.config(
     },
   }
 );
+
+// Bridge legacy React and React Native rules while keeping ESLint 10 enabled.
+export default fixupConfigRules(eslintConfig);
