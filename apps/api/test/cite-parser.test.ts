@@ -43,6 +43,17 @@ test('parseCiteSearchResults returns empty array for live-style not-found page',
   assert.deepEqual(parseCiteSearchResults(html), []);
 });
 
+test('parseCiteSearchResults returns no offers when every row is intentionally excluded', () => {
+  assert.deepEqual(
+    parseCiteSearchResults(`
+      <div class="book-container">
+        <li class="book-area-1"><img src="/images/adults_only.png"><div class="clear"></div></li>
+      <ul class="page-numbers-2">
+    `),
+    []
+  );
+});
+
 test('parseCiteSearchResults throws when search result markup is incomplete', () => {
   assert.throws(
     () => parseCiteSearchResults('<main>results exist</main>'),

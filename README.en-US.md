@@ -1,5 +1,3 @@
-
-
 <p align="center">
   <img src="./assets/logo.png" alt="BooksCompare logo" width="128" />
 </p>

@@ -58,7 +58,10 @@ export function parseSearchResultRows<Row>({
     }
   }
 
-  if (failedRows > 0 && results.length > 0) {
+  if (failedRows > 0) {
+    if (results.length === 0) {
+      throw new Error(`${providerId} parser could not parse any search result rows.`);
+    }
     throw new Error(`${providerId} parser rejected ${failedRows} search result row(s).`);
   }
 

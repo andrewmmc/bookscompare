@@ -58,6 +58,28 @@ test('parseKingstoneSearchResults returns empty array for not-found fixture', as
   assert.deepEqual(parseKingstoneSearchResults(html), []);
 });
 
+test('parseKingstoneSearchResults returns no offers when every row is intentionally excluded', () => {
+  assert.deepEqual(
+    parseKingstoneSearchResults(`
+      全館搜尋共計 <span>1</span> 筆
+      <ul class="displaycol">
+        <li class="displayunit"><img src="https://cdn.kingstone.com.tw/images/restricted.jpg"></li>
+      </ul>
+    `),
+    []
+  );
+});
+
+test('parseKingstoneSearchResults rejects malformed rows even without a result count', () => {
+  assert.throws(
+    () =>
+      parseKingstoneSearchResults(
+        '<ul class="displaycol"><li class="displayunit">missing fields</li></ul>'
+      ),
+    /could not parse any search result rows/
+  );
+});
+
 test('parseKingstoneSearchResults returns empty array for current live not-found markup', async () => {
   const html = await readFixture('live-not-found.html');
 

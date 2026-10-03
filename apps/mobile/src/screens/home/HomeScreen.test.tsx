@@ -40,7 +40,10 @@ describe('HomeScreen', () => {
       <HomeScreen navigation={navigation as never} route={{ key: 'Home', name: 'Home' } as never} />
     );
 
-    await fireEvent.changeText(screen.getByPlaceholderText('ISBN 碼'), '978-1-4028-9462-6');
+    const input = screen.getByPlaceholderText('ISBN 碼');
+    // Native TextInput truncates pasted text before onChangeText receives it.
+    const pastedIsbn = '978-1-4028-9462-6'.slice(0, input.props.maxLength);
+    await fireEvent.changeText(input, pastedIsbn);
     await fireEvent.press(screen.getByText('搜尋好書價'));
 
     expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', { isbn: '9781402894626' });
@@ -61,6 +64,21 @@ describe('HomeScreen', () => {
     await fireEvent(input, 'submitEditing');
 
     expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', { isbn: '9781402894626' });
+  });
+
+  it('allows typing the X check digit of an ISBN-10', async () => {
+    const navigation = { navigate: jest.fn() };
+    const screen = await renderWithProviders(
+      <HomeScreen navigation={navigation as never} route={{ key: 'Home', name: 'Home' } as never} />
+    );
+
+    const input = screen.getByPlaceholderText('ISBN 碼');
+    expect(input.props.inputMode).toBe('text');
+    expect(input.props.keyboardType).toBe('default');
+    await fireEvent.changeText(input, '080442957x');
+    await fireEvent.press(screen.getByText('搜尋好書價'));
+
+    expect(navigation.navigate).toHaveBeenCalledWith('SearchResult', { isbn: '080442957X' });
   });
 
   it('navigates to results with a trimmed title', async () => {
@@ -162,7 +180,7 @@ describe('HomeScreen', () => {
     expect(track).not.toHaveBeenCalledWith('home_click_search', expect.anything());
   });
 
-  it('switches input keyboard mode when toggling search type while focused', async () => {
+  it('preserves input focus when toggling search type', async () => {
     const navigation = {
       navigate: jest.fn(),
     };
@@ -174,8 +192,8 @@ describe('HomeScreen', () => {
     const isbnInput = screen.getByPlaceholderText('ISBN 碼');
     await fireEvent(isbnInput, 'focus');
 
-    expect(isbnInput.props.inputMode).toBe('numeric');
-    expect(isbnInput.props.keyboardType).toBe('numeric');
+    expect(isbnInput.props.inputMode).toBe('text');
+    expect(isbnInput.props.keyboardType).toBe('default');
 
     await fireEvent.press(screen.getByText('書名'));
 
@@ -189,8 +207,8 @@ describe('HomeScreen', () => {
 
     const nextIsbnInput = screen.getByPlaceholderText('ISBN 碼');
     expect(nextIsbnInput.props.autoFocus).toBe(true);
-    expect(nextIsbnInput.props.inputMode).toBe('numeric');
-    expect(nextIsbnInput.props.keyboardType).toBe('numeric');
+    expect(nextIsbnInput.props.inputMode).toBe('text');
+    expect(nextIsbnInput.props.keyboardType).toBe('default');
   });
 
   it('does not autofocus the next field after the current one blurs', async () => {

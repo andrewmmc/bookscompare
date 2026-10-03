@@ -207,3 +207,24 @@ test('findClusterByTitleAuthor returns undefined when nothing matches', () => {
 
   assert.equal(findClusterByTitleAuthor(clusters, 'Some Other Book', 'Other Author'), undefined);
 });
+
+test('findClusterByTitleAuthor matches titles and authors from non-primary offers', () => {
+  const clusters = clusterOffersIntoBooks([
+    createOffer({
+      isbn: '9789861374482',
+      title: '原子習慣：完整書名',
+      authors: ['詹姆斯．克利爾'],
+      summary: 'The longer summary makes this the primary offer.',
+    }),
+    createOffer({
+      sourceId: 'kingstone',
+      isbn: '9789861374482',
+      title: '原子習慣',
+      authors: ['James Clear'],
+    }),
+  ]);
+
+  assert.equal(findClusterByTitleAuthor(clusters, '原子習慣', 'JAMES CLEAR'), clusters[0]);
+  assert.equal(findClusterByTitleAuthor(clusters, '原子習慣'), clusters[0]);
+  assert.equal(findClusterByTitleAuthor(clusters, '原子習慣', '詹姆斯．克利爾'), undefined);
+});

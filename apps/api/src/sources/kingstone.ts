@@ -188,11 +188,7 @@ export function parseKingstoneSearchResults(html: string, requestUrl?: string): 
     incompleteRowMessage: 'Kingstone parser found an incomplete result row.',
   });
 
-  if (results.length === 0 && resultCount === 0) {
-    return [];
-  }
-
-  if (results.length === 0) {
+  if (rows.length === 0 && resultCount > 0) {
     throw new Error('Kingstone parser could not parse any search result rows.');
   }
 
