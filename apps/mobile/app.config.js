@@ -130,6 +130,7 @@ module.exports = ({ config }) => {
           recordAudioAndroid: false,
         },
       ],
+      './plugins/withIosPodDeploymentTarget',
     ],
   };
 };

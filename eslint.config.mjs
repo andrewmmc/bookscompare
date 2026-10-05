@@ -86,6 +86,16 @@ const eslintConfig = tseslint.config(
     },
   },
   {
+    files: ['apps/mobile/plugins/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+      sourceType: 'commonjs',
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
     files: ['scripts/**/*.{js,mjs}'],
     languageOptions: {
       globals: globals.node,
