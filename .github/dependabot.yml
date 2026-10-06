@@ -49,6 +49,10 @@ updates:
       bundler:
         patterns:
           - '*'
+      bundler-security:
+        applies-to: security-updates
+        patterns:
+          - '*'
 
   - package-ecosystem: github-actions
     directory: /
