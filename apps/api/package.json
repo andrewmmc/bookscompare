@@ -15,9 +15,9 @@
     "@bookscompare/contracts": "*"
   },
   "devDependencies": {
-    "@types/node": "^26.6.1",
-    "@cloudflare/workers-types": "^5.20260918.1",
-    "tsx": "^4.23.13",
-    "wrangler": "^4.134.0"
+    "@types/node": "^26.6.4",
+    "@cloudflare/workers-types": "^5.20261003.1",
+    "tsx": "^4.23.15",
+    "wrangler": "^4.147.0"
   }
 }
