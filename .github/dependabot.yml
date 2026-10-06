@@ -5,7 +5,39 @@ updates:
     schedule:
       interval: weekly
     groups:
-      npm-dependencies:
+      # Expo SDK-managed packages must be upgraded together (including majors)
+      expo:
+        patterns:
+          - 'expo'
+          - 'expo-*'
+          - '@expo/*'
+          - 'babel-preset-expo'
+          - 'jest-expo'
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - 'react-native'
+          - '@react-native/*'
+          - 'react-native-gesture-handler'
+          - 'react-native-safe-area-context'
+          - 'react-native-screens'
+          - 'react-native-webview'
+          - '@react-native-async-storage/*'
+      eslint:
+        patterns:
+          - 'eslint'
+          - 'eslint-*'
+          - '@eslint/*'
+          - 'typescript-eslint'
+          - '@typescript-eslint/*'
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+      security:
+        applies-to: security-updates
         patterns:
           - '*'
 
@@ -13,8 +45,16 @@ updates:
     directory: /apps/mobile
     schedule:
       interval: weekly
+    groups:
+      bundler:
+        patterns:
+          - '*'
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - '*'
