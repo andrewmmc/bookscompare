@@ -47,9 +47,9 @@
     "@eslint/js": "^10.0.1",
     "@react-native/eslint-plugin": "^0.86.3",
     "@react-native/jest-preset": "^0.86.3",
-    "@typescript-eslint/eslint-plugin": "^8.70.0",
-    "@typescript-eslint/parser": "^8.70.0",
-    "eslint": "^10.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.71.0",
+    "@typescript-eslint/parser": "^8.71.0",
+    "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-react": "^7.37.5",
@@ -59,6 +59,6 @@
     "lefthook": "^2.1.14",
     "prettier": "^3.9.8",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.70.0"
+    "typescript-eslint": "^8.71.0"
   }
 }
