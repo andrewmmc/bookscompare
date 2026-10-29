@@ -3,6 +3,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
+import { useReadablePadding } from '../layout/useAdaptiveLayout';
 import { spacing } from '../theme/spacing';
 import { useTheme } from '../theme/ThemeProvider';
 import { typography } from '../theme/typography';
@@ -116,11 +117,14 @@ function PreferenceScrollView({
   description,
   children,
 }: PreferenceScrollViewProps) {
+  const contentPadding = useReadablePadding();
+
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={[
         styles.contentContainer,
+        contentPadding,
         { paddingBottom: tabBarHeight + spacing.xl },
       ]}
       contentInsetAdjustmentBehavior="automatic"

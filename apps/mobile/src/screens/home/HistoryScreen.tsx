@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Snackbar } from 'react-native-paper';
 
 import { track } from '../../analytics';
@@ -16,6 +16,8 @@ import { useClearAllHeaderAction } from '../../components/ClearAllHeaderButton';
 import { EmptyState } from '../../components/EmptyState';
 import { SwipeToDeleteRow } from '../../components/SwipeToDeleteRow';
 import { useShakeToUndo } from '../../hooks/useShakeToUndo';
+import { AdaptiveList } from '../../layout/AdaptiveList';
+import { useReadablePadding } from '../../layout/useAdaptiveLayout';
 import { formatDateTime } from '../../lib/datetime';
 import { getHistoryEntryId } from '../../lib/history';
 import { updatePreference, usePreferences } from '../../lib/preferences';
@@ -35,6 +37,7 @@ export function HistoryScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const tabBarHeight = useBottomTabBarHeight();
+  const snackbarPadding = useReadablePadding();
   const { data, isLoading } = useHistory();
   const removeHistoryEntry = useRemoveHistoryEntry();
   const restoreHistoryEntry = useRestoreHistoryEntry();
@@ -119,13 +122,15 @@ export function HistoryScreen({ navigation }: Props) {
         description={t('library:history.emptyDescription')}
       />
     ) : (
-      <FlatList
+      <AdaptiveList
         data={entries}
         keyExtractor={getHistoryEntryId}
-        contentContainerStyle={[styles.listContent, { paddingBottom: tabBarHeight + spacing.xl }]}
+        margin={spacing.md}
+        contentPaddingTop={spacing.md}
+        contentPaddingBottom={tabBarHeight + spacing.xl}
         contentInsetAdjustmentBehavior="automatic"
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        renderItem={({ item, index }) => {
+        renderItem={({ item, isFirst, isLast }) => {
           const hasIsbnTitle = item.type === 'isbn' && Boolean(item.title);
           const primaryText =
             item.type === 'isbn'
@@ -134,8 +139,6 @@ export function HistoryScreen({ navigation }: Props) {
           const isbnLine = hasIsbnTitle
             ? t('library:history.isbnLabel', { isbn: item.isbn })
             : null;
-          const isFirst = index === 0;
-          const isLast = index === entries.length - 1;
           const itemId = getHistoryEntryId(item);
           return (
             <SwipeToDeleteRow
@@ -202,7 +205,7 @@ export function HistoryScreen({ navigation }: Props) {
           setUndoCandidate(null);
         }}
         visible={showUndoHint}
-        wrapperStyle={{ bottom: tabBarHeight }}
+        wrapperStyle={[snackbarPadding, { bottom: tabBarHeight }]}
       >
         {t('library:history.deletedUndoHint')}
       </Snackbar>
@@ -215,10 +218,6 @@ const createStyles = (colors: ThemeColors) =>
     container: {
       flex: 1,
       backgroundColor: colors.groupedBackground,
-    },
-    listContent: {
-      paddingHorizontal: spacing.md,
-      paddingTop: spacing.md,
     },
     separator: {
       height: StyleSheet.hairlineWidth,

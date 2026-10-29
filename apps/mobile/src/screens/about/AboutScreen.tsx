@@ -8,6 +8,7 @@ import logo from '../../../assets/logo.png';
 import packageJson from '../../../package.json';
 import { ListRow } from '../../components/ListRow';
 import { track } from '../../analytics';
+import { useReadablePadding } from '../../layout/useAdaptiveLayout';
 import { openExternalUrl } from '../../lib/linking';
 import { usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
@@ -28,6 +29,7 @@ export function AboutScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const preferences = usePreferences();
   const tabBarHeight = useBottomTabBarHeight();
+  const contentPadding = useReadablePadding();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const aboutItems = [
     {
@@ -55,6 +57,7 @@ export function AboutScreen({ navigation }: Props) {
       style={styles.container}
       contentContainerStyle={[
         styles.contentContainer,
+        contentPadding,
         { paddingBottom: tabBarHeight + spacing.xl },
       ]}
       contentInsetAdjustmentBehavior="automatic"

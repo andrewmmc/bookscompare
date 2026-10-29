@@ -5,6 +5,7 @@ import { SearchResultScreen } from './SearchResultScreen';
 import { track } from '../../analytics';
 import { openExternalUrl } from '../../lib/linking';
 import { renderWithProviders } from '../../test/test-utils';
+import { setTestWindowSize, WIDE_WINDOW } from '../../test/windowSize';
 
 import type { ReactNode } from 'react';
 import type { BookOffer } from '@bookscompare/contracts';
@@ -912,5 +913,54 @@ describe('SearchResultScreen', () => {
     list.props.onRefresh();
 
     expect(refetch).toHaveBeenCalled();
+  });
+
+  describe('adaptive layout', () => {
+    const offers = [
+      createOffer({ sourceProductId: 'item-1', url: 'https://example.com/1', price: 200 }),
+      createOffer({ sourceProductId: 'item-2', url: 'https://example.com/2', price: 300 }),
+      createOffer({ sourceProductId: 'item-3', url: 'https://example.com/3', price: 400 }),
+    ];
+
+    function renderTitleResults(options?: Parameters<typeof renderWithProviders>[1]) {
+      mockUseTitleSearch.mockReturnValue({
+        data: createTitleData(offers),
+        error: null,
+        isLoading: false,
+        isRefetching: false,
+        refetch: jest.fn(),
+      });
+
+      return renderWithProviders(
+        <SearchResultScreen
+          navigation={createNavigation() as never}
+          route={{ key: 'SearchResult', name: 'SearchResult', params: { title: '設計' } } as never}
+        />,
+        options
+      );
+    }
+
+    it('keeps offers clear of a side rail on a phone-width window', async () => {
+      const screen = await renderTitleResults({ safeAreaInsets: { right: 84 } });
+
+      const list = screen.getByTestId('search-results-list');
+      expect(list.props.data).toHaveLength(3);
+      expect(list.props.contentContainerStyle).toMatchObject({
+        paddingLeft: 16,
+        paddingRight: 100,
+      });
+    });
+
+    it('lays offers out in two columns on a regular-width window', async () => {
+      setTestWindowSize(WIDE_WINDOW);
+      const screen = await renderTitleResults();
+
+      expect(screen.getByTestId('search-results-list').props.data).toHaveLength(2);
+      expect(screen.getAllByTestId(/^offer-/).map((offer) => offer.props.testID)).toEqual([
+        'offer-item-1',
+        'offer-item-2',
+        'offer-item-3',
+      ]);
+    });
   });
 });

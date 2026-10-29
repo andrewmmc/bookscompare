@@ -4,7 +4,7 @@ import { useActionSheet } from '@expo/react-native-action-sheet';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import * as Clipboard from 'expo-clipboard';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { track } from '../../analytics';
 import {
@@ -18,6 +18,7 @@ import { useIsbnLookup, useTitleSearch } from '../../api/queries';
 import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { PriceTag } from '../../components/PriceTag';
+import { AdaptiveList } from '../../layout/AdaptiveList';
 import { openExternalUrl } from '../../lib/linking';
 import { usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
@@ -33,6 +34,7 @@ import {
 } from './searchResultUtils';
 
 import type { BookOffer } from '@bookscompare/contracts';
+import type { AdaptiveListItemInfo } from '../../layout/AdaptiveList';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ThemeColors } from '../../theme/colors';
 import type { SearchResultRoutes } from '../../navigation/types';
@@ -43,7 +45,8 @@ const COPY_FEEDBACK_MS = 1600;
 
 interface OfferRowProps {
   item: BookOffer;
-  index: number;
+  isFirst: boolean;
+  isLast: boolean;
   totalCount: number;
   isbnParam: string;
   lowestPrice: number | null;
@@ -56,7 +59,8 @@ interface OfferRowProps {
 
 function OfferRow({
   item,
-  index,
+  isFirst,
+  isLast,
   totalCount,
   isbnParam,
   lowestPrice,
@@ -70,8 +74,6 @@ function OfferRow({
   const showRowFavourite = !isbnParam && Boolean(item.isbn);
   const rowIsFavourite = showRowFavourite && item.isbn ? favouriteIsbnSet.has(item.isbn) : false;
   const showLowestBadge = totalCount > 1 && lowestPrice !== null && item.price === lowestPrice;
-  const isFirst = index === 0;
-  const isLast = index === totalCount - 1;
 
   return (
     <Pressable
@@ -447,10 +449,11 @@ export function SearchResultScreen({ navigation, route }: Props) {
     });
   };
 
-  const renderOffer = ({ item, index }: { item: BookOffer; index: number }) => (
+  const renderOffer = ({ item, isFirst, isLast }: AdaptiveListItemInfo<BookOffer>) => (
     <OfferRow
       item={item}
-      index={index}
+      isFirst={isFirst}
+      isLast={isLast}
       totalCount={offers.length}
       isbnParam={isbnParam}
       lowestPrice={lowestPrice}
@@ -544,11 +547,12 @@ export function SearchResultScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <AdaptiveList
         data={offers}
         testID="search-results-list"
         style={styles.list}
-        contentContainerStyle={[styles.listContent, { paddingBottom: tabBarHeight + spacing.xl }]}
+        margin={spacing.md}
+        contentPaddingBottom={tabBarHeight + spacing.xl}
         contentInsetAdjustmentBehavior="automatic"
         keyExtractor={(item) => `${item.sourceId}:${item.sourceProductId}:${item.url}`}
         ListHeaderComponent={listHeader}
@@ -582,9 +586,6 @@ const createStyles = (colors: ThemeColors) =>
     list: {
       flex: 1,
       width: '100%',
-    },
-    listContent: {
-      paddingHorizontal: spacing.md,
     },
     listHeader: {
       paddingTop: spacing.md,

@@ -6,6 +6,7 @@ import { Linking, StyleSheet, Text, View } from 'react-native';
 import { Snackbar } from 'react-native-paper';
 
 import { track } from '../../analytics';
+import { useReadablePadding } from '../../layout/useAdaptiveLayout';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
@@ -34,6 +35,8 @@ export function BarcodeScannerScreen({ navigation }: Props) {
   const [permission, requestPermission] = useCameraPermissions();
   const [hasScanned, setHasScanned] = useState(false);
   const [invalidBarcodeVisible, setInvalidBarcodeVisible] = useState(false);
+  const overlayPadding = useReadablePadding(spacing.lg);
+  const snackbarPadding = useReadablePadding();
 
   if (!permission) {
     return <LoadingOverlay label={t('home:scanner.permissionCheckingLabel')} />;
@@ -87,7 +90,7 @@ export function BarcodeScannerScreen({ navigation }: Props) {
         style={StyleSheet.absoluteFill}
       />
 
-      <View style={styles.overlay} pointerEvents="none">
+      <View style={[styles.overlay, overlayPadding]} pointerEvents="none">
         <View style={styles.helpPillWrapper}>
           <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
           <Text style={styles.helpText}>{t('home:scanner.helpText')}</Text>
@@ -104,6 +107,7 @@ export function BarcodeScannerScreen({ navigation }: Props) {
         visible={invalidBarcodeVisible}
         onDismiss={() => setInvalidBarcodeVisible(false)}
         duration={2500}
+        wrapperStyle={snackbarPadding}
       >
         {t('home:scanner.invalidBarcode')}
       </Snackbar>
@@ -120,7 +124,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
   },
   helpPillWrapper: {
     overflow: 'hidden',
@@ -137,6 +140,7 @@ const styles = StyleSheet.create({
   },
   scanFrame: {
     width: FRAME_WIDTH,
+    maxWidth: '100%',
     height: FRAME_HEIGHT,
   },
   corner: {
