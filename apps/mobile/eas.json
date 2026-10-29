@@ -6,19 +6,29 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": {
+        "image": "macos-tahoe-26.6-xcode-27.1"
+      }
     },
     "simulator": {
       "extends": "development",
       "ios": {
+        "image": "macos-tahoe-26.6-xcode-27.1",
         "simulator": true
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": {
+        "image": "macos-tahoe-26.6-xcode-27.1"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "ios": {
+        "image": "macos-tahoe-26.6-xcode-27.1"
+      }
     }
   }
 }
