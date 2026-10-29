@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppState, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
+import { ReservedRegionsProvider } from 'react-native-reserved-regions';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { initAnalytics, registerAnalyticsProperties, setAnalyticsEnabled } from './analytics';
@@ -157,13 +158,15 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <LanguageController>
-            <ThemeProvider>
-              <AppContent />
-            </ThemeProvider>
-          </LanguageController>
-        </QueryClientProvider>
+        <ReservedRegionsProvider style={{ flex: 1 }}>
+          <QueryClientProvider client={queryClient}>
+            <LanguageController>
+              <ThemeProvider>
+                <AppContent />
+              </ThemeProvider>
+            </LanguageController>
+          </QueryClientProvider>
+        </ReservedRegionsProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
