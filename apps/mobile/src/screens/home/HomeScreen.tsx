@@ -18,6 +18,7 @@ import { AppButton } from '../../components/AppButton';
 import { AppTextField } from '../../components/AppTextField';
 import { track } from '../../analytics';
 import { featureFlags } from '../../config/featureFlags';
+import { useReadablePadding } from '../../layout/useAdaptiveLayout';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
@@ -79,6 +80,7 @@ export function HomeScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const tabBarHeight = useBottomTabBarHeight();
+  const contentPadding = useReadablePadding(spacing.lg);
   const [mode, setMode] = useState<SearchMode>('isbn');
   const [isbn, setIsbn] = useState('');
   const [title, setTitle] = useState('');
@@ -117,7 +119,7 @@ export function HomeScreen({ navigation }: Props) {
       <TouchableWithoutFeedback accessible={false} onPress={Keyboard.dismiss}>
         <ScrollView
           style={styles.scroll}
-          contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + spacing.xl }]}
+          contentContainerStyle={[contentPadding, { paddingBottom: tabBarHeight + spacing.xl }]}
           contentInsetAdjustmentBehavior="automatic"
           keyboardShouldPersistTaps="handled"
         >
@@ -233,9 +235,6 @@ const createStyles = (colors: ThemeColors) =>
     },
     scroll: {
       flex: 1,
-    },
-    content: {
-      paddingHorizontal: spacing.lg,
     },
     intro: {
       paddingTop: spacing.md,

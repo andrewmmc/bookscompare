@@ -8,6 +8,7 @@ import { setAnalyticsEnabled, track } from '../../analytics';
 import { FAVOURITES_QUERY_KEY } from '../../api/favourites';
 import { HISTORY_QUERY_KEY } from '../../api/history';
 import { ListRow } from '../../components/ListRow';
+import { useReadablePadding } from '../../layout/useAdaptiveLayout';
 import { resetAppData } from '../../lib/appData';
 import { clearIcloudData, runInitialIcloudSync } from '../../lib/icloudSync';
 import { updatePreference, usePreferences } from '../../lib/preferences';
@@ -93,6 +94,7 @@ export function SettingsScreen({ navigation }: Props) {
   const preferences = usePreferences();
   const queryClient = useQueryClient();
   const tabBarHeight = useBottomTabBarHeight();
+  const contentPadding = useReadablePadding();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const storePrefsValue =
@@ -168,6 +170,7 @@ export function SettingsScreen({ navigation }: Props) {
       style={styles.container}
       contentContainerStyle={[
         styles.contentContainer,
+        contentPadding,
         { paddingBottom: tabBarHeight + spacing.xl },
       ]}
       contentInsetAdjustmentBehavior="automatic"

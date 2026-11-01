@@ -120,6 +120,8 @@ module.exports = ({ config }) => {
         {
           ios: {
             deploymentTarget: '17.0',
+            // Required to launch on iOS 27 when built with Xcode 27; remove after upgrading to SDK 58.
+            enableSceneSupport: true,
           },
         },
       ],

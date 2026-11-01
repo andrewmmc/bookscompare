@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from './AppButton';
+import { useReadablePadding } from '../layout/useAdaptiveLayout';
 import { spacing } from '../theme/spacing';
 import { useTheme } from '../theme/ThemeProvider';
 import { typography } from '../theme/typography';
@@ -29,9 +30,10 @@ export function EmptyState({
 }: EmptyStateProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const contentPadding = useReadablePadding(spacing.lg);
 
   return (
-    <View style={[styles.container, containerStyle]}>
+    <View style={[styles.container, contentPadding, containerStyle]}>
       <View style={styles.iconCircle}>
         <Ionicons color={colors.accent} name={icon} size={36} />
       </View>
@@ -50,7 +52,6 @@ const createStyles = (colors: ThemeColors) =>
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: spacing.lg,
       paddingVertical: spacing.xxl,
       gap: spacing.sm,
     },
