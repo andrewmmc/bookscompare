@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo, useState } from 'react';
 import {
   Keyboard,
@@ -24,11 +23,11 @@ import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 
 import { normalizeIsbn, isValidIsbn } from '@bookscompare/contracts';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from 'expo-router';
 import type { ThemeColors } from '../../theme/colors';
 import type { HomeStackParamList } from '../../navigation/types';
 
-type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
+type Props = NativeStackScreenProps<HomeStackParamList, 'index'>;
 
 type SearchMode = 'isbn' | 'title';
 
@@ -79,7 +78,6 @@ export function HomeScreen({ navigation }: Props) {
   const { t } = useTranslation('home');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const tabBarHeight = useBottomTabBarHeight();
   const contentPadding = useReadablePadding(spacing.lg);
   const [mode, setMode] = useState<SearchMode>('isbn');
   const [isbn, setIsbn] = useState('');
@@ -119,7 +117,7 @@ export function HomeScreen({ navigation }: Props) {
       <TouchableWithoutFeedback accessible={false} onPress={Keyboard.dismiss}>
         <ScrollView
           style={styles.scroll}
-          contentContainerStyle={[contentPadding, { paddingBottom: tabBarHeight + spacing.xl }]}
+          contentContainerStyle={[contentPadding, { paddingBottom: spacing.xl }]}
           contentInsetAdjustmentBehavior="automatic"
           keyboardShouldPersistTaps="handled"
         >

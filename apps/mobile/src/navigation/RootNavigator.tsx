@@ -1,87 +1,36 @@
 import { useTranslation } from 'react-i18next';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { BlurView } from 'expo-blur';
-import { Platform, StyleSheet } from 'react-native';
-
-import { AboutStack } from './AboutStack';
-import { FavouritesStack } from './FavouritesStack';
-import { HomeStack } from './HomeStack';
+import { NativeTabs } from 'expo-router/native-tabs';
 
 import { useTheme } from '../theme/ThemeProvider';
-import { typography } from '../theme/typography';
 
-import type { RootTabParamList } from './types';
-
-const Tab = createBottomTabNavigator<RootTabParamList>();
-
-function tabIconName(
-  routeName: keyof RootTabParamList,
-  focused: boolean
-): keyof typeof Ionicons.glyphMap {
-  switch (routeName) {
-    case 'HomeTab':
-      return focused ? 'search' : 'search-outline';
-    case 'FavouritesTab':
-      return focused ? 'heart' : 'heart-outline';
-    case 'AboutTab':
-    default:
-      return focused ? 'information-circle' : 'information-circle-outline';
-  }
-}
-
+/**
+ * System tab bar (Liquid Glass on iOS 26+). iOS places it along the bottom or, on iPhone Duo,
+ * in the side rail, and insets each tab's content for wherever it currently sits.
+ */
 export function RootNavigator() {
   const { t } = useTranslation('navigation');
-  const { colors, scheme } = useTheme();
-  const blurTint = scheme === 'dark' ? 'dark' : 'light';
-  const useBlur = Platform.OS === 'ios';
+  const { colors } = useTheme();
 
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.inkMuted,
-        tabBarStyle: useBlur
-          ? {
-              position: 'absolute',
-              backgroundColor: 'transparent',
-              borderTopWidth: StyleSheet.hairlineWidth,
-              borderTopColor: colors.divider,
-              elevation: 0,
-            }
-          : {
-              backgroundColor: colors.surface,
-              borderTopColor: colors.divider,
-            },
-        ...(useBlur
-          ? {
-              tabBarBackground: () => (
-                <BlurView intensity={70} tint={blurTint} style={StyleSheet.absoluteFill} />
-              ),
-            }
-          : {}),
-        tabBarLabelStyle: typography.tabLabel,
-        tabBarIcon: ({ color, focused, size }) => (
-          <Ionicons color={color} name={tabIconName(route.name, focused)} size={size} />
-        ),
-      })}
-    >
-      <Tab.Screen
-        name="HomeTab"
-        component={HomeStack}
-        options={{ title: t('navigation:tabs.home') }}
-      />
-      <Tab.Screen
-        name="FavouritesTab"
-        component={FavouritesStack}
-        options={{ title: t('navigation:tabs.favourites') }}
-      />
-      <Tab.Screen
-        name="AboutTab"
-        component={AboutStack}
-        options={{ title: t('navigation:tabs.about') }}
-      />
-    </Tab.Navigator>
+    <NativeTabs tintColor={colors.accent}>
+      <NativeTabs.Trigger name="(home)">
+        <NativeTabs.Trigger.Icon sf="magnifyingglass" md="search" />
+        <NativeTabs.Trigger.Label>{t('navigation:tabs.home')}</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="favourites">
+        <NativeTabs.Trigger.Icon
+          sf={{ default: 'heart', selected: 'heart.fill' }}
+          md={{ default: 'favorite_border', selected: 'favorite' }}
+        />
+        <NativeTabs.Trigger.Label>{t('navigation:tabs.favourites')}</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="about">
+        <NativeTabs.Trigger.Icon
+          sf={{ default: 'info.circle', selected: 'info.circle.fill' }}
+          md={{ default: 'info_outline', selected: 'info' }}
+        />
+        <NativeTabs.Trigger.Label>{t('navigation:tabs.about')}</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }

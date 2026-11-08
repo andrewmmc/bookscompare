@@ -1,4 +1,4 @@
-import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
+import type { NativeStackNavigationOptions } from 'expo-router';
 import type { ThemeColors } from '../theme/colors';
 
 export function getGroupedStackScreenOptions(colors: ThemeColors): NativeStackNavigationOptions {

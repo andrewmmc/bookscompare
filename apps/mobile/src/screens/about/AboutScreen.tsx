@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import Constants from 'expo-constants';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -15,20 +14,19 @@ import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from 'expo-router';
 import type { ThemeColors } from '../../theme/colors';
 import type { AboutStackParamList } from '../../navigation/types';
 
 const appVersion = packageJson.version;
 const buildNumber = Constants.nativeBuildVersion ?? '';
 
-type Props = NativeStackScreenProps<AboutStackParamList, 'About'>;
+type Props = NativeStackScreenProps<AboutStackParamList, 'index'>;
 
 export function AboutScreen({ navigation }: Props) {
   const { t } = useTranslation(['settings', 'navigation']);
   const { colors } = useTheme();
   const preferences = usePreferences();
-  const tabBarHeight = useBottomTabBarHeight();
   const contentPadding = useReadablePadding();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const aboutItems = [
@@ -58,7 +56,7 @@ export function AboutScreen({ navigation }: Props) {
       contentContainerStyle={[
         styles.contentContainer,
         contentPadding,
-        { paddingBottom: tabBarHeight + spacing.xl },
+        { paddingBottom: spacing.xl },
       ]}
       contentInsetAdjustmentBehavior="automatic"
     >

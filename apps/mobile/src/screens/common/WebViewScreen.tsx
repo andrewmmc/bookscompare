@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import { Pressable, Share, StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
@@ -8,10 +7,11 @@ import { WebView } from 'react-native-webview';
 import { track } from '../../analytics';
 import { EmptyState } from '../../components/EmptyState';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
+import { useBottomBarInset } from '../../layout/useAdaptiveLayout';
 import { getSecureWebOrigin, openExternalUrl } from '../../lib/linking';
 import { useTheme } from '../../theme/ThemeProvider';
 
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from 'expo-router';
 import type { ThemeColors } from '../../theme/colors';
 import type {
   AboutStackParamList,
@@ -30,7 +30,7 @@ export function WebViewScreen({ navigation, route }: Props) {
   const { t } = useTranslation('common');
   const { colors, scheme } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const tabBarHeight = useBottomTabBarHeight();
+  const bottomBarInset = useBottomBarInset();
   const initialOrigin = useMemo(() => getSecureWebOrigin(route.params.url), [route.params.url]);
   const [loadState, setLoadState] = useState<LoadState>(initialOrigin ? 'loading' : 'error');
   const injectedJavaScript = useMemo(
@@ -147,7 +147,7 @@ export function WebViewScreen({ navigation, route }: Props) {
         injectedJavaScript={injectedJavaScript}
         forceDarkOn={scheme === 'dark'}
         source={{ uri: route.params.url }}
-        style={[styles.webview, { marginBottom: tabBarHeight }]}
+        style={[styles.webview, { marginBottom: bottomBarInset }]}
       />
       {loadState === 'loading' ? <LoadingOverlay label={t('common:webview.loadingLabel')} /> : null}
     </View>

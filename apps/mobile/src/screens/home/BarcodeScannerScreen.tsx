@@ -15,7 +15,7 @@ import { LoadingOverlay } from '../../components/LoadingOverlay';
 
 import { isValidIsbn, normalizeIsbn } from '@bookscompare/contracts';
 import type { BarcodeScanningResult } from 'expo-camera';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from 'expo-router';
 import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'BarcodeScanner'>;

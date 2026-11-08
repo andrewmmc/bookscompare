@@ -20,7 +20,6 @@ module.exports = ({ config }) => {
     icon: './assets/icon.png',
     scheme: 'bookscompare',
     userInterfaceStyle: 'automatic',
-    newArchEnabled: true,
     splash: {
       image: './assets/splash.png',
       resizeMode: 'contain',
@@ -95,7 +94,6 @@ module.exports = ({ config }) => {
         foregroundImage: './assets/icon.png',
         backgroundColor: '#ffffff',
       },
-      edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
     },
     extra: {
@@ -105,6 +103,8 @@ module.exports = ({ config }) => {
       ...(easProjectId ? { eas: { projectId: easProjectId } } : {}),
     },
     plugins: [
+      'expo-router',
+      'expo-status-bar',
       'expo-font',
       [
         'expo-localization',
@@ -120,8 +120,6 @@ module.exports = ({ config }) => {
         {
           ios: {
             deploymentTarget: '17.0',
-            // Required to launch on iOS 27 when built with Xcode 27; remove after upgrading to SDK 58.
-            enableSceneSupport: true,
           },
         },
       ],

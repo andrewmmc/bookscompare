@@ -1,8 +1,9 @@
 import 'react-native-gesture-handler/jestSetup';
 
-import { render, screen, waitFor } from '@testing-library/react-native';
+import path from 'path';
+import { router } from 'expo-router';
+import { act, fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
 
-import App from './App';
 import { i18n } from './i18n';
 
 jest.mock('./analytics', () => ({
@@ -37,14 +38,38 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+const appDirectory = path.resolve(__dirname, 'app');
+
 describe('App', () => {
-  it('mounts and renders the tab navigator once preferences load', async () => {
-    await render(<App />);
+  it('opens the home tab once preferences load', async () => {
+    await renderRouter(appDirectory);
 
     await waitFor(() => {
-      expect(screen.getByText(i18n.t('tabs.home', { ns: 'navigation' }))).toBeTruthy();
+      expect(screen.getByText(i18n.t('home.searchAction', { ns: 'home' }))).toBeTruthy();
     });
-    expect(screen.getByText(i18n.t('tabs.favourites', { ns: 'navigation' }))).toBeTruthy();
-    expect(screen.getByText(i18n.t('tabs.about', { ns: 'navigation' }))).toBeTruthy();
+    expect(screen).toHavePathname('/');
+    expect(screen).toHaveSegments(['(home)']);
+  });
+
+  it('pushes home stack screens from screen navigation calls', async () => {
+    await renderRouter(appDirectory);
+    const scanButton = await screen.findByLabelText(i18n.t('home.scanAction', { ns: 'home' }));
+
+    await act(() => fireEvent.press(scanButton));
+
+    expect(screen).toHaveSegments(['(home)', 'BarcodeScanner']);
+  });
+
+  it('routes to the favourites and about tabs', async () => {
+    await renderRouter(appDirectory);
+    await waitFor(() => {
+      expect(screen).toHavePathname('/');
+    });
+
+    await act(() => router.navigate('/favourites'));
+    expect(screen).toHaveSegments(['favourites']);
+
+    await act(() => router.navigate('/about'));
+    expect(screen).toHaveSegments(['about']);
   });
 });

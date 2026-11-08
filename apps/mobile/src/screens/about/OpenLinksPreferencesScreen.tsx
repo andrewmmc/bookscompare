@@ -4,7 +4,7 @@ import { SelectionListScreen } from '../../components/PreferenceListScreen';
 import { syncPreferencesToIcloud } from '../../lib/icloudSync';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from 'expo-router';
 import type { OpenLinksIn } from '../../lib/preferences';
 import type { AboutStackParamList } from '../../navigation/types';
 
