@@ -15,9 +15,9 @@ The mobile app lives here as an Expo SDK 54 workspace app with an iOS-first rele
 
 ## Stack
 
-- Expo SDK 54 / React Native 0.81
+- Expo SDK 58 / React Native 0.88
 - TypeScript
-- React Navigation 7
+- Expo Router (`NativeTabs` + native `Stack`)
 - React Native Paper
 - TanStack Query
 - Jest + React Native Testing Library

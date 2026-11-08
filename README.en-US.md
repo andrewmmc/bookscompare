@@ -94,14 +94,15 @@ apps/
       services/   # Service layer for ISBN/title queries, handles fan-out
       sources/    # Scrapers and source adapters for each bookstore
       index.ts
-  mobile/     # Expo SDK 54 iOS-first App
+  mobile/     # Expo SDK 58 iOS-first App
     src/
+      app/        # Expo Router route files (native tabs + per-tab stacks)
       analytics/  # PostHog integration
       api/        # API client
       components/
       i18n/       # zh-TW / en translation strings
       lib/
-      navigation/ # React Navigation stacks/tabs
+      navigation/ # NativeTabs and per-tab Stack configuration
       screens/    # Home, About, shared screens
       theme/
 packages/
@@ -122,8 +123,8 @@ packages/
 
 ### Mobile
 
-- **Framework**: Expo SDK 54, React Native 0.81, React 19.
-- **Navigation**: React Navigation (native-stack + bottom-tabs).
+- **Framework**: Expo SDK 58, React Native 0.88, React 19.3.
+- **Navigation**: Expo Router (native `NativeTabs`, Liquid Glass on iOS 26+; a native `Stack` per tab).
 - **Data**: TanStack React Query.
 - **UI**: React Native Paper, `@expo/vector-icons`, `@expo/react-native-action-sheet`.
 - **Camera / Barcode**: `expo-camera`.
