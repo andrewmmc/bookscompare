@@ -4,7 +4,7 @@ import { track } from '../../analytics';
 import { SelectionListScreen } from '../../components/PreferenceListScreen';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from 'expo-router';
 import type { LanguagePreference } from '../../i18n/locale';
 import type { AboutStackParamList } from '../../navigation/types';
 

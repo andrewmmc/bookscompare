@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useWindowDimensions } from 'react-native';
+import { Platform, useWindowDimensions } from 'react-native';
 import { useReservedRegions } from 'react-native-reserved-regions';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,7 +12,7 @@ import type { AdaptiveLayout, SpanPadding } from './adaptiveLayout';
  * or unfolding, Split View), when the side rail changes the safe area, and when the hinge fold
  * becomes active or inactive. Spans are in window coordinates, so apply them to full-width views.
  *
- * Requires a `ReservedRegionsProvider` covering the window (see `App.tsx`).
+ * Requires a `ReservedRegionsProvider` covering the window (see `src/App.tsx`).
  */
 export function useAdaptiveLayout(): AdaptiveLayout {
   const { width: windowWidth } = useWindowDimensions();
@@ -34,6 +34,19 @@ export function useAdaptiveLayout(): AdaptiveLayout {
       }),
     [windowWidth, left, right, foldStart, foldEnd]
   );
+}
+
+/**
+ * Bottom space to keep a non-scrolling view (snackbar, web view) clear of the tab bar. Scroll views
+ * should rely on `contentInsetAdjustmentBehavior="automatic"` instead.
+ *
+ * On iOS each native tab has its own safe area, whose bottom includes the tab bar only while it runs
+ * along the bottom (not in the iPhone Duo side rail). On Android, native tabs already pad their
+ * content above the tab bar.
+ */
+export function useBottomBarInset(): number {
+  const { bottom } = useSafeAreaInsets();
+  return Platform.OS === 'ios' ? bottom : 0;
 }
 
 /** Horizontal padding that keeps a full-width view's content in the readable span. */

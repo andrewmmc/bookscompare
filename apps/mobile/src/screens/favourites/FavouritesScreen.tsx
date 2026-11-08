@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Snackbar } from 'react-native-paper';
@@ -17,26 +16,26 @@ import { EmptyState } from '../../components/EmptyState';
 import { SwipeToDeleteRow } from '../../components/SwipeToDeleteRow';
 import { useShakeToUndo } from '../../hooks/useShakeToUndo';
 import { AdaptiveList } from '../../layout/AdaptiveList';
-import { useReadablePadding } from '../../layout/useAdaptiveLayout';
+import { useBottomBarInset, useReadablePadding } from '../../layout/useAdaptiveLayout';
 import { formatDateTime } from '../../lib/datetime';
 import { updatePreference, usePreferences } from '../../lib/preferences';
 import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from 'expo-router';
 import type { Favourite } from '../../lib/favourites';
 import type { ThemeColors } from '../../theme/colors';
 import type { FavouritesStackParamList } from '../../navigation/types';
 
-type Props = NativeStackScreenProps<FavouritesStackParamList, 'Favourites'>;
+type Props = NativeStackScreenProps<FavouritesStackParamList, 'index'>;
 
 export function FavouritesScreen({ navigation }: Props) {
   const { t } = useTranslation('library');
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const tabBarHeight = useBottomTabBarHeight();
   const snackbarPadding = useReadablePadding();
+  const bottomBarInset = useBottomBarInset();
   const { data, isLoading } = useFavourites();
   const removeFavourite = useRemoveFavourite();
   const restoreFavourite = useRestoreFavourite();
@@ -122,7 +121,7 @@ export function FavouritesScreen({ navigation }: Props) {
         keyExtractor={(item) => item.isbn}
         margin={spacing.md}
         contentPaddingTop={spacing.md}
-        contentPaddingBottom={tabBarHeight + spacing.xl}
+        contentPaddingBottom={spacing.xl}
         contentInsetAdjustmentBehavior="automatic"
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         renderItem={({ item, isFirst, isLast }) => {
@@ -178,7 +177,7 @@ export function FavouritesScreen({ navigation }: Props) {
           setUndoCandidate(null);
         }}
         visible={showUndoHint}
-        wrapperStyle={[snackbarPadding, { bottom: tabBarHeight }]}
+        wrapperStyle={[snackbarPadding, { bottom: bottomBarInset }]}
       >
         {t('library:favourites.deletedUndoHint')}
       </Snackbar>

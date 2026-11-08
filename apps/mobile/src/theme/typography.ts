@@ -53,9 +53,4 @@ export const typography = {
     lineHeight: 24,
     fontWeight: '700',
   }),
-  tabLabel: textStyle({
-    fontSize: 10,
-    lineHeight: 12,
-    fontWeight: '500',
-  }),
 } as const;

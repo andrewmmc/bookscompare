@@ -1,4 +1,3 @@
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +15,7 @@ import { spacing } from '../../theme/spacing';
 import { useTheme } from '../../theme/ThemeProvider';
 import { typography } from '../../theme/typography';
 
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from 'expo-router';
 import type { TFunction } from 'i18next';
 import type { BookTypePreference, OpenLinksIn, ThemeMode } from '../../lib/preferences';
 import type { ThemeColors } from '../../theme/colors';
@@ -93,7 +92,6 @@ export function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation('settings');
   const preferences = usePreferences();
   const queryClient = useQueryClient();
-  const tabBarHeight = useBottomTabBarHeight();
   const contentPadding = useReadablePadding();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -171,7 +169,7 @@ export function SettingsScreen({ navigation }: Props) {
       contentContainerStyle={[
         styles.contentContainer,
         contentPadding,
-        { paddingBottom: tabBarHeight + spacing.xl },
+        { paddingBottom: spacing.xl },
       ]}
       contentInsetAdjustmentBehavior="automatic"
     >

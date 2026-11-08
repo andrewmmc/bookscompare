@@ -1,14 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
-import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppState, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import { ReservedRegionsProvider } from 'react-native-reserved-regions';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { initAnalytics, registerAnalyticsProperties, setAnalyticsEnabled } from './analytics';
 import { FAVOURITES_QUERY_KEY } from './api/favourites';
@@ -145,29 +144,28 @@ function AppContent() {
   return (
     <PaperProvider theme={paperTheme}>
       <ActionSheetProvider>
-        <NavigationContainer theme={navigationTheme}>
+        <NavigationThemeProvider value={navigationTheme}>
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
           {preferencesLoaded && icloudSyncReady ? <RootNavigator /> : <AppStartupSkeleton />}
-        </NavigationContainer>
+        </NavigationThemeProvider>
       </ActionSheetProvider>
     </PaperProvider>
   );
 }
 
+/** Root layout, re-exported by `src/app/_layout.tsx`. Expo Router provides the safe area above it. */
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <ReservedRegionsProvider style={{ flex: 1 }}>
-          <QueryClientProvider client={queryClient}>
-            <LanguageController>
-              <ThemeProvider>
-                <AppContent />
-              </ThemeProvider>
-            </LanguageController>
-          </QueryClientProvider>
-        </ReservedRegionsProvider>
-      </SafeAreaProvider>
+      <ReservedRegionsProvider style={{ flex: 1 }}>
+        <QueryClientProvider client={queryClient}>
+          <LanguageController>
+            <ThemeProvider>
+              <AppContent />
+            </ThemeProvider>
+          </LanguageController>
+        </QueryClientProvider>
+      </ReservedRegionsProvider>
     </GestureHandlerRootView>
   );
 }

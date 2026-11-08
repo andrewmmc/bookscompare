@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
@@ -33,11 +32,10 @@ export function ToggleListScreen<T extends string>({
   testIDPrefix,
 }: ToggleListScreenProps<T>) {
   const { colors } = useTheme();
-  const tabBarHeight = useBottomTabBarHeight();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
-    <PreferenceScrollView styles={styles} tabBarHeight={tabBarHeight} description={description}>
+    <PreferenceScrollView styles={styles} description={description}>
       {options.map((option, index) => {
         const isLast = index === options.length - 1;
         return (
@@ -75,11 +73,10 @@ export function SelectionListScreen<T extends string>({
   testIDPrefix,
 }: SelectionListScreenProps<T>) {
   const { colors } = useTheme();
-  const tabBarHeight = useBottomTabBarHeight();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
-    <PreferenceScrollView styles={styles} tabBarHeight={tabBarHeight} description={description}>
+    <PreferenceScrollView styles={styles} description={description}>
       {options.map((option, index) => {
         const isLast = index === options.length - 1;
         const selected = option.value === selectedValue;
@@ -106,17 +103,11 @@ export function SelectionListScreen<T extends string>({
 
 interface PreferenceScrollViewProps {
   styles: ReturnType<typeof createStyles>;
-  tabBarHeight: number;
   description: string;
   children: ReactNode;
 }
 
-function PreferenceScrollView({
-  styles,
-  tabBarHeight,
-  description,
-  children,
-}: PreferenceScrollViewProps) {
+function PreferenceScrollView({ styles, description, children }: PreferenceScrollViewProps) {
   const contentPadding = useReadablePadding();
 
   return (
@@ -125,7 +116,7 @@ function PreferenceScrollView({
       contentContainerStyle={[
         styles.contentContainer,
         contentPadding,
-        { paddingBottom: tabBarHeight + spacing.xl },
+        { paddingBottom: spacing.xl },
       ]}
       contentInsetAdjustmentBehavior="automatic"
     >

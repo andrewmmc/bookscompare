@@ -22,15 +22,6 @@ jest.mock('@expo/react-native-action-sheet', () => ({
   useActionSheet: () => ({ showActionSheetWithOptions: jest.fn() }),
 }));
 
-jest.mock('@react-navigation/bottom-tabs', () => {
-  const actual = jest.requireActual('@react-navigation/bottom-tabs');
-
-  return {
-    ...actual,
-    useBottomTabBarHeight: () => 48,
-  };
-});
-
 jest.mock('react-native-webview', () => ({
   WebView: ({
     style,
@@ -115,7 +106,7 @@ describe('WebViewScreen', () => {
     expect(navigation.setOptions).toHaveBeenLastCalledWith({ title: '測試頁面' });
   });
 
-  it('adds bottom space for the tab bar', async () => {
+  it('keeps the web view above the tab bar using the tab safe-area inset', async () => {
     const navigation = {
       setOptions: jest.fn(),
     };
@@ -130,10 +121,11 @@ describe('WebViewScreen', () => {
             params: { title: '測試頁面', url: 'https://example.com', showOptions: true },
           } as never
         }
-      />
+      />,
+      { safeAreaInsets: { bottom: 83 } }
     );
 
-    expect(screen.getByTestId('mock-webview')).toHaveStyle({ marginBottom: 48 });
+    expect(screen.getByTestId('mock-webview')).toHaveStyle({ marginBottom: 83 });
   });
 
   it('hides the loading overlay after the web view finishes loading', async () => {

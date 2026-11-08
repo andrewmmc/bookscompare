@@ -1,25 +1,18 @@
 import { useTranslation } from 'react-i18next';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Stack } from 'expo-router';
 
-import { WebViewScreen } from '../screens/common/WebViewScreen';
-import { FavouritesScreen } from '../screens/favourites/FavouritesScreen';
-import { SearchResultScreen } from '../screens/home/SearchResultScreen';
 import { useTheme } from '../theme/ThemeProvider';
 
 import { getGroupedStackScreenOptions } from './stackScreenOptions';
-import type { FavouritesStackParamList } from './types';
-
-const Stack = createNativeStackNavigator<FavouritesStackParamList>();
 
 export function FavouritesStack() {
   const { t } = useTranslation('navigation');
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator screenOptions={getGroupedStackScreenOptions(colors)}>
+    <Stack screenOptions={getGroupedStackScreenOptions(colors)}>
       <Stack.Screen
-        name="Favourites"
-        component={FavouritesScreen}
+        name="index"
         options={{
           title: t('navigation:navigation.favourites'),
           headerBackTitle: '',
@@ -28,7 +21,6 @@ export function FavouritesStack() {
       />
       <Stack.Screen
         name="SearchResult"
-        component={SearchResultScreen}
         options={{
           title: t('navigation:navigation.searchResult'),
           headerBackTitle: '',
@@ -37,7 +29,7 @@ export function FavouritesStack() {
           contentStyle: { backgroundColor: colors.groupedBackground },
         }}
       />
-      <Stack.Screen name="SearchWebView" component={WebViewScreen} />
-    </Stack.Navigator>
+      <Stack.Screen name="SearchWebView" />
+    </Stack>
   );
 }

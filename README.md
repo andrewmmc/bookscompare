@@ -94,14 +94,15 @@ apps/
       services/   # 以 ISBN / 書名查詢的服務層,負責 fan-out
       sources/    # 各書店的爬蟲與來源轉接器
       index.ts
-  mobile/     # Expo SDK 54 iOS-first App
+  mobile/     # Expo SDK 58 iOS-first App
     src/
+      app/        # Expo Router 路由檔（原生分頁 + 各分頁 stack）
       analytics/  # PostHog 串接
       api/        # API client
       components/
       i18n/       # zh-TW / en JSON namespace 翻譯與語言解析
       lib/
-      navigation/ # React Navigation stacks/tabs
+      navigation/ # NativeTabs 分頁與各分頁 Stack 設定
       screens/    # 首頁、關於、共用畫面
       theme/
 packages/
@@ -122,8 +123,8 @@ packages/
 
 ### Mobile
 
-- **框架**：Expo SDK 54、React Native 0.81、React 19。
-- **導覽**：React Navigation（native-stack + bottom-tabs）。
+- **框架**：Expo SDK 58、React Native 0.88、React 19.3。
+- **導覽**：Expo Router（原生 `NativeTabs` 分頁，iOS 26+ 為 Liquid Glass；各分頁使用原生 `Stack`）。
 - **資料**：TanStack React Query。
 - **UI**：React Native Paper、`@expo/vector-icons`、`@expo/react-native-action-sheet`。
 - **相機 / 條碼**：`expo-camera`。

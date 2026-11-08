@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import * as Clipboard from 'expo-clipboard';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -35,7 +34,7 @@ import {
 
 import type { BookOffer } from '@bookscompare/contracts';
 import type { AdaptiveListItemInfo } from '../../layout/AdaptiveList';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from 'expo-router';
 import type { ThemeColors } from '../../theme/colors';
 import type { SearchResultRoutes } from '../../navigation/types';
 
@@ -171,7 +170,6 @@ export function SearchResultScreen({ navigation, route }: Props) {
   const { colors, scheme } = useTheme();
   const { showActionSheetWithOptions } = useActionSheet();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const tabBarHeight = useBottomTabBarHeight();
   const { openLinksIn, preferredSources, preferredBookTypes } = usePreferences();
   const [sortMode, setSortMode] = useState<ResultSortMode>('price');
   const [copiedQuery, setCopiedQuery] = useState(false);
@@ -552,7 +550,7 @@ export function SearchResultScreen({ navigation, route }: Props) {
         testID="search-results-list"
         style={styles.list}
         margin={spacing.md}
-        contentPaddingBottom={tabBarHeight + spacing.xl}
+        contentPaddingBottom={spacing.xl}
         contentInsetAdjustmentBehavior="automatic"
         keyExtractor={(item) => `${item.sourceId}:${item.sourceProductId}:${item.url}`}
         ListHeaderComponent={listHeader}
